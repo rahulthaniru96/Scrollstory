@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrollstory world v2 · grey blockout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #1E2A26; --cream: #F7EFE2; --butter: #F2D98B; --oxide: #9E3B2C; --ease: cubic-bezier(0.16, 1, 0.3, 1); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #F3CFA4; color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+  header { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; z-index: 5; }
+  .brand { font-family: 'Instrument Serif', serif; font-size: 26px; }
+  .brand small { margin-left: 8px; font-size: 10px; }
+  .pill { font: inherit; border: 1px solid var(--ink); background: rgba(247, 239, 226, 0.7); color: var(--ink); border-radius: 999px; padding: 10px 16px; cursor: pointer; text-decoration: none; transition: background-color 0.35s, color 0.35s; }
+  .pill:hover, .pill:focus-visible { background: var(--ink); color: var(--cream); }
+  .pill.solid { background: var(--ink); color: var(--cream); }
+  #plan { position: fixed; top: 70px; right: 28px; z-index: 6; background: var(--cream); border: 1px solid var(--ink); border-radius: 14px; padding: 10px; display: none; width: 220px; }
+  #plan.open { display: block; }
+  #plan button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--ink); }
+  #plan button:hover, #plan button:focus-visible, #plan button.here { background: var(--butter); }
+  #caption { position: fixed; left: 5vw; bottom: 12vh; z-index: 4; max-width: 80vw; color: var(--cream); text-shadow: 0 2px 24px rgba(20, 32, 29, 0.55); opacity: 0; transform: translateY(16px); pointer-events: none; }
+  #caption .label { margin-bottom: 10px; }
+  #caption h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(34px, 5.2vw, 72px); line-height: 1; margin: 0; }
+  #caption h1 em { display: block; color: #F7C98A; }
+  #contact { position: fixed; right: 28px; bottom: 24px; z-index: 5; display: flex; gap: 10px; align-items: center; }
+  #hud { position: fixed; left: 16px; top: 76px; z-index: 5; background: rgba(30, 42, 38, 0.82); color: var(--cream); padding: 10px 12px; border-radius: 10px; font: 12px/1.55 'IBM Plex Mono', ui-monospace, monospace; white-space: pre; pointer-events: none; }
+  #hud.off { display: none; }
+  #hud b { color: var(--butter); font-weight: 500; }
+  #hud .bad { color: #ff9c8a; }
+  #mist { position: fixed; inset: 0; z-index: 3; background: #F6E7D2; opacity: 0; pointer-events: none; }
+  #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 4; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.6); }
+  #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
+  @media (max-width: 640px) { header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 10px; top: 64px; } .brand small { display: none; } }
+</style>
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div id="track"></div>
+
+<header>
+  <div class="brand">scrollstory <small class="mono">studio · grey blockout</small></div>
+  <nav>
+    <button class="pill mono" id="planBtn" aria-expanded="false" aria-controls="plan">Floor plan</button>
+  </nav>
+</header>
+<div id="plan" role="menu" aria-label="Floor plan"></div>
+
+<div id="caption" aria-live="polite"><div class="label mono"></div><h1></h1></div>
+<div id="hud"></div>
+<div id="hint" class="mono">Scroll to walk · H hides the readout · R tests reduced motion</div>
+<div id="contact">
+  <a class="pill" href="tel:+919949088659">Call</a>
+  <a class="pill solid" href="https://wa.me/919949088659" target="_blank" rel="noopener">WhatsApp</a>
+</div>
+<div id="mist"></div>
+<div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp +91 99490 88659.</p></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

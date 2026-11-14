@@ -4,7 +4,7 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { buildRail } from './rail.js';
 import { smoothDamp } from './spring.js';
-import { COLLIDERS, CARDS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, stairY, H, WINDOW, SUN_PATCH, clearanceAt, CLEAR } from './world.js';
+import { COLLIDERS, CARDS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, stairY, H, WINDOW, SUN_PATCH, SKY_BY_HEIGHT, clearanceAt, CLEAR } from './world.js';
 
 // ---------- feel numbers (motion spec, sections 2 and 5). All tagged [C] there: tune here. ----------
 const FEEL = {
@@ -153,7 +153,7 @@ for (let y = 13.4; y <= 21.8; y += 0.9) {
 // ---------- sky, fog and light by camera height (motion spec, section 7) ----------
 const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const SKY = [[0, 0xf3cfa4], [9, 0xf2c08e], [13, 0xf6d9b8], [15, 0xf3eee6], [17.5, 0xf7d9d3], [20, 0xfbe0a8], [23, 0xf2a766], [36, 0xe8935a]].map(([h, c]) => [h, new THREE.Color(c)]);
+const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const skyCol = new THREE.Color();
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;

@@ -18,6 +18,9 @@ export const stairPt = (phi, r = STAIR.rWalk, dy = 0) => [
 // Heights (floor level of each piece).
 export const H = { roof: 9, wing: 4.5, cloud0: 13, cloud1: 22, landing: 26, home: 28, extras: 30, rooftop: 33 };
 
+// Sky and fog colour by camera height (motion spec, section 7). The cloud sea sits between 13 and 22 m.
+export const SKY_BY_HEIGHT = [[0, 0xf3cfa4], [9, 0xf2c08e], [13, 0xf6d9b8], [15, 0xf3eee6], [17.5, 0xf7d9d3], [20, 0xfbe0a8], [23, 0xf2a766], [36, 0xe8935a]];
+
 // ---------- colliders ----------
 const C = [];
 const box = (name, x0, x1, y0, y1, z0, z1, kind = 'wall') =>

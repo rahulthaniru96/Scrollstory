@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scrollstory world v2 · grey blockout</title>
+<title>Scrollstory world v2 · walkthrough draft</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -33,6 +33,9 @@
   #hud b { color: var(--butter); font-weight: 500; }
   #hud .bad { color: #ff9c8a; }
   #mist { position: fixed; inset: 0; z-index: 3; background: #F6E7D2; opacity: 0; pointer-events: none; }
+  /* film: grain and a soft vignette over the 3D, under the page text */
+  #film { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, rgba(42, 26, 14, 0) 55%, rgba(42, 26, 14, 0.34) 100%); }
+  #film::after { content: ''; position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
   #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 4; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.6); }
   #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
   @media (max-width: 640px) { header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 10px; top: 64px; } .brand small { display: none; } }
@@ -43,7 +46,7 @@
 <div id="track"></div>
 
 <header>
-  <div class="brand">scrollstory <small class="mono">studio · grey blockout</small></div>
+  <div class="brand">scrollstory <small class="mono">studio · world v2 · draft</small></div>
   <nav>
     <button class="pill mono" id="planBtn" aria-expanded="false" aria-controls="plan">Floor plan</button>
   </nav>
@@ -52,11 +55,12 @@
 
 <div id="caption" aria-live="polite"><div class="label mono"></div><h1></h1></div>
 <div id="hud"></div>
-<div id="hint" class="mono">Scroll to walk · H hides the readout · R tests reduced motion</div>
+<div id="hint" class="mono">Scroll to walk · move the mouse · H hides the readout</div>
 <div id="contact">
   <a class="pill" href="tel:+919949088659">Call</a>
   <a class="pill solid" href="https://wa.me/919949088659" target="_blank" rel="noopener">WhatsApp</a>
 </div>
+<div id="film"></div>
 <div id="mist"></div>
 <div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp +91 99490 88659.</p></div>
 

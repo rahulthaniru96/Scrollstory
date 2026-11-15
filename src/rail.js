@@ -1,6 +1,6 @@
 // The camera rail: one position spline measured by length, plus a separate look track.
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
-import { EYE, STAIR, PHI_END, stairPt, stairY, H, WORTH_CENTRE, SUN_PATCH, TV, DESK } from './world.js';
+import { EYE, STAIR, PHI_END, stairPt, stairY, H, WORTH_CENTRE, SUN_PATCH, TV, DESK, CARDS } from './world.js';
 
 export const TOTAL_VH = 3300; // whole walk, in screen-heights x 100. One constant scales everything.
 
@@ -70,9 +70,10 @@ export function buildRail() {
   };
 
   // ---- 00 Arrival ----
-  key(0, g(0, 30)); look(0, 0, 4);
+  // Open high and far back, then crane down to eye height while pushing in to the gate.
+  key(0, P(0, 4.6, 34)); look(0, 0, 1);
   hold('Arrival hold', 50, '00 Arrival');
-  move('Gate push in', 'room', 110, (a, d) => { look(a, 0, 4); key(a + d, line(0, 20)); look(a + d, 0, 4); });
+  move('Gate push in', 'room', 110, (a, d) => { look(a, 0, 1); key(a + d, line(0, 20)); look(a + d, 0, 4); });
   move('Tilt up to the plaque', 'room', 60, (a, d) => { key(a + d, g(0, 19.5)); look(a + d * 0.9, 0, 42); });
   // ---- 01 Lobby ----
   move('Lobby push in', 'room', 140, (a, d) => { key(a + d, line(0, 9.2)); look(a + d * 0.35, 0, 2); look(a + d, 0, 0); });
@@ -87,7 +88,14 @@ export function buildRail() {
     look(a + d * 0.92, 180, -3); look(a + d, 180, -3);
   });
   // ---- 02 Gallery ----
-  move('Gallery, walking backwards', 'room', 220, (a, d) => { key(a + d, line(-9, -10)); look(a + d, 180, -3); });
+  move('Gallery, walking backwards', 'room', 220, (a, d) => {
+    key(a + d, line(-9, -10));
+    for (const c of CARDS) { // glance at each card as it slides into view
+      const zc = Math.max(-9.6, c.z - 3.5);
+      look(a + (d * (7 - zc)) / 17, 180 + (c.x > -9 ? 9 : -9), -3);
+    }
+    look(a + d, 180, -3);
+  });
   hold('Gallery hold', 50, '02 Gallery');
   move('Corner into Workshop', 'room', 110, (a, d) => {
     look(a, 180, -3);
@@ -96,8 +104,10 @@ export function buildRail() {
   });
   // ---- 03 Workshop ----
   move('Workshop side track', 'room', 200, (a, d) => {
-    key(a + 35, g(-5.3, -18.5)); key(a + 85, line(-0.9, -18.5)); key(a + 125, g(0.9, -18.5)); key(a + d, line(6, -18.5));
-    look(a + d * 0.72, 360, 0); look(a + d, 408, 0); // the hold looks back along all three shop fronts
+    // Lean in toward each shop, drift back out between them, and look ahead to the next one.
+    key(a + 35, g(-5.3, -18.9)); g(-3, -18.3); key(a + 85, g(-0.9, -18.8)); key(a + 125, g(0.9, -18.9)); g(3, -18.3); key(a + d, g(6, -18.8));
+    look(a + 20, 360, 0); look(a + 62, 346, 0); look(a + 105, 360, 0); look(a + 150, 346, 0); look(a + d * 0.8, 360, 0);
+    look(a + d, 408, 0); // the hold looks back along all three shop fronts
   });
   hold('Workshop hold', 50, '03 Workshop');
   // ---- 04 Worth it ----
@@ -219,6 +229,8 @@ export function buildRail() {
     key(a + d, g(15, 3.2, H.rooftop)); const [y, p] = aim(here(), DESK, NORTH - 180); look(a + d, y, p);
   });
   rooms.push({ name: '06 Rooftop', s: s - 1 });
+
+  for (const m of moves) if (m.name === 'Arrival hold' || m.name === 'Gate push in') m.free = true; // crane: above eye height on purpose
 
   // ---- scale to the total, then build the lookups ----
   const k = TOTAL_VH / s;

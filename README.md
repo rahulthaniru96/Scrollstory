@@ -1,6 +1,6 @@
 # Scrollstory world v2: walkthrough
 
-Step 2a of `D:\rahul-context\scrollstory\world-v2-build-plan.md`: the whole world as a grey blockout with the real camera rail. Nothing here is final art.
+Step 2a of `D:\rahul-context\scrollstory\world-v2-build-plan.md`: the whole world as a blockout with the real camera rail, plus a first draft of the dreamy layer on the ground floor. Nothing here is final art.
 
 ## Run
 
@@ -20,10 +20,13 @@ Keys: `H` hides the readout, `R` tests reduced motion, `Esc` closes the floor pl
 | `src/rail.js` | The camera path: where it stands and where it looks for every bit of scroll. Total length is `TOTAL_VH`. |
 | `src/main.js` | The scene, scroll, springs, speed caps, mist cut, floor plan and readout. Feel numbers are in `FEEL` at the top. |
 | `src/spring.js` | The frame-rate independent spring. |
+| `src/dress.js` | The dreamy layer: sky, mirror water, cloud sea, portal windows, lamps, paper birds, fans, dust and petals. |
 | `scripts/check.mjs` | The build-time check from section 4 of the design. |
+| `scripts/shot.sh` | Saves still frames at given scroll positions: `npx vite build --base=./`, then `sh scripts/shot.sh <folder> 700 1040`. Any page address also takes `?at=1040` to freeze the walk there. |
 
 ## Limits of this step
 
 - The check measures against the blockout's boxes, cylinders and the stair's sampled points. When Blender models arrive it has to test real meshes.
-- No water mirror, cursor air, card clicks or sound yet. Those come with the feel-test room and the dressing step.
+- The dreamy layer is a first draft and covers the ground floor and the stair. The Landing, HOME, Extras and Rooftop are still plain boxes under the sky.
+- No card clicks or sound yet. The gate has no plaque yet, though the camera tilts up to where it goes.
 - Card sites are placeholders labelled "Demo".

@@ -1,9 +1,10 @@
-// The dreamy layer: sky, mirror water, cloud sea, portal windows with light shafts, lamps, a door in the water,
-// paper birds, fans, and dust and petals that the cursor pushes around. Solid parts are declared in world.js
+// The dreamy layer: sky, mirror water, cloud sea, portal windows with light shafts, drifting lamps, paper birds,
+// and dust and petals that the cursor pushes around. The rooms' props and what they do are in rooms.js. Solid parts are declared in world.js
 // so the rail check covers them; everything here is drawing and ambient motion.
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
-import { WINDOWS, SHOPS, COUNTERS, STAIR, PHI_END, stairPt, LONE_DOOR, LAMP_ZONE, BIRD_PATH, FANS, INDOOR_CLOUD } from './world.js';
+import { WINDOWS, STAIR, PHI_END, stairPt, LAMP_ZONE, BIRD_PATH, INDOOR_CLOUD } from './world.js';
+import { furnish } from './rooms.js';
 
 const V3 = THREE.Vector3;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -69,7 +70,7 @@ export function dress({ scene, camera, lowQuality = false }) {
           for (int i = 0; i < ${RIPPLES}; i++) { float age = time - ripples[i].z;
             if (age > 0.0 && age < 2.2) { vec2 o = vW.xz - ripples[i].xy; float r = length(o), front = r - age * 0.9;
               float w = sin(front * 14.0) * exp(-abs(front) * 5.0) * (1.0 - age / 2.2); ring += w; n += o / (r + 0.001) * w * 7.0; } }
-          vec4 uv = vUv; uv.xy += n * 0.0045 * uv.w / (1.0 + d * 0.06);
+          vec4 uv = vUv; uv.xy += n * 0.003 * uv.w / (1.0 + d * 0.06);
           vec3 refl = texture2DProj(tDiffuse, uv).rgb;
           float fres = pow(1.0 - clamp(normalize(cameraPosition - vW).y, 0.0, 1.0), 2.5);
           vec3 c = mix(color, refl, 0.5 + 0.45 * fres) + ring * 0.07;
@@ -131,7 +132,8 @@ export function dress({ scene, camera, lowQuality = false }) {
     fragmentShader: `uniform vec3 a, b, orb; uniform vec2 orbAt; uniform float orbR, stars, clouds, time; varying vec2 vUv;
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       void main(){ vec3 c = mix(b, a, smoothstep(0.0, 1.0, vUv.y));
-        vec2 g = floor(vUv * vec2(22.0, 40.0)); c += step(0.962, hash(g)) * stars * (0.6 + 0.4 * sin(time * 2.0 + hash(g) * 40.0));
+        vec2 sp = vUv * vec2(22.0, 40.0), g = floor(sp); // stars: one small round dot in some cells
+        c += step(0.9, hash(g)) * smoothstep(0.2, 0.06, length(fract(sp) - 0.5)) * stars * (0.6 + 0.4 * sin(time * 2.0 + hash(g) * 40.0));
         float d = distance(vUv * vec2(1.0, 1.7), orbAt * vec2(1.0, 1.7));
         c += orb * 0.3 * smoothstep(orbR * 3.5, orbR, d); c = mix(c, orb, smoothstep(orbR, orbR * 0.86, d));
         float band = sin(vUv.x * 5.0 + time * 0.05 + sin(vUv.y * 9.0) * 1.2) * sin(vUv.y * 13.0 + 1.0);
@@ -162,7 +164,7 @@ export function dress({ scene, camera, lowQuality = false }) {
     const a = (w.shaft * Math.PI) / 180, dir = new V3(nx * Math.cos(a), -Math.sin(a), nz * Math.cos(a)), right = new V3(nz, 0, -nx);
     const base = new V3(w.x + nx * 0.06, w.y, w.z + nz * 0.06), top = w.h * 0.92;
     const at = [[-1, 0], [1, 0], [1, top], [-1, top]].map(([sx, y]) => base.clone().addScaledVector(right, (sx * w.w) / 2).add(new V3(0, y, 0)));
-    const down = at.map((p) => p.clone().addScaledVector(dir, (p.y - 0.03) / Math.sin(a)));
+    const down = at.map((p) => p.clone().addScaledVector(dir, (p.y - (w.floor || 0) - 0.03) / Math.sin(a)));
     const quad = (p0, p1, p2, p3) => [p0, p1, p2, p0, p2, p3].flatMap((p) => [p.x, p.y, p.z]);
     const sides = new THREE.BufferGeometry();
     sides.setAttribute('position', new THREE.Float32BufferAttribute([...quad(at[0], at[3], down[3], down[0]), ...quad(at[1], at[2], down[2], down[1]), ...quad(at[3], at[2], down[2], down[3])], 3));
@@ -173,13 +175,9 @@ export function dress({ scene, camera, lowQuality = false }) {
     scene.add(new THREE.Mesh(patch, (patchMats[w.sky] ||= basic(light, { transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))));
   }
 
-  // ---------- lamps: hanging over each shop, and drifting over the courtyard water ----------
+  // ---------- lamps drifting over the courtyard water ----------
   const bulb = basic(0xffe9b8);
   const lamps = [];
-  for (const s of SHOPS) {
-    mesh(new THREE.SphereGeometry(0.09, 12, 8), bulb, s.x, 2.55, -21.1); glow(0xffc978, 1.5, s.x, 2.55, -21.1);
-    mesh(new THREE.CylinderGeometry(0.008, 0.008, 1.9, 4), basic(0x2e2b27), s.x, 3.55, -21.1);
-  }
   {
     const rnd = rng(23), Z = LAMP_ZONE;
     for (let i = 0; i < 11; i++) {
@@ -188,43 +186,10 @@ export function dress({ scene, camera, lowQuality = false }) {
       g.position.copy(home); scene.add(g); lamps.push([g, home, rnd() * 6.28]);
     }
   }
-  tick.push((t, dt, env) => { for (const [g, home, ph] of lamps) g.position.set(home.x + Math.sin(t * 0.13 * env.wind + ph) * 0.3, home.y + Math.sin(t * 0.4 + ph * 2) * 0.12, home.z + Math.cos(t * 0.11 * env.wind + ph) * 0.3); });
+  tick.push((t, dt, env) => { for (const [g, home, ph] of lamps) g.position.set(home.x + Math.sin(env.air * 0.13 + ph) * 0.3, home.y + Math.sin(t * 0.4 + ph * 2) * 0.12, home.z + Math.cos(env.air * 0.11 + ph) * 0.3); });
 
-  // ---------- a door standing alone in the courtyard water, ajar, with light behind it ----------
+  // ---------- 04 Worth it: the ledger's pages leave as paper birds ----------
   {
-    const D = LONE_DOOR, g = new THREE.Group(); g.position.set(D.x, 0, D.z); g.rotation.y = -0.5; scene.add(g);
-    const wood = lit(0x3f6e68), post = new THREE.BoxGeometry(0.1, D.h + 0.1, 0.14);
-    mesh(post, lit(0xf7f1e6), -D.w / 2 - 0.05, (D.h + 0.1) / 2, 0, g); mesh(post, lit(0xf7f1e6), D.w / 2 + 0.05, (D.h + 0.1) / 2, 0, g);
-    mesh(new THREE.BoxGeometry(D.w + 0.3, 0.12, 0.16), lit(0xf7f1e6), 0, D.h + 0.1, 0, g);
-    mesh(new THREE.PlaneGeometry(D.w, D.h), basic(0xfff0c4, { side: THREE.DoubleSide }), 0, D.h / 2, 0, g); // what is behind the door
-    const leaf = new THREE.Group(); leaf.position.set(-D.w / 2, 0, 0.03); leaf.rotation.y = 1.1; g.add(leaf);
-    mesh(new THREE.BoxGeometry(D.w, D.h, 0.05), wood, D.w / 2, D.h / 2, 0, leaf);
-    glow(0xffd58a, 4.2, 0, D.h * 0.55, 0.2, g, 0.6);
-  }
-
-  // ---------- 03 Workshop: something glowing on each counter ----------
-  {
-    const screen = basic(0xfff3d6), dark = lit(0x2e2b27);
-    const [a, b, c] = SHOPS;
-    const phone = new THREE.Group(); phone.position.set(a.x, 1.0, -21.2); phone.rotation.x = -0.12; scene.add(phone);
-    mesh(new THREE.BoxGeometry(0.34, 0.66, 0.04), dark, 0, 0.33, 0, phone); mesh(new THREE.PlaneGeometry(0.29, 0.58), screen, 0, 0.33, 0.022, phone);
-    mesh(new THREE.BoxGeometry(1.0, 0.04, 0.66), dark, b.x, 1.02, -21.15);
-    const lid = new THREE.Group(); lid.position.set(b.x, 1.04, -21.47); lid.rotation.x = -0.25; scene.add(lid);
-    mesh(new THREE.BoxGeometry(1.0, 0.64, 0.03), dark, 0, 0.32, 0, lid); mesh(new THREE.PlaneGeometry(0.92, 0.56), screen, 0, 0.32, 0.017, lid);
-    mesh(new THREE.BoxGeometry(1.3, 0.8, 0.05), dark, c.x, 1.62, -21.3); mesh(new THREE.PlaneGeometry(1.22, 0.72), screen, c.x, 1.62, -21.27);
-    mesh(new THREE.BoxGeometry(0.08, 0.3, 0.08), dark, c.x, 1.15, -21.32); mesh(new THREE.BoxGeometry(0.5, 0.03, 0.26), dark, c.x, 1.015, -21.32);
-    for (const s of SHOPS) glow(0xfff0cf, 1.6, s.x, 1.5, -21.0, scene, 0.35);
-  }
-
-  // ---------- 04 Worth it: one object per counter, and the ledger's pages leaving as paper birds ----------
-  {
-    const [custom, secure, legal, income] = COUNTERS, y = 1.1, x = 11.45;
-    const board = mesh(new THREE.BoxGeometry(0.04, 0.75, 1.0), lit(0x2f5fa8), x, y + 0.42, custom.z); board.rotation.z = -0.2;
-    mesh(new THREE.BoxGeometry(0.6, 0.7, 0.7), lit(0x5e5a55), x, y + 0.35, secure.z);
-    mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.03, 20).rotateZ(Math.PI / 2), lit(0xc9b08a), x - 0.31, y + 0.35, secure.z);
-    const deed = mesh(new THREE.BoxGeometry(0.03, 0.72, 0.52), lit(0xf7efe2), x, y + 0.4, legal.z); deed.rotation.z = -0.15;
-    mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.02, 16).rotateZ(Math.PI / 2), lit(0x9e3b2c), x - 0.09, y + 0.2, legal.z + 0.12);
-    for (const s of [-1, 1]) { const page = mesh(new THREE.BoxGeometry(0.5, 0.02, 0.42), lit(0xf7efe2), x, y + 0.08, income.z + s * 0.2); page.rotation.x = s * 0.35; }
     // paper birds
     const curve = new THREE.CatmullRomCurve3(BIRD_PATH.map((q) => new V3(...q)));
     const geo = new THREE.BufferGeometry();
@@ -234,7 +199,7 @@ export function dress({ scene, camera, lowQuality = false }) {
     birds.frustumCulled = false; scene.add(birds);
     tick.push((t, dt, env) => {
       for (let i = 0; i < N; i++) {
-        const u = (t * 0.045 * env.wind + i / N) % 1, p = curve.getPointAt(u), tan = curve.getTangentAt(u);
+        const u = (env.air * 0.045 + i / N) % 1, p = curve.getPointAt(u), tan = curve.getTangentAt(u);
         o.position.set(p.x + Math.sin(i * 2.4 + t * 0.9) * 0.2, p.y + Math.sin(i * 1.7 + t * 1.3) * 0.15, p.z + Math.cos(i * 3.1 + t * 0.7) * 0.2);
         o.lookAt(o.position.clone().add(tan)); o.rotateZ(Math.sin(t * 2 + i) * 0.35);
         o.scale.setScalar(Math.min(1, u * 9, (1 - u) * 6) * (1 + u * 0.8)); o.updateMatrix(); birds.setMatrixAt(i, o.matrix);
@@ -243,15 +208,8 @@ export function dress({ scene, camera, lowQuality = false }) {
     });
   }
 
-  // ---------- long-rod ceiling fans, and a cloud that has drifted indoors ----------
+  // ---------- a cloud that has drifted indoors ----------
   {
-    const blade = new THREE.BoxGeometry(0.75, 0.02, 0.15), metal = lit(0x3a3530);
-    for (const [x, y, z] of FANS) {
-      mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 5), metal, x, y + 0.45, z);
-      const hub = new THREE.Group(); hub.position.set(x, y, z); scene.add(hub);
-      for (let i = 0; i < 3; i++) { const arm = new THREE.Group(); arm.rotation.y = (i * 2 * Math.PI) / 3; hub.add(arm); mesh(blade, metal, 0.42, 0, 0, arm); }
-      tick.push((t, dt, env) => { hub.rotation.y += dt * 1.1 * env.wind; });
-    }
     const cloud = new THREE.Group(); cloud.position.set(...INDOOR_CLOUD); scene.add(cloud);
     for (const [x, y, z, s] of [[0, 0, 0, 0.8], [0.7, 0.1, 0.1, 0.6], [-0.7, 0.05, -0.1, 0.55], [0.2, 0.35, 0, 0.5], [-0.25, -0.2, 0.2, 0.5]]) {
       const m = mesh(new THREE.IcosahedronGeometry(1, 2), basic(0xfffaf2, { transparent: true, opacity: 0.94 }), x, y, z, cloud); m.scale.set(s, s * 0.7, s);
@@ -321,5 +279,6 @@ export function dress({ scene, camera, lowQuality = false }) {
     }
   });
 
-  return { update: (time, dt, env) => { for (const f of tick) f(time, dt, env); }, ripple };
+  const ready = furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTexture, lowQuality });
+  return { update: (time, dt, env) => { for (const f of tick) f(time, dt, env); }, ripple, ready };
 }

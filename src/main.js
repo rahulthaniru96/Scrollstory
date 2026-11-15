@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { buildRail } from './rail.js';
 import { smoothDamp } from './spring.js';
 import { dress } from './dress.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, H, WINDOW, SUN_PATCH, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -75,21 +75,9 @@ for (const c of COLLIDERS) {
     const geo = new THREE.ExtrudeGeometry(sh, { depth: c.max[1] - c.min[1], bevelEnabled: false, curveSegments: 40 });
     geo.rotateX(-Math.PI / 2);
     add(geo, mats[c.kind] || mats.floor, 0, c.min[1], 0);
-  } else if (c.t === 'sph') {
-    let m;
-    if (c.shape === 'card') {
-      m = add(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshBasicMaterial({ map: cardTexture, side: THREE.DoubleSide }), c.x, c.y, c.z);
-      m.rotation.y = Math.PI; // faces north, toward the camera that is backing away
-    } else if (c.shape === 'tv') {
-      m = add(new THREE.BoxGeometry(0.9, 0.75, 0.7), mats.furniture, c.x, c.y, c.z);
-    } else if (c.shape === 'fan') {
-      m = new THREE.Group(); m.position.set(c.x, c.y, c.z); scene.add(m);
-      for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.03, 0.16), mats.rail); b.position.x = 0.75; const arm = new THREE.Group(); arm.rotation.y = (i * 2 * Math.PI) / 3; arm.add(b); m.add(arm); }
-      m.userData.spin = 1.2;
-    } else {
-      m = add(new THREE.PlaneGeometry(0.7, 0.5), new THREE.MeshStandardMaterial({ color: 0xf7efe2, side: THREE.DoubleSide }), c.x, c.y, c.z);
-      m.rotation.set(0.5, 0.8, 0.2);
-    }
+  } else if (c.t === 'sph' && c.shape === 'card') { // the other floating things are drawn by rooms.js
+    const m = add(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshBasicMaterial({ map: cardTexture, side: THREE.DoubleSide }), c.x, c.y, c.z);
+    m.rotation.y = Math.PI; // faces north, toward the camera that is backing away
     drift.push([m, c.y, drift.length * 1.7]);
   }
 }
@@ -126,17 +114,13 @@ for (const b of BRIDGES) {
   }
 }
 
-// The Landing's window and the sun patch on the tiles (placeholders for the feel-test room).
-add(new THREE.PlaneGeometry(3.8, 2.2).rotateY(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xfff3d6, fog: false }), WINDOW.x + 0.02, WINDOW.y, WINDOW.z);
-add(new THREE.PlaneGeometry(2.6, 2.2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xf7d9a0 }), SUN_PATCH[0] + 0.6, H.landing + 0.01, SUN_PATCH[2]);
-
 const dressing = dress({ scene, camera, lowQuality });
 
 // ---------- fog and light by camera height (motion spec, section 7) ----------
 const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, pointer: null };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -239,7 +223,8 @@ addEventListener('keydown', (e) => {
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 
-let frames = 0;
+let frames = 0, propsReady = false;
+dressing.ready.then(() => { propsReady = true; });
 const prev = { pos: null, yaw: 0, t: 0 };
 const shown = { speed: 0, turn: 0, fps: 0 };
 gsap.ticker.add((time, deltaMs) => {
@@ -267,6 +252,7 @@ gsap.ticker.add((time, deltaMs) => {
   [pointer.cy, pointer.cvy] = smoothDamp(pointer.cy, pointer.sy, pointer.cvy, L.camera, 100, dt);
   // Moving the cursor stirs the air: everything that drifts speeds up, then calms over two seconds.
   env.wind = 1 + 0.5 * Math.max(0, 1 - (time - pointer.stirred) / 2);
+  env.air += dt * env.wind; // the clock of everything that drifts. Scaling time itself by the wind made things jump.
 
   const S = state.reduce ? { yaw: 0, pitch: 0, bob: 0 } : FEEL.sway;
   const pos = rail.pos(state.body);
@@ -279,11 +265,11 @@ gsap.ticker.add((time, deltaMs) => {
 
   atmosphere(pos[1]);
   dressing.update(time, dt, env);
-  for (const [m, y0, ph] of drift) { m.position.y = y0 + Math.sin(time * 1.3 * env.wind + ph) * 0.04; if (m.userData.spin) m.rotation.y += m.userData.spin * dt; }
+  for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;
   caption(state.body);
   renderer.render(scene, camera);
 
-  if (pinned > 0 && ++frames === 10) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }
+  if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }
   // Readout for tuning.
   if (prev.pos) {
     const k = 1 - Math.exp(-dt / 0.15);
@@ -309,4 +295,4 @@ gsap.ticker.add((time, deltaMs) => {
 if (import.meta.env.DEV) window.__world = { state, rail, lenis, FEEL, env }; // for tuning from the console
 
 // Stop drawing when the tab is hidden.
-document.addEventListener('visibilitychange', () => (document.hidden ? gsap.ticker.sleep() : gsap.ticker.wake()));
+document.addEventListener('visibilitychange', () => (document.hidden && !pinned ? gsap.ticker.sleep() : gsap.ticker.wake())); // a headless capture counts as hidden

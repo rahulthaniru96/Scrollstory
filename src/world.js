@@ -26,8 +26,10 @@ export const SKY_BY_HEIGHT = [[0, 0xf3cfa4], [9, 0xf2c08e], [13, 0xf6d9b8], [15,
 const C = [];
 const box = (name, x0, x1, y0, y1, z0, z1, kind = 'wall', extra = {}) =>
   C.push({ t: 'box', name, kind, min: [x0, y0, z0], max: [x1, y1, z1], ...extra });
-const cyl = (name, x, z, r, y0, y1, kind = 'furniture') => C.push({ t: 'cyl', name, kind, x, z, r, y0, y1 });
+const cyl = (name, x, z, r, y0, y1, kind = 'furniture', extra = {}) => C.push({ t: 'cyl', name, kind, x, z, r, y0, y1, ...extra });
 const sph = (name, x, y, z, r, shape) => C.push({ t: 'sph', name, kind: 'floating', x, y, z, r, shape });
+const HID = { hidden: true }; // drawn by dress.js or rooms.js, not as a blockout box
+const air = (name, x, y, z, r) => C.push({ t: 'sph', name, kind: 'floating', x, y, z, r, hidden: true }); // room for something that hovers
 const slabHole = (name, x0, x1, y0, y1, z0, z1, kind) =>
   C.push({ t: 'slabHole', name, kind, min: [x0, y0, z0], max: [x1, y1, z1], hx: STAIR.cx, hz: STAIR.cz, hr: 3.2 });
 
@@ -58,9 +60,9 @@ box('wing wall E', 12, 12 + W, 0, H.wing, -22, 12);
 box('wing south W', -12 - W, -6 - W, 0, H.wing, 12, 12 + W, 'facade');
 box('wing south E', 6 + W, 12 + W, 0, H.wing, 12, 12 + W, 'facade');
 box('wing wall N', -12 - W, 12 + W, 0, H.wing, -22 - W, -22);
-box('gallery roof', -12 - W, -6, H.wing, H.wing + W, -16, 12, 'ceiling');
+box('gallery roof', -12 - W, -6.15, H.wing, H.wing + W, -16, 12, 'ceiling');
 box('workshop roof', -12 - W, 12 + W, H.wing, H.wing + W, -22 - W, -16, 'ceiling');
-box('worth it roof', 6, 12 + W, H.wing, H.wing + W, -16, 12, 'ceiling');
+box('worth it roof', 6.15, 12 + W, H.wing, H.wing + W, -16, 12, 'ceiling');
 for (const z of [-2, -5, -8, -11, -14]) {
   box(`pillar W z${z}`, -6.25, -5.75, 0, H.wing, z - 0.25, z + 0.25, 'pillar');
   box(`pillar E z${z}`, 5.75, 6.25, 0, H.wing, z - 0.25, z + 0.25, 'pillar');
@@ -76,11 +78,14 @@ for (const s of SHOPS) {
   box(`shop ${s.name}`, s.x - 2, s.x + 2, 0, 1.0, -22, -20.6, 'furniture');
   box(`shop sign ${s.name}`, s.x - 2.4, s.x + 2.4, 3.55, 4.2, -22, -21.6, 'sign', { color: s.color });
 }
+for (const s of SHOPS) air(`shop float ${s.name}`, s.x, 2.2, -21.2, 0.9); // each shop's device hovers over its counter, pages streaming out of it
 for (const x of [-9, -3, 3, 9]) box(`shop divider x${x}`, x - 0.15, x + 0.15, 0, 4.2, -22, -20.6, 'wall', { color: 0xc47a5a });
 
 // 04 Worth it: four counters on the east wall.
 export const COUNTERS = [-8.5, -5.5, -2.5, 0.5].map((z, i) => ({ z, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
 for (const c of COUNTERS) box(`counter ${c.name}`, 10.9, 12, 0, 1.1, c.z - 0.9, c.z + 0.9, 'furniture');
+for (const c of COUNTERS) air(`counter float ${c.name}`, 11.35, 1.95, c.z, 0.7); // nothing rests on a counter
+air('coins rising', 11.35, 3.3, COUNTERS[3].z, 0.6);
 export const WORTH_CENTRE = [11.3, 1.1, -4];
 
 // 02 Gallery: floating website cards (placeholders until Rahul decides which sites show).
@@ -97,13 +102,23 @@ export const WINDOWS = [
     { x: -6, y: 5.0, z, n: '+x', w: 1.6, h: 3.2, sky: 'gold', shaft: 40 },
     { x: 6, y: 5.0, z, n: '-x', w: 1.6, h: 3.2, sky: 'rose' },
   ]),
+  // Walls the turns face, so no turn ends on a blank wall.
+  { x: -12, y: 0.8, z: 9.2, n: '+x', w: 1.5, h: 3.0, sky: 'night' },
+  { x: 12, y: 1.0, z: -14, n: '-x', w: 1.7, h: 2.8, sky: 'rose' },
+  { x: 9.2, y: 0.9, z: 12, n: '-z', w: 1.6, h: 2.9, sky: 'dawn' },
+  { x: -9.6, y: 0.9, z: 12, n: '-z', w: 1.6, h: 2.9, sky: 'gold' },
+  { x: 12, y: 0.9, z: -19.2, n: '-x', w: 1.6, h: 2.9, sky: 'day' },
+  // Upper floor. `floor` is the level the light falls on.
+  { x: -7.5, y: H.landing + 0.9, z: 10, n: '-z', w: 1.4, h: 2.0, sky: 'day' },
+  { x: -10.2, y: H.home + 0.9, z: -23, n: '+z', w: 1.5, h: 2.2, sky: 'night', shaft: 42, floor: H.home },
+  { x: -13, y: H.home + 0.9, z: -20, n: '+x', w: 1.4, h: 2.1, sky: 'dawn', shaft: 40, floor: H.home },
 ];
 // A door standing alone in the courtyard water, ajar, with light behind it.
 export const LONE_DOOR = { x: 2.6, z: -9.5, w: 1.1, h: 2.3 };
 box('door in the water', LONE_DOOR.x - 0.7, LONE_DOOR.x + 0.7, 0, 2.5, LONE_DOOR.z - 0.2, LONE_DOOR.z + 0.2, 'furniture', { hidden: true });
 // Lamps drift over the courtyard water. The whole court is theirs; no camera lane crosses it.
 export const LAMP_ZONE = { x0: -4.6, x1: 4.6, z0: -14.6, z1: -1.4, y0: 0.5, y1: 3.0 };
-box('courtyard lamps', LAMP_ZONE.x0, LAMP_ZONE.x1, 0, LAMP_ZONE.y1 + 0.2, LAMP_ZONE.z0, LAMP_ZONE.z1, 'floating', { hidden: true });
+box('courtyard lamps', LAMP_ZONE.x0, LAMP_ZONE.x1, 0, 5, LAMP_ZONE.z0, LAMP_ZONE.z1, 'floating', { hidden: true });
 // Ledger pages leave the Income counter as paper birds, out through the arcade and up into the sky.
 export const BIRD_PATH = [[11.2, 1.5, 0.5], [10.6, 2.6, -1.5], [9.2, 3.1, -4], [7.4, 3.1, -5.8], [6, 3.0, -6.5], [3.5, 3.6, -7.5], [0, 5.5, -8], [-3, 8.5, -6], [-2, 12, 0]];
 for (const [i, q] of BIRD_PATH.entries()) C.push({ t: 'sph', name: `paper birds path ${i}`, kind: 'floating', x: q[0], y: q[1], z: q[2], r: 0.4, hidden: true });
@@ -122,40 +137,54 @@ box('landing window head', -11 - W, -11, H.landing + 3.1, H.landing + 4, 1.6, 5.
 box('landing south wall', -11, -4, H.landing, H.landing + 3.2, 10, 10 + W);
 export const WINDOW = { x: -11, y: H.landing + 2, z: 3.5 }; // crystal-glass window centre
 export const SUN_PATCH = [-9, H.landing + 0.9, 3.6]; // what the hold frame looks at
+box('tiles rising in the sun beam', -10.7, -7.2, H.landing, H.landing + 3, 1.8, 5.2, 'floating', HID);
+box('landing trunk', -10.6, -9.6, H.landing, H.landing + 0.5, 8.9, 9.8, 'furniture', HID);
+air('landing stool and newspaper', -8, H.landing + 0.8, 9.1, 0.6);
 
 // HOME fragment.
 box('home slab', -13, 0, H.home - 1.5, H.home, -23, -11, 'floor');
 box('home back wall', -13, 0, H.home, H.home + 3.5, -23 - W, -23);
 box('home west wall', -13 - W, -13, H.home, H.home + 3.5, -23, -17);
-box('sofa', -8, -5, H.home, H.home + 0.9, -16.5, -15.5, 'furniture');
-box('box TV', -7.2, -5.8, H.home, H.home + 1.5, -19.6, -19, 'furniture');
+box('sofa', -7.7, -5.3, H.home, H.home + 1.4, -16.5, -15.5, 'furniture', HID); // it hovers a little
+box('box TV', -7.7, -5.3, H.home, H.home + 3, -20.5, -18.6, 'furniture', HID);
+box('teapoy and lamp', -7.1, -5.9, H.home, H.home + 5, -18.1, -17.1, 'furniture', HID);
+box('home trunk', -12.95, -12.15, H.home, H.home + 0.6, -20.6, -19.4, 'furniture', HID);
+air('home stool', -11.6, H.home + 0.5, -18.2, 0.45);
+air('home phone and battery', -4.75, H.home + 1.45, -16.3, 0.45);
 export const TV = [-6.5, H.home + 1.0, -19];
 
 // Extras fragment.
 box('extras slab', 8, 22, H.extras - 1.5, H.extras, -24, -10, 'floor');
 box('departure board wall', 9, 21, H.extras, H.extras + 5, -24 - W, -24);
 box('departure board', 11, 19, H.extras + 1.2, H.extras + 4, -24, -23.85, 'sign');
+box('bench W', 10.5, 12.5, H.extras, H.extras + 1.4, -21, -20, 'furniture', HID);
+box('bench E', 17.5, 19.5, H.extras, H.extras + 1.6, -21, -20, 'furniture', HID);
+box('track', 17.5, 23.5, H.extras, H.extras + 0.3, -13.4, -11.6, 'furniture', HID);
+air('station clock', 15, H.extras + 5.7, -23.1, 0.8);
 
 // Rooftop fragment.
 box('rooftop slab', 8, 22, H.rooftop - 1.5, H.rooftop, -1, 11, 'floor');
-box('front desk', 13.4, 16.6, H.rooftop, H.rooftop + 1.0, 7, 8, 'furniture');
-cyl('water tank 1', 20, 9, 0.8, H.rooftop, H.rooftop + 1.6);
-cyl('water tank 2', 18.2, 9.4, 0.6, H.rooftop, H.rooftop + 1.2);
-cyl('umbrella pole', 17.4, 6.4, 0.05, H.rooftop, H.rooftop + 2.4);
+box('front desk', 13.4, 16.6, H.rooftop, H.rooftop + 1.1, 7, 8, 'furniture', HID);
+air('plan cards', 15, H.rooftop + 2.05, 7.5, 1.3);
+cyl('water tank 1', 20, 9, 0.85, H.rooftop, H.rooftop + 1.6, 'furniture', HID);
+cyl('water tank 2', 18.2, 9.4, 0.65, H.rooftop + 0.3, H.rooftop + 1.8, 'furniture', HID); // this one floats
+cyl('umbrella pole', 17.4, 6.4, 0.05, H.rooftop, H.rooftop + 2.7, 'furniture', HID);
+cyl('umbrella canopy', 17.4, 6.4, 1.4, H.rooftop + 1.9, H.rooftop + 3, 'furniture', HID);
+box('clothes line', 9, 21, H.rooftop + 1.0, H.rooftop + 2.5, 9.7, 10.3, 'floating', HID);
 box('parapet S', 8, 22, H.rooftop, H.rooftop + 0.9, 11, 11 + 0.2);
 box('parapet E', 22, 22.2, H.rooftop, H.rooftop + 0.9, -1, 11);
 box('parapet W', 7.8, 8, H.rooftop, H.rooftop + 0.9, -1, 11);
 export const DESK = [15, H.rooftop + 0.8, 7.5];
 
 // Floating objects. Radius includes the object's whole drift range.
-sph('kite', 6.5, 16, 4.5, 1.2, 'kite');
+sph('kite', 6.5, 16, 4.5, 1.4, 'kite');
 sph('paper birds', -6, 18.5, 9, 1.2, 'birds');
 sph('newspaper page', 4, 20.5, -2, 1.0, 'paper');
 sph('ceiling fan', -6, H.landing + 4.4, 3, 1.0, 'fan');
 sph('floating box TV', 2, 30, -8, 1.2, 'tv');
 sph('phone and battery', -10, 30.5, -6, 1.0, 'phone');
 sph('petals', 12, 33, -5, 1.0, 'petals');
-sph('kite 2', 20, 37, 4, 1.2, 'kite');
+sph('kite 2', 20, 37, 4, 1.4, 'kite');
 
 // Bridges (ramps). The blockout draws them as stepping slabs.
 export const BRIDGES = [
@@ -237,6 +266,25 @@ const RECT_FLOORS = [
   { y: H.extras, x0: 8, x1: 22, z0: -24, z1: -10 },
   { y: H.rooftop, x0: 8, x1: 22, z0: -1, z1: 11 },
 ];
+
+// Each fragment above the Landing hangs from a rough cone of rock, and loose stone drifts off every broken edge.
+// The stone stays below floor level and well away from the stair shaft.
+export const UNDERSIDES = RECT_FLOORS.slice(1).map((f) => ({ x: (f.x0 + f.x1) / 2, z: (f.z0 + f.z1) / 2, r: 5.4, y0: f.y - 6.5, y1: f.y - 1.5 }));
+for (const [i, u] of UNDERSIDES.entries()) cyl(`rock under fragment ${i + 1}`, u.x, u.z, u.r, u.y0, u.y1, 'floor', HID);
+export const DEBRIS = [];
+{
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (const f of RECT_FLOORS) for (let i = 0; i < 10; i++) {
+    const r = 0.25 + rnd() * 0.55, side = Math.floor(rnd() * 4), u = rnd(), out = 0.7 + r + rnd() * 3.2;
+    const x = side < 2 ? f.x0 + (f.x1 - f.x0) * u : side === 2 ? f.x0 - out : f.x1 + out;
+    const z = side === 0 ? f.z0 - out : side === 1 ? f.z1 + out : f.z0 + (f.z1 - f.z0) * u;
+    const y = f.y - 0.7 - r - rnd() * 3, ph = rnd() * 6.28;
+    if (Math.hypot(x - STAIR.cx, z - STAIR.cz) < 7) continue;
+    DEBRIS.push({ x, y, z, r, ph });
+    air(`loose stone ${DEBRIS.length}`, x, y, z, r + 0.2);
+  }
+}
 
 // Height of the floor under an eye at (x, y, z): the highest surface at least 1 m below the eye.
 export function floorAt(x, y, z) {

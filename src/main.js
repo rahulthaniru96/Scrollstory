@@ -5,7 +5,8 @@ import gsap from 'gsap';
 import { buildRail } from './rail.js';
 import { smoothDamp } from './spring.js';
 import { dress } from './dress.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT } from './world.js';
+import { STORY } from './rooms.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -120,7 +121,7 @@ const dressing = dress({ scene, camera, lowQuality });
 const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 } };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -181,27 +182,108 @@ const COPY = {
   'Arrival hold': ['Scrollstory Studio · Secunderabad', 'Every business has a story.', "Come in, we'll show you ours."],
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
   'Gallery hold': ['Room 02 · The gallery', 'Every door, a site we built.', 'Step into any one.'],
-  'Workshop hold': ['Room 03 · The workshop', 'Three shops. Try each one', 'before you buy.'],
+  'Workshop hold': ['Room 03 · The workshop', 'Three shops.', 'One for where you are now.'],
   'Worth it hold': ['Room 04 · Worth it', 'Custom. Secure. Legal.', 'Built to bring you income.'],
   'Look up': ['The stairs', 'Keep climbing.', 'The best view is upstairs.'],
   'Landing hold': ['The landing · core memory', '', ''],
-  'HOME hold': ['Home · the story plays here', '', ''],
+  'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
   'Extras hold': ['Room 05 · Extras', 'Everything else', 'it takes to go digital.'],
   'Settle on the desk': ['Room 06 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
 };
-const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1');
+const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta');
+const lastMove = rail.moves[rail.moves.length - 1];
 let capFor = null;
 function caption(p) {
-  const m = rail.moveAt(p), c = COPY[m.name];
-  if (!c) { cap.style.opacity = 0; return; }
-  if (capFor !== m.name) {
-    capFor = m.name; capLabel.textContent = c[0]; capH.textContent = c[1];
+  const m = rail.moveAt(p), tv = env.tv.ch >= 0 && p < TV_SPAN[1]; // in the TV room each channel is its own caption
+  const name = tv ? 'tv' + env.tv.ch : m.name;
+  const c = tv ? (env.tv.ch < STORY.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, STORY[env.tv.ch], ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', '']) : COPY[name];
+  if (!c) { cap.style.opacity = 0; cap.classList.remove('on'); return; }
+  if (capFor !== name) {
+    capFor = name; capLabel.textContent = c[0]; capH.textContent = c[1];
     if (c[2]) { const em = document.createElement('em'); em.textContent = c[2]; capH.append(em); }
+    capH.classList.toggle('small', tv && env.tv.ch < STORY.length); capCta.hidden = !(tv && env.tv.ch === STORY.length);
   }
-  const u = (p - m.s0) / (m.s1 - m.s0), last = m === rail.moves[rail.moves.length - 1];
-  const o = sstep(0.1, 0.4, u) * (last ? 1 : 1 - sstep(0.85, 1, u)); // scroll-driven, so it reverses exactly
-  cap.style.opacity = o; cap.style.transform = `translateY(${(1 - o) * 16}px)`;
+  const u = tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
+  const o = sstep(0.1, tv ? 0.25 : 0.4, u) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly
+  cap.style.opacity = o; cap.style.transform = `translateY(${(1 - o) * 16}px)`; cap.classList.toggle('on', o > 0.5);
 }
+
+// ---------- what the scroll is pointing at: one shop, one counter, one TV channel ----------
+const byName = Object.fromEntries(rail.moves.map((m) => [m.name, m]));
+const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 - pad, m.s0 + 4, p) * (1 - sstep(m.s1 - 4, m.s1 + pad, p)); };
+const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = STORY.length + 1; // the last channel is "Your story?"
+function focus(p) {
+  SHOPS.forEach((s, i) => { env.shop[i] = beat(`Shop: ${s.name}`, p); });
+  COUNTERS.forEach((c, i) => { env.counter[i] = beat(`Counter: ${c.name}`, p); });
+  const x = ((p - TV_SPAN[0]) / (TV_SPAN[1] - TV_SPAN[0])) * CHANNELS, ch = Math.floor(x);
+  env.tv.ch = x < 0 ? -1 : Math.min(CHANNELS - 1, ch); env.tv.f = x < 0 || x >= CHANNELS ? 1 : x - ch;
+}
+
+// ---------- room cards: what each shop and counter means, in HTML over the canvas ----------
+// Plans and launch prices are from the rate card of 13 Nov 2026 (business-and-pricing.md).
+const PLANS = [
+  { price: '₹15,000', line: '1 to 3 pages with one signature animation, Call and WhatsApp buttons, Google Maps and basic SEO.', bullets: ['1 to 3 pages', 'One signature animation', 'Call and WhatsApp buttons, Google Maps'] },
+  { price: '₹40,000', line: "Your business's story across 5 to 7 pages, with one custom 3D moment, an enquiry form and legal pages.", bullets: ['Story concept, 5 to 7 pages', 'One custom 3D moment', 'Enquiry form, SEO, legal pages, domain and hosting setup'] },
+  { price: '₹65,000', line: 'Everything in Signature, plus an admin panel for enquiries or appointments, content editing and staff login.', bullets: ['Everything in Signature', 'Admin panel for enquiries or appointments', 'Content editing and staff login'] },
+].map((pl, i) => ({ ...pl, name: SHOPS[i].name }));
+const WORTH = [
+  ['Made for you, not a template', 'Your story, your design,', 'built around how your customers think.'],
+  ['Safe by default', 'SSL, safe forms, backups,', 'logins locked down.'],
+  ['The paperwork done right', 'Privacy note, cookie note, terms,', 'licences for fonts and music.'],
+  ['Built to bring you customers', 'Calls, WhatsApp messages, bookings and walk-ins,', 'not just a pretty page.'],
+];
+const INFO = {};
+PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} of 03`, h: pl.name, lines: [pl.line], plan: pl.name }; });
+COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
+const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
+const info = document.getElementById('info'), chooser = document.getElementById('chooser');
+let infoFor = null;
+function cards(p) {
+  const m = rail.moveAt(p), d = INFO[m.name], u = (p - m.s0) / (m.s1 - m.s0);
+  if (d && infoFor !== m.name) {
+    infoFor = m.name;
+    info.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
+    if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
+  }
+  const o = d ? sstep(0, 0.22, u) * (1 - sstep(0.8, 1, u)) : 0;
+  info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
+  const oc = m.name === 'Choose one' ? sstep(0.05, 0.25, u) * (1 - sstep(0.85, 1, u)) : 0;
+  chooser.style.opacity = oc; chooser.classList.toggle('on', oc > 0.5);
+  startBtn.classList.toggle('on', m === lastMove && u > 0.45);
+}
+for (const pl of PLANS) {
+  const card = el('article'), ul = el('ul'), b = el('button', `Choose ${pl.name}`, 'pill solid');
+  for (const t of pl.bullets) ul.append(el('li', t));
+  b.onclick = () => openForm(pl.name);
+  card.append(el('h3', pl.name), el('div', pl.price, 'price'), ul, b); chooser.querySelector('.cards').append(card);
+}
+
+// ---------- the front desk's application form. Nothing is stored: submit only opens WhatsApp with the answers filled in. ----------
+const formBox = document.getElementById('form'), form = formBox.querySelector('form'), startBtn = document.getElementById('startBtn');
+function openForm(plan) {
+  formBox.classList.remove('sent'); form.reset();
+  if (plan) form.elements.need.value = plan;
+  syncEmail(); lenis.stop(); formBox.showModal(); // the page behind stays where it is
+}
+const syncEmail = () => { const on = form.elements.contact.value === 'Email'; form.elements.email.closest('label').hidden = !on; form.elements.email.required = on; };
+form.addEventListener('change', syncEmail);
+form.addEventListener('submit', (e) => {
+  e.preventDefault(); // the browser has already checked the required fields
+  const f = form.elements, row = (k, v) => (v.trim() ? `${k}: ${v.trim()}\n` : '');
+  const text = 'Hi Scrollstory, I would like to start a project.\n' + row('Name', f.name.value) + row('Business', f.business.value) + row('I need', f.need.value) + row('Budget', f.budget.value) +
+    row('Reach me by', f.contact.value) + row('Email', f.contact.value === 'Email' ? f.email.value : '') + row('Message', f.message.value);
+  formBox.classList.add('sent');
+  window.open(`https://wa.me/919949088659?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+});
+formBox.addEventListener('close', () => lenis.start());
+for (const b of formBox.querySelectorAll('.close')) b.onclick = () => formBox.close();
+startBtn.onclick = () => openForm();
+const deskBox = new THREE.Box3(new THREE.Vector3(13.4, H.rooftop, 7), new THREE.Vector3(16.6, H.rooftop + 2.6, 8)); // the desk and the plan cards over it
+addEventListener('click', (e) => {
+  if (rail.moveAt(state.body) !== lastMove || e.target.closest('button, a, dialog, #info, #chooser')) return;
+  ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
+  if (ray.ray.intersectsBox(deskBox)) openForm();
+});
 
 // ---------- floor plan ----------
 const plan = document.getElementById('plan'), planBtn = document.getElementById('planBtn');
@@ -214,6 +296,7 @@ function togglePlan(open = !plan.classList.contains('open')) { plan.classList.to
 planBtn.onclick = () => togglePlan();
 const hud = document.getElementById('hud');
 addEventListener('keydown', (e) => {
+  if (e.target.closest?.('input, textarea, select')) return; // typing in the form
   if (e.key === 'Escape') togglePlan(false);
   if (e.key === 'h' || e.key === 'H') hud.classList.toggle('off');
   if (e.key === 'r' || e.key === 'R') { state.reduce = !state.reduce; state.hold = null; }
@@ -264,9 +347,10 @@ gsap.ticker.add((time, deltaMs) => {
   camera.updateMatrixWorld();
 
   atmosphere(pos[1]);
+  focus(state.body);
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;
-  caption(state.body);
+  caption(state.body); cards(state.body);
   renderer.render(scene, camera);
 
   if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }

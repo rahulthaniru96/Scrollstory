@@ -27,6 +27,40 @@
   #caption .label { margin-bottom: 10px; }
   #caption h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(34px, 5.2vw, 72px); line-height: 1; margin: 0; }
   #caption h1 em { display: block; color: #F7C98A; }
+  #caption h1.small { font-size: clamp(22px, 3vw, 40px); line-height: 1.12; max-width: 22em; }
+  #caption .cta { display: flex; gap: 10px; margin-top: 18px; text-shadow: none; }
+  #caption .cta[hidden] { display: none; }
+  #caption.on .cta { pointer-events: auto; }
+  #info, #chooser, #startBtn { position: fixed; z-index: 4; opacity: 0; pointer-events: none; }
+  #info.on, #chooser.on, #startBtn.on { pointer-events: auto; }
+  #info { right: 5vw; bottom: 16vh; width: min(340px, 90vw); padding: 18px 20px; background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; }
+  #info h2, #chooser h3, #form h2 { font-family: 'Instrument Serif', serif; font-weight: 400; margin: 6px 0 8px; line-height: 1.05; }
+  #info h2 { font-size: 34px; }
+  #info p { margin: 0; line-height: 1.45; }
+  #info button { margin-top: 14px; }
+  #chooser { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(900px, 92vw); max-height: 78vh; overflow: auto; }
+  #chooser > h2, #chooser > .note { color: var(--cream); text-shadow: 0 2px 18px rgba(20, 32, 29, 0.8); text-align: center; margin: 0 0 12px; }
+  #chooser > h2 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(30px, 4vw, 48px); line-height: 1; }
+  #chooser > .note { margin: 10px 0 0; }
+  #chooser .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  #chooser article { background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; align-items: flex-start; }
+  #chooser h3 { font-size: 28px; margin-top: 0; }
+  #chooser .price { font-weight: 600; font-size: 20px; }
+  #chooser ul { margin: 10px 0 14px; padding-left: 18px; line-height: 1.4; font-size: 14px; flex: 1; }
+  #startBtn { left: 50%; bottom: 62px; transform: translateX(-50%); transition: opacity 0.4s; font-size: 12px; padding: 14px 22px; }
+  #startBtn.on { opacity: 1; }
+  #form { border: 1px solid var(--ink); border-radius: 16px; background: var(--cream); color: var(--ink); padding: 24px; width: min(480px, 94vw); max-height: 92vh; }
+  #form::backdrop { background: rgba(30, 42, 38, 0.55); }
+  #form h2 { font-size: 34px; margin-top: 0; }
+  #form label, #form fieldset { display: block; margin: 0 0 12px; font-size: 13px; font-weight: 500; border: 0; padding: 0; }
+  #form label[hidden] { display: none; }
+  #form input:not([type=radio]), #form select, #form textarea { display: block; width: 100%; margin-top: 4px; padding: 9px 10px; font: 400 15px Inter, system-ui, sans-serif; color: var(--ink); background: #fff; border: 1px solid var(--ink); border-radius: 8px; }
+  #form fieldset label { display: inline-flex; gap: 6px; align-items: center; margin: 6px 14px 0 0; font-weight: 400; }
+  #form .row { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 16px; }
+  #form small { display: block; line-height: 1.45; }
+  #form .done { display: none; }
+  #form.sent form { display: none; }
+  #form.sent .done { display: block; }
   #contact { position: fixed; right: 28px; bottom: 24px; z-index: 5; display: flex; gap: 10px; align-items: center; }
   #hud { position: fixed; left: 16px; top: 76px; z-index: 5; background: rgba(30, 42, 38, 0.82); color: var(--cream); padding: 10px 12px; border-radius: 10px; font: 12px/1.55 'IBM Plex Mono', ui-monospace, monospace; white-space: pre; pointer-events: none; }
   #hud.off { display: none; }
@@ -38,7 +72,8 @@
   #film::after { content: ''; position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
   #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 4; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.6); }
   #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
-  @media (max-width: 640px) { header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 10px; top: 64px; } .brand small { display: none; } }
+  @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 84px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 8px; } #chooser article { padding: 10px 14px; } #chooser h3 { font-size: 22px; margin-bottom: 2px; } #chooser ul { margin: 6px 0 10px; font-size: 13px; }
+    header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 10px; top: 64px; } .brand small { display: none; } }
 </style>
 </head>
 <body>
@@ -53,7 +88,47 @@
 </header>
 <div id="plan" role="menu" aria-label="Floor plan"></div>
 
-<div id="caption" aria-live="polite"><div class="label mono"></div><h1></h1></div>
+<div id="caption" aria-live="polite"><div class="label mono"></div><h1></h1>
+  <div class="cta" hidden><a class="pill" href="tel:+919949088659">Call</a><a class="pill solid" href="https://wa.me/919949088659" target="_blank" rel="noopener">WhatsApp</a></div>
+</div>
+<aside id="info" aria-live="polite"></aside>
+<section id="chooser" aria-label="Choose a plan">
+  <h2>Choose one</h2>
+  <div class="cards"></div>
+  <p class="note mono">Launch prices, for the first 5 clients</p>
+</section>
+<button id="startBtn" class="pill solid mono">Start your project</button>
+<dialog id="form" aria-labelledby="formTitle" data-lenis-prevent>
+  <form>
+    <h2 id="formTitle">Start your project</h2>
+    <label>Your name <input name="name" required pattern="\s*\S.*\S\s*" title="Your name, at least 2 letters" maxlength="60" autocomplete="name"></label>
+    <label>Business name <input name="business" required pattern=".*\S.*" title="Your business name" maxlength="80" autocomplete="organization"></label>
+    <label>What you need
+      <select name="need" required>
+        <option value="">Choose one</option><option>Starter</option><option>Signature</option><option>Signature + Admin</option><option>Not sure</option>
+      </select>
+    </label>
+    <label>Budget range
+      <select name="budget" required>
+        <option value="">Choose one</option><option>Under ₹15,000</option><option>₹15,000 to ₹40,000</option><option>₹40,000 to ₹65,000</option><option>Above ₹65,000</option><option>Not sure yet</option>
+      </select>
+    </label>
+    <fieldset><legend>How should we reach you?</legend>
+      <label><input type="radio" name="contact" value="Call" required> Call</label>
+      <label><input type="radio" name="contact" value="WhatsApp"> WhatsApp</label>
+      <label><input type="radio" name="contact" value="Email"> Email</label>
+    </fieldset>
+    <label hidden>Your email <input name="email" type="email" maxlength="120" autocomplete="email"></label>
+    <label>Message <textarea name="message" rows="3" maxlength="500"></textarea></label>
+    <small>We only use this to reply to you. Sending opens WhatsApp to +91 99490 88659 with your answers filled in.</small>
+    <div class="row"><button type="button" class="pill close">Close</button><button class="pill solid">Send on WhatsApp</button></div>
+  </form>
+  <div class="done" role="status">
+    <h2>Opening WhatsApp…</h2>
+    <p>If nothing happens, call +91 99490 88659.</p>
+    <button type="button" class="pill solid close">Back to the walk</button>
+  </div>
+</dialog>
 <div id="hud"></div>
 <div id="hint" class="mono">Scroll to walk · move the mouse · H hides the readout</div>
 <div id="contact">

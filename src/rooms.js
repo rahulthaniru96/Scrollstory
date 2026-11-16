@@ -12,8 +12,8 @@ const canvasTex = (w, h, draw) => {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 };
 
-// Rahul's story, from portfolio-brief.md ("The story"), cut into lines the box TV can show one at a time.
-const STORY = [
+// Rahul's story, from portfolio-brief.md ("The story"), cut into lines. Each line is a channel on the box TV.
+export const STORY = [
   "I've loved building websites for a long time.",
   'So I looked for clients, and built what they actually need.',
   'A website should be a tool that brings a business income.',
@@ -94,15 +94,22 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
   // ---------- 03 Workshop: each shop's device hovers over its counter, and its pages come out of the screen ----------
   {
     const [a, b, c] = SHOPS, z = -21.2;
-    for (const s of SHOPS) { prop('hanging_lamp', s.x, 3.05, -20.85); glow(0xffc978, 1.5, s.x, 3.05, -20.85); glow(0xfff0cf, 2.4, s.x, 2.0, z + 0.2, scene, 0.3); }
+    // On its beat a shop lights up and its device floats forward. env.shop holds each shop's weight, from the scroll.
+    const front = SHOPS.map((s, i) => {
+      const g = new THREE.Group(); scene.add(g);
+      prop('hanging_lamp', s.x, 3.05, -20.85); glow(0xffc978, 1.5, s.x, 3.05, -20.85);
+      const halo = glow(0xfff0cf, 2.4, s.x, 2.0, z + 0.2, g, 0.3);
+      tick.push((t, dt, env) => { const w = env.shop[i]; g.position.z = w * 0.45; halo.material.opacity = 0.2 + w * 0.3; halo.scale.setScalar(2.4 + w * 0.8); });
+      return g;
+    });
     // Starter: a phone standing in the air, far taller than a phone.
-    hover(prop('phone', a.x, 1.78, z, { s: 8, then: (m) => { m.rotation.x = Math.PI / 2; for (const n of ['battery', 'charger']) part(m, n).visible = false; } }), 0.07, 0.5, 0.03, 0.35);
+    hover(prop('phone', a.x, 1.78, z, { s: 8, parent: front[0], then: (m) => { m.rotation.x = Math.PI / 2; for (const n of ['battery', 'charger']) part(m, n).visible = false; } }), 0.07, 0.5, 0.03, 0.35);
     stream([[a.x, 1.95, z + 0.15], [a.x - 0.5, 2.3, z + 0.35], [a.x + 0.3, 2.7, z + 0.15], [a.x - 0.1, 3.0, z - 0.2]], 6, pages, 0.3, 0.4);
     // Signature: a laptop, its pages climbing out in a spiral.
-    hover(prop('laptop', b.x, 1.4, z, { s: 3.4, then: (m) => { m.rotation.x = 0.12; } }), 0.06, 0.45, 0.03, 0.25);
+    hover(prop('laptop', b.x, 1.4, z, { s: 3.4, parent: front[1], then: (m) => { m.rotation.x = 0.12; } }), 0.06, 0.45, 0.03, 0.25);
     stream([[b.x, 1.95, z + 0.1], [b.x + 0.5, 2.2, z + 0.35], [b.x, 2.45, z + 0.45], [b.x - 0.5, 2.7, z + 0.2], [b.x, 3.0, z - 0.1]], 8, pages, 0.3, 0.4);
     // Signature + Admin: the same laptop, with its dashboards circling it and a lock above.
-    hover(prop('laptop', c.x, 1.4, z, { s: 3.4, then: (m) => { m.rotation.x = 0.12; } }), 0.06, 0.45, 0.03, 0.25);
+    hover(prop('laptop', c.x, 1.4, z, { s: 3.4, parent: front[2], then: (m) => { m.rotation.x = 0.12; } }), 0.06, 0.45, 0.03, 0.25);
     const ring = panels.map((mat) => mesh(new THREE.PlaneGeometry(0.44, 0.33), mat));
     tick.push((t, dt, env) => { for (const [i, m] of ring.entries()) { const an = env.air * 0.25 + (i * 2 * Math.PI) / 3; m.position.set(c.x + Math.cos(an) * 0.78, 2.1 + Math.sin(an) * 0.2, z + 0.05 + Math.sin(an) * 0.32); m.rotation.y = Math.sin(an) * 0.4; } });
     keyAndLock(c.x, 2.62, z - 0.1, 1.3);
@@ -111,7 +118,7 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
   // ---------- 04 Worth it: one idea hovering over each counter ----------
   {
     const [custom, secure, legal, income] = COUNTERS, x = 11.35, WEST = -Math.PI / 2;
-    for (const c of COUNTERS) glow(0xfff0cf, 2.2, x - 0.25, 1.9, c.z, scene, 0.22);
+    for (const [i, c] of COUNTERS.entries()) { const halo = glow(0xfff0cf, 2.2, x - 0.25, 1.9, c.z, scene, 0.22); tick.push((t, dt, env) => { halo.material.opacity = 0.18 + env.counter[i] * 0.5; }); } // brighter on its beat
     { // Custom: a page that keeps taking itself apart and putting itself back together
       const g = new THREE.Group(); g.position.set(x, 2.0, custom.z); g.rotation.y = WEST; scene.add(g);
       const blocks = [[0, 0.52, 1.0, 0.12, 0x1e2a26], [0, 0.22, 1.0, 0.4, 0xe8a89a], [-0.34, -0.2, 0.3, 0.32, 0x2f5fa8], [0, -0.2, 0.3, 0.32, 0x3f6e68], [0.34, -0.2, 0.3, 0.32, 0xf2d98b], [0, -0.5, 1.0, 0.1, 0x8c8a82]]
@@ -265,30 +272,37 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
     prop('steel_trunk', -12.55, y, -20, { ry: Math.PI / 2 });
     hover(prop('stool', -11.6, y + 0.28, -18.2), 0.04, 0.4, 0.03);
     // The phone of that year: back cover off, battery out, charging on its own. Here the pieces drift apart.
-    hover(prop('phone', -4.75, y + 1.45, -16.3, { s: 3, then: (m) => { m.rotation.x = 0.9; apart(m, { cover: [0, -0.04, 0], battery: [0.02, 0.05, -0.03], charger: [0.06, 0, 0.02] }); } }), 0.05, 0.5, 0.05, 0.6);
+    hover(prop('phone', -9.2, y + 1.5, -16.6, { s: 3, then: (m) => { m.rotation.x = 0.9; apart(m, { cover: [0, -0.04, 0], battery: [0.02, 0.05, -0.03], charger: [0.06, 0, 0.02] }); } }), 0.05, 0.5, 0.05, 0.6);
 
     // The TV plays the story, one line at a time.
     const c = document.createElement('canvas'); c.width = 400; c.height = 320;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-    const draw = (i, a) => {
+    const draw = (ch, snow) => {
+      if (snow) { // CRT static between channels
+        for (let py = 0; py < 320; py += 8) for (let px = 0; px < 400; px += 8) { const v = (40 + Math.random() * 180) | 0; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(px, py, 8, 8); }
+        tex.needsUpdate = true; return;
+      }
       const g = x.createRadialGradient(200, 160, 20, 200, 160, 260); g.addColorStop(0, '#34424a'); g.addColorStop(1, '#161b1f');
       x.fillStyle = g; x.fillRect(0, 0, 400, 320);
-      x.font = '500 30px Georgia, serif'; x.textAlign = 'center'; x.fillStyle = '#f7efe2'; x.globalAlpha = a;
+      const story = ch >= 0 && ch < STORY.length;
+      x.font = '600 15px monospace'; x.fillStyle = '#f2d98b'; x.textAlign = 'left'; x.fillText('SCROLLSTORY TV', 22, 36);
+      if (ch >= 0) { x.textAlign = 'right'; x.fillText(`CH 0${ch + 1}`, 378, 36); }
+      x.font = `500 ${story ? 30 : 44}px Georgia, serif`; x.textAlign = 'center'; x.fillStyle = '#f7efe2';
       const lines = []; let line = '';
-      for (const word of STORY[i].split(' ')) { if (x.measureText(line + word).width > 330) { lines.push(line.trim()); line = ''; } line += word + ' '; }
+      for (const word of (ch < 0 ? 'Scrollstory TV' : story ? STORY[ch] : 'Your story?').split(' ')) { if (x.measureText(line + word).width > 330) { lines.push(line.trim()); line = ''; } line += word + ' '; }
       lines.push(line.trim());
-      for (const [k, l] of lines.entries()) x.fillText(l, 200, 172 + (k - (lines.length - 1) / 2) * 40);
-      x.globalAlpha = 1; x.fillStyle = 'rgba(0,0,0,0.14)'; for (let sy = 0; sy < 320; sy += 4) x.fillRect(0, sy, 400, 1);
+      for (const [k, l] of lines.entries()) x.fillText(l, 200, 182 + (k - (lines.length - 1) / 2) * 40);
+      x.fillStyle = 'rgba(0,0,0,0.14)'; for (let sy = 0; sy < 320; sy += 4) x.fillRect(0, sy, 400, 1);
       tex.needsUpdate = true;
     };
     const tv = hover(prop('box_tv', -6.5, y + 0.3, -19.45, { s: 2, ry: 0.45 }), 0.05, 0.35, 0.015); // turned a little toward the hold frame
     mesh(new THREE.PlaneGeometry(0.5, 0.4), basic(0xffffff, { map: tex }), -0.085, 0.36, 0.2625, tv);
     glow(0xcfe0ff, 3.6, -6.3, y + 1.0, -18.6, scene, 0.3);
     let shown = '';
-    tick.push((t) => {
+    tick.push((t, dt, env) => { // the scroll picks the channel (env.tv), with a blip of static at each flip
       if (camera.position.y < H.landing - 1) return;
-      const T = 5.5, i = Math.floor(t / T) % STORY.length, u = (t % T) / T, a = Math.round(Math.min(1, u * 6, (1 - u) * 6) * 8) / 8;
-      if (shown !== i + ':' + a) { shown = i + ':' + a; draw(i, a); }
+      const { ch, f } = env.tv, snow = ch >= 0 && f < 0.1, k = snow ? 's' + Math.floor(t * 14) : 'c' + ch;
+      if (shown !== k) { shown = k; draw(ch, snow); }
     });
   }
 

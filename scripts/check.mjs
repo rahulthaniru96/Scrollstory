@@ -70,6 +70,21 @@ for (const [m, r] of perMove) {
   if (r.pitch > LIMIT.pitch) fail(`"${m.name}" tilts ${r.pitch.toFixed(1)} deg per vh (limit ${LIMIT.pitch})`);
 }
 
+// 4b. No shake: the authored yaw may not swing back and forth. Two reversals within 20 vh is a wobble (the Gallery shake reversed 13.5 vh apart, so 10 would have missed it).
+{
+  let sign = 0, lastFlip = -Infinity;
+  for (let p = 0; p < rail.total; p += 0.25) {
+    const v = rail.yaw(p + 0.25) - rail.yaw(p);
+    if (Math.abs(v) < 0.0025) continue; // under 0.01 deg per vh counts as still
+    const sg = Math.sign(v);
+    if (sign && sg !== sign) {
+      if (p - lastFlip < 20) fail(`"${rail.moveAt(p).name}" shakes: the yaw reverses twice within ${(p - lastFlip).toFixed(1)} vh, near ${p.toFixed(0)} vh`);
+      lastFlip = p;
+    }
+    sign = sg;
+  }
+}
+
 // 5. Reverse is exact: the pose is a pure function of progress.
 for (let p = rail.total; p >= 0; p -= 15.5) {
   const a = rail.pos(p), b = rail.pos(p);
@@ -98,4 +113,4 @@ if (fails.length) {
   for (const [, [count, first]] of seen) console.error(`  x${count}  ${first}`);
   process.exit(1);
 }
-console.log('\nOK: clearance, eye height, doors, bridges, floating objects, speed limits, reverse.\n');
+console.log('\nOK: clearance, eye height, doors, bridges, floating objects, speed limits, no shake, reverse.\n');

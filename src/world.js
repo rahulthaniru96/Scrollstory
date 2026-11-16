@@ -78,15 +78,14 @@ for (const s of SHOPS) {
   box(`shop ${s.name}`, s.x - 2, s.x + 2, 0, 1.0, -22, -20.6, 'furniture');
   box(`shop sign ${s.name}`, s.x - 2.4, s.x + 2.4, 3.55, 4.2, -22, -21.6, 'sign', { color: s.color });
 }
-for (const s of SHOPS) air(`shop float ${s.name}`, s.x, 2.2, -21.2, 0.9); // each shop's device hovers over its counter, pages streaming out of it
-for (const x of [-9, -3, 3, 9]) box(`shop divider x${x}`, x - 0.15, x + 0.15, 0, 4.2, -22, -20.6, 'wall', { color: 0xc47a5a });
+for (const s of SHOPS) air(`shop float ${s.name}`, s.x, 2.2, -21.0, 1.1); // each shop's device hovers over its counter, and floats forward on its beat
+for (const x of [-9, -3, 3, 9]) box(`shop divider x${x}`, x - 0.15, x + 0.15, 0, 4.2, -22, -21.3, 'wall', { color: 0xc47a5a }); // shallow, so all three shops show from the corner
 
 // 04 Worth it: four counters on the east wall.
-export const COUNTERS = [-8.5, -5.5, -2.5, 0.5].map((z, i) => ({ z, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
+export const COUNTERS = [-11, -7, -3, 1].map((z, i) => ({ z, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
 for (const c of COUNTERS) box(`counter ${c.name}`, 10.9, 12, 0, 1.1, c.z - 0.9, c.z + 0.9, 'furniture');
 for (const c of COUNTERS) air(`counter float ${c.name}`, 11.35, 1.95, c.z, 0.7); // nothing rests on a counter
 air('coins rising', 11.35, 3.3, COUNTERS[3].z, 0.6);
-export const WORTH_CENTRE = [11.3, 1.1, -4];
 
 // 02 Gallery: floating website cards (placeholders until Rahul decides which sites show).
 export const CARDS = [4, 1, -2, -5, -8].map((z, i) => ({ x: i % 2 ? -11 : -7, y: 1.55, z, w: 1.6, h: 1.0, label: 'Demo' }));
@@ -120,7 +119,7 @@ box('door in the water', LONE_DOOR.x - 0.7, LONE_DOOR.x + 0.7, 0, 2.5, LONE_DOOR
 export const LAMP_ZONE = { x0: -4.6, x1: 4.6, z0: -14.6, z1: -1.4, y0: 0.5, y1: 3.0 };
 box('courtyard lamps', LAMP_ZONE.x0, LAMP_ZONE.x1, 0, 5, LAMP_ZONE.z0, LAMP_ZONE.z1, 'floating', { hidden: true });
 // Ledger pages leave the Income counter as paper birds, out through the arcade and up into the sky.
-export const BIRD_PATH = [[11.2, 1.5, 0.5], [10.6, 2.6, -1.5], [9.2, 3.1, -4], [7.4, 3.1, -5.8], [6, 3.0, -6.5], [3.5, 3.6, -7.5], [0, 5.5, -8], [-3, 8.5, -6], [-2, 12, 0]];
+export const BIRD_PATH = [[11.2, 1.5, 1], [10.6, 2.6, -1.2], [9.2, 3.1, -4], [7.4, 3.1, -5.8], [6, 3.0, -6.5], [3.5, 3.6, -7.5], [0, 5.5, -8], [-3, 8.5, -6], [-2, 12, 0]];
 for (const [i, q] of BIRD_PATH.entries()) C.push({ t: 'sph', name: `paper birds path ${i}`, kind: 'floating', x: q[0], y: q[1], z: q[2], r: 0.4, hidden: true });
 // Long-rod ceiling fans and a cloud that has drifted indoors.
 export const FANS = [[-9, 3.6, -4], [9, 3.6, -4], [0, 3.6, -18.8]];
@@ -150,7 +149,7 @@ box('box TV', -7.7, -5.3, H.home, H.home + 3, -20.5, -18.6, 'furniture', HID);
 box('teapoy and lamp', -7.1, -5.9, H.home, H.home + 5, -18.1, -17.1, 'furniture', HID);
 box('home trunk', -12.95, -12.15, H.home, H.home + 0.6, -20.6, -19.4, 'furniture', HID);
 air('home stool', -11.6, H.home + 0.5, -18.2, 0.45);
-air('home phone and battery', -4.75, H.home + 1.45, -16.3, 0.45);
+air('home phone and battery', -9.2, H.home + 1.5, -16.6, 0.45); // west of the sofa, clear of every line of sight to the TV
 export const TV = [-6.5, H.home + 1.0, -19];
 
 // Extras fragment.

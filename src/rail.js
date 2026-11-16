@@ -1,8 +1,8 @@
 // The camera rail: one position spline measured by length, plus a separate look track.
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
-import { EYE, STAIR, PHI_END, stairPt, stairY, H, WORTH_CENTRE, SUN_PATCH, TV, DESK, CARDS } from './world.js';
+import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, DESK, CARDS } from './world.js';
 
-export const TOTAL_VH = 3300; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 4065; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -91,43 +91,41 @@ export function buildRail() {
   move('Gallery, walking backwards', 'room', 220, (a, d) => {
     key(a + d, line(-9, -10));
     for (const c of CARDS) { // glance at each card as it slides into view
-      const zc = Math.max(-9.6, c.z - 3.5);
-      look(a + (d * (7 - zc)) / 17, 180 + (c.x > -9 ? 9 : -9), -3);
+      const zc = c.z - 3.5;
+      if (zc < -9) continue; // the walk ends before this one's turn; squeezing its glance into the last metres made the view shake
+      look(a + (d * (7 - zc)) / 17, 180 + (c.x > -9 ? 6 : -6), -3);
     }
     look(a + d, 180, -3);
   });
   hold('Gallery hold', 50, '02 Gallery');
+  // ---- 03 Workshop: all three shops from the corner, one equal beat at each, then step back to choose ----
   move('Corner into Workshop', 'room', 110, (a, d) => {
     look(a, 180, -3);
-    g(-8.7, -13.5); g(-7.6, -16.9); key(a + d, g(-6, -18.5));
-    look(a + d * 0.4, 270, 0); look(a + d * 0.75, 360, 0); look(a + d, 360, 0);
-  });
-  // ---- 03 Workshop ----
-  move('Workshop side track', 'room', 200, (a, d) => {
-    // Lean in toward each shop, drift back out between them, and look ahead to the next one.
-    key(a + 35, g(-5.3, -18.9)); g(-3, -18.3); key(a + 85, g(-0.9, -18.8)); key(a + 125, g(0.9, -18.9)); g(3, -18.3); key(a + d, g(6, -18.8));
-    look(a + 20, 360, 0); look(a + 62, 346, 0); look(a + 105, 360, 0); look(a + 150, 346, 0); look(a + d * 0.8, 360, 0);
-    look(a + d, 408, 0); // the hold looks back along all three shop fronts
+    g(-9.3, -13.5); key(a + d, g(-10.2, -17.4));
+    look(a + d * 0.45, 250, 0); look(a + d * 0.85, 293, 0); look(a + d, 293, 0);
   });
   hold('Workshop hold', 50, '03 Workshop');
-  // ---- 04 Worth it ----
-  const O = WORTH_CENTRE, R = 3.4;
-  const orbit = (th) => [O[0] + R * Math.cos(rad(th)), O[2] + R * Math.sin(rad(th))];
-  move('Corner into Worth it', 'room', 110, (a, d) => {
-    g(7.6, -17.6); g(8.6, -15.6); key(a + d, g(8.8, -13.5));
-    look(a + d * 0.55, 270, 0);
-    const [y, p] = aim(here(), O, 200); look(a + d * 0.88, y, p); look(a + d, y, p);
+  for (const [i, sh] of SHOPS.entries()) {
+    move(`To ${sh.name}`, 'room', i ? 50 : 70, (a, d) => { key(a + d, line(sh.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
+    hold(`Shop: ${sh.name}`, 60);
+  }
+  move('Step back to choose', 'room', 60, (a, d) => { key(a + d, g(8.2, -17.5)); look(a + d * 0.85, 405, 0); look(a + d, 405, 0); });
+  hold('Choose one', 90);
+  // ---- 04 Worth it: down the row first, then a beat in front of each counter from across the room ----
+  const LANE = 7.6;
+  move('Corner into Worth it', 'room', 130, (a, d) => {
+    g(8.4, -15.8); key(a + d, g(LANE, -13.8));
+    look(a + d * 0.5, 300, 0);
+    const [y, p] = aim(here(), [11.35, EYE, -5], 200); look(a + d * 0.9, y, p); look(a + d, y, p);
   });
-  move('Worth it push in and orbit', 'room', 150, (a, d) => {
-    for (const [f, th] of [[95 / 150, 233.1], [122 / 150, 215.6], [1, 198.1]]) {
-      const [x, z] = orbit(th); key(a + d * f, g(x, z));
-      const [y, p] = aim(here(), O, 220); look(a + d * f, y, p);
-    }
-  });
-  hold('Worth it hold', 50, '04 Worth it');
-  move('Back to the stair foot', 'room', 170, (a, d) => {
+  hold('Worth it hold', 40, '04 Worth it');
+  for (const c of COUNTERS) {
+    move(`To ${c.name}`, 'room', 45, (a, d) => { key(a + d, line(LANE, c.z)); look(a + d * 0.85, 270, 0); look(a + d, 270, 0); });
+    hold(`Counter: ${c.name}`, 55);
+  }
+  move('Back to the stair foot', 'room', 150, (a, d) => {
     look(a + d * 0.3, 180, 0);
-    g(8.6, -2); g(8.8, 2.5); g(8.5, 6.6); g(7.4, 8.6);
+    g(8.2, 3.5); g(8.4, 6.6); g(7.4, 8.6);
     look(a + d * 0.5, 180, 0);
     key(a + d * 0.8, g(6.15, 9.2));
     look(a + d * 0.8, 90, 0);
@@ -202,7 +200,7 @@ export function buildRail() {
       const [y, p] = aim(here(), TV, NORTH + 30); look(a + (d * al) / 60, y, p);
     }
   });
-  hold('HOME hold', 60, 'HOME');
+  hold('HOME hold', 120, 'HOME'); // long enough for the TV's seven channels
   // ---- 05 Extras ----
   const boardL = [11, H.extras + 2.6, -24], boardR = [19, H.extras + 2.6, -24];
   move('Bridge to Extras', 'room', 150, (a, d) => {

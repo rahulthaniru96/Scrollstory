@@ -175,6 +175,30 @@ export function dress({ scene, camera, lowQuality = false }) {
     scene.add(new THREE.Mesh(patch, (patchMats[w.sky] ||= basic(light, { transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))));
   }
 
+  // ---------- the plaque on the parapet: the wordmark and the Doorway S (logo A on the design board) ----------
+  {
+    const g = new THREE.Group(); g.position.set(0, 7.9, 12.3); scene.add(g); // on the lobby front, facing the street
+    const clay = lit(0xc9733f, { emissive: 0xc9733f, emissiveIntensity: 0.55, roughness: 0.5 });
+    mesh(new THREE.BoxGeometry(6.7, 1.95, 0.08), clay, 0, 0, 0.04, g); // a clay rim behind the ink panel
+    mesh(new THREE.BoxGeometry(6.5, 1.75, 0.16), lit(0x1e2a26, { roughness: 0.6 }), 0, 0, 0.08, g);
+    // The mark, traced from the logo's own SVG paths (120 x 140 units, y down).
+    const k = 1.25 / 140, at = (px, py) => new V3((px - 60) * k, (70 - py) * k, 0);
+    const archPts = [at(12, 134), at(12, 97), at(12, 60)];
+    for (let i = 1; i < 16; i++) { const an = Math.PI - (Math.PI * i) / 16; archPts.push(at(60 + 48 * Math.cos(an), 60 - 48 * Math.sin(an))); }
+    archPts.push(at(108, 60), at(108, 97), at(108, 134));
+    const bez = (p0, c1, c2, p1) => new THREE.CubicBezierCurve3(at(...p0), at(...c1), at(...c2), at(...p1)).getPoints(10);
+    const sPts = [...bez([79, 50], [73, 37], [41, 37], [41, 55]), ...bez([41, 55], [41, 73], [79, 69], [79, 91]).slice(1), ...bez([79, 91], [79, 110], [48, 112], [38, 99]).slice(1)];
+    const mark = new THREE.Group(); mark.position.set(-2.45, 0, 0.19); g.add(mark);
+    for (const pts of [archPts, sPts]) mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.2), 90, 0.032, 8), clay, 0, 0, 0, mark);
+    // shortcut: the wordmark is a texture on the raised plaque, not extruded letters (three no longer ships a font). Upgrade when the logo is modelled in Blender.
+    const c = document.createElement('canvas'); c.width = 1056; c.height = 240;
+    const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const word = () => { x.clearRect(0, 0, 1056, 240); x.font = '190px "Instrument Serif", Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#e08a52'; x.fillText('scrollstory', 528, 112); tex.needsUpdate = true; };
+    word(); document.fonts?.load('190px "Instrument Serif"').then(word, () => {});
+    mesh(new THREE.PlaneGeometry(4.4, 1.0), basic(0xffffff, { map: tex, transparent: true }), 0.75, 0, 0.17, g);
+    glow(0xffb070, 8, 0, 0, 0.5, g, 0.22); // a soft glow, so it reads when the camera tilts up at the gate
+  }
+
   // ---------- lamps drifting over the courtyard water ----------
   const bulb = basic(0xffe9b8);
   const lamps = [];

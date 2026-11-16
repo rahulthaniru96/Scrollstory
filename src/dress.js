@@ -29,15 +29,15 @@ export function dress({ scene, camera, lowQuality = false }) {
     s.scale.setScalar(size); s.position.set(x, y, z); parent.add(s); return s;
   };
 
-  // ---------- sky dome: soft orange-pink at the ground, deeper orange higher up, a low sun in the west ----------
-  const SUN_DIR = new V3(-0.93, 0.15, 0.3).normalize();
+  // ---------- sky dome: soft orange-pink at the ground, deeper orange higher up, purple twilight at the rooftop ----------
+  const SUN_DAY = new V3(-0.93, 0.15, 0.3).normalize(), SUN_DUSK = new V3(-0.5, 0.11, 0.86).normalize(), SUN_DIR = SUN_DAY.clone(); // by the rooftop the sun has come round to the south-west, into the last view
   const sky = new THREE.Mesh(new THREE.SphereGeometry(720, 40, 20), new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false,
-    uniforms: { top: { value: new THREE.Color() }, mid: { value: new THREE.Color() }, low: { value: new THREE.Color() }, veilCol: { value: new THREE.Color() }, veil: { value: 0 }, sunDir: { value: SUN_DIR }, sunCol: { value: new THREE.Color(0xfff1cf) } },
+    uniforms: { top: { value: new THREE.Color() }, upper: { value: new THREE.Color() }, mid: { value: new THREE.Color() }, low: { value: new THREE.Color() }, veilCol: { value: new THREE.Color() }, veil: { value: 0 }, sunDir: { value: SUN_DIR }, sunCol: { value: new THREE.Color() } },
     vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `uniform vec3 top, mid, low, veilCol, sunDir, sunCol; uniform float veil; varying vec3 vDir;
+    fragmentShader: `uniform vec3 top, upper, mid, low, veilCol, sunDir, sunCol; uniform float veil; varying vec3 vDir;
       void main(){ vec3 d = normalize(vDir);
-        vec3 c = mix(mid, top, smoothstep(0.0, 0.6, d.y)); c = mix(low, c, smoothstep(-0.15, 0.08, d.y));
+        vec3 c = mix(mid, upper, smoothstep(0.0, 0.3, d.y)); c = mix(c, top, smoothstep(0.25, 0.75, d.y)); c = mix(low, c, smoothstep(-0.15, 0.08, d.y));
         float s = max(dot(d, sunDir), 0.0);
         c += sunCol * (smoothstep(0.9992, 0.9996, s) * 1.2 + pow(s, 60.0) * 0.45 + pow(s, 6.0) * 0.16);
         gl_FragColor = vec4(mix(c, veilCol, veil), 1.0);
@@ -45,14 +45,51 @@ export function dress({ scene, camera, lowQuality = false }) {
       }`,
   }));
   sky.renderOrder = -10; sky.frustumCulled = false; scene.add(sky);
-  const SKY_LOW = { top: new THREE.Color(0x9db9c7), mid: new THREE.Color(0xf5d3a6), low: new THREE.Color(0xf2a766) };
-  const SKY_HIGH = { top: new THREE.Color(0xc9744b), mid: new THREE.Color(0xf2a766), low: new THREE.Color(0xf6c08a) };
+  const pal = (top, upper, mid, low, sun) => ({ top: new THREE.Color(top), upper: new THREE.Color(upper), mid: new THREE.Color(mid), low: new THREE.Color(low), sunCol: new THREE.Color(sun) });
+  const SKY_LOW = pal(0x9db9c7, 0xc9c6b6, 0xf5d3a6, 0xf2a766, 0xfff1cf);
+  const SKY_HIGH = pal(0xc9744b, 0xde8e58, 0xf2a766, 0xf6c08a, 0xfff1cf);
+  const SKY_DUSK = pal(0x5e5a8e, 0x9c8fc4, 0xb58db8, 0xe79aa3, 0xf2a36b); // the rooftop: violet zenith down to a pink horizon, orange where the sun is
   tick.push((t, dt, env) => {
-    sky.position.copy(camera.position);
+    sky.position.copy(camera.position); SUN_DIR.lerpVectors(SUN_DAY, SUN_DUSK, env.dusk).normalize();
     const u = sky.material.uniforms, k = sstep(10, 26, env.h);
-    for (const key of ['top', 'mid', 'low']) u[key].value.lerpColors(SKY_LOW[key], SKY_HIGH[key], k).multiplyScalar(env.dark);
+    for (const key of ['top', 'upper', 'mid', 'low', 'sunCol']) u[key].value.lerpColors(SKY_LOW[key], SKY_HIGH[key], k).lerp(SKY_DUSK[key], env.dusk).multiplyScalar(key === 'sunCol' ? 1 : env.dark);
     u.veilCol.value.copy(env.fogColor); u.veil.value = sstep(0.02, 0.2, env.fogDensity);
   });
+
+  // ---------- rooftop twilight: lavender-grey clouds, gold only on the rims the sun reaches, a few rays and far lamps ----------
+  {
+    const puff = (() => { // one soft cloud, drawn once
+      const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+      const x = c.getContext('2d'), rnd = rng(5);
+      for (let i = 0; i < 26; i++) {
+        const px = 40 + rnd() * 176, py = 52 + rnd() * 34, r = 22 + rnd() * 28, g = x.createRadialGradient(px, py, 0, px, py, r);
+        g.addColorStop(0, 'rgba(255,255,255,0.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 128);
+      }
+      return new THREE.CanvasTexture(c);
+    })();
+    const SUN = SUN_DUSK, sunYaw = Math.atan2(SUN.x, SUN.z), rnd = rng(31), fade = [];
+    const sprite = (color, blending, x, y, z, w, h, k) => {
+      const m = new THREE.SpriteMaterial({ map: puff, color, blending, transparent: true, depthWrite: false, fog: false, opacity: 0 });
+      const s = new THREE.Sprite(m); s.position.set(x, y, z); s.scale.set(w, h, 1); scene.add(s); fade.push([m, k]); return s;
+    };
+    for (let i = 0; i < (lowQuality ? 9 : 16); i++) {
+      const an = i < 4 ? sunYaw + (i - 1.5) * 0.3 : (i / 16) * Math.PI * 2 + rnd() * 0.3, dist = 150 + rnd() * 170, w = 90 + rnd() * 90, y = i < 4 ? 38 + rnd() * 30 : 26 + rnd() * 50; // the first four sit around the sun
+      const x = 15 + Math.sin(an) * dist, z = 5 + Math.cos(an) * dist;
+      sprite(0x8f86ad, THREE.NormalBlending, x, y, z, w, w * 0.42, 0.85);
+      const toSun = Math.cos(an - sunYaw); // rim light only on the clouds between us and the sun
+      if (toSun > 0.2) sprite(0xf6c66a, THREE.AdditiveBlending, x + SUN.x * 6, y - w * 0.05, z + SUN.z * 6, w * 1.04, w * 0.42, 0.7 * toSun);
+    }
+    // god rays: long thin sheets fanning out of the sun
+    const rayMat = basic(0xf6c66a, { transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, map: glowTexture });
+    const sunAt = new V3(15, 33, 5).addScaledVector(SUN, 420);
+    for (const [roll, len] of lowQuality ? [[0.25, 300]] : [[-0.5, 260], [0.2, 330], [0.75, 240]]) {
+      const m = mesh(new THREE.PlaneGeometry(len, 34).translate(len / 2, 0, 0), rayMat, sunAt.x, sunAt.y, sunAt.z);
+      m.lookAt(15, 33, 5); m.rotateZ(Math.PI + roll); m.rotateY(0.25);
+    }
+    fade.push([rayMat, 0.16]);
+    for (let i = 0; i < 9; i++) { const an = rnd() * 6.28, dist = 60 + rnd() * 120; fade.push([glow(0xffc978, 5 + rnd() * 4, 15 + Math.sin(an) * dist, 22 + rnd() * 4, 5 + Math.cos(an) * dist).material, 0.8]); } // warm lamps below the clouds
+    tick.push((t, dt, env) => { for (const [m, k] of fade) { m.opacity = k * env.dusk; m.visible = env.dusk > 0.01; } });
+  }
 
   // ---------- thin still water: a mirror with slow ripples, and rings where the cursor has been ----------
   const RIPPLES = 8;

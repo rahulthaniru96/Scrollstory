@@ -1,6 +1,6 @@
 // The camera rail: one position spline measured by length, plus a separate look track.
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
-import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, DESK, CARDS } from './world.js';
+import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS } from './world.js';
 
 export const TOTAL_VH = 3860; // whole walk, in screen-heights x 100. One constant scales everything.
 
@@ -251,12 +251,26 @@ export function buildRail() {
   const yawOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.yaw));
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
+  // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, two looks along the Gallery, and one per TV channel.
+  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Pan across the board', 'Bridge up to the Rooftop', 'Tilt up to the sky'];
+  const stops = [0, TOTAL_VH];
+  for (const m of moves) {
+    const d = m.s1 - m.s0;
+    if (m.name === 'Arrival hold' || m.name === 'HOME hold') continue; // the walk opens on the first; the TV's channels cover the second
+    if (m.name === 'HOME partial orbit') { const t1 = moves[moves.indexOf(m) + 1].s1; for (let c = 0; c < TV_CHANNELS; c++) stops.push(m.s0 + ((t1 - m.s0) * (c + 0.5)) / TV_CHANNELS); }
+    else if (m.name === 'Gallery, walking backwards') stops.push(m.s0 + d * 0.36, m.s0 + d * 0.72);
+    else if (m.hold) stops.push(m.s0 + d * 0.6);
+    else if (END_STOPS.includes(m.name)) stops.push(m.s1 - 1);
+  }
+  stops.sort((a, b) => a - b);
+
   const clampP = (p) => Math.min(TOTAL_VH, Math.max(0, p));
   return {
     total: TOTAL_VH,
     length: len,
     moves,
     rooms,
+    stops,
     north: NORTH,
     posAt, // position at a rail length (m)
     lengthAt: (p) => LofS(clampP(p)),

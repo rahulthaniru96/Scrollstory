@@ -1,6 +1,7 @@
 // Build-time rail check (world-v2-design.md, section 4). Exits 1 on any failure, so `npm run build` stops.
 import { buildRail } from '../src/rail.js';
 import { smoothDamp } from '../src/spring.js';
+import { stepper } from '../src/stepper.js';
 import { clearanceAt, floorAt, EYE, DOORS, BRIDGES, COLLIDERS, distTo } from '../src/world.js';
 
 const rail = buildRail();
@@ -91,6 +92,29 @@ for (let p = rail.total; p >= 0; p -= 15.5) {
   if (a.some((v, i) => v !== b[i]) || rail.yaw(p) !== rail.yaw(p)) fail(`pose is not repeatable at p=${p}`);
 }
 
+// 5b. Stops: in order, from the first frame to the last, and never further apart than one long stride.
+{
+  const S = rail.stops;
+  if (S[0] !== 0 || S[S.length - 1] !== rail.total) fail('stops: the first must be 0 and the last the end of the walk');
+  for (let i = 1; i < S.length; i++) {
+    if (S[i] - S[i - 1] < 20) fail(`stops: ${S[i - 1].toFixed(0)} and ${S[i].toFixed(0)} vh are closer than 20 vh`);
+    if (S[i] - S[i - 1] > 280) fail(`stops: ${(S[i] - S[i - 1]).toFixed(0)} vh between ${S[i - 1].toFixed(0)} and ${S[i].toFixed(0)} vh (limit 280)`);
+  }
+  // One gesture, one stop: forward, back, the ends, one queued step and no more, and a coasting wheel counts once.
+  const went = [], st = stepper(S, (i) => went.push(i));
+  const eq = (what, a, b) => { if (JSON.stringify(a) !== JSON.stringify(b)) fail(`stepper: ${what}: got ${JSON.stringify(a)}, wanted ${JSON.stringify(b)}`); };
+  st.step(-1); eq('cannot step before the start', went, []);
+  st.step(1); st.step(1); st.step(1); eq('one travel at a time', went, [1]);
+  st.arrived(); eq('one queued step runs', went, [1, 2]);
+  st.arrived(); eq('only one was queued', went, [1, 2]);
+  st.step(-1); st.arrived(); eq('back', went, [1, 2, 1]);
+  for (let t = 10; t < 11; t += 0.05) st.wheel(1, t);
+  eq('a run of wheel events is one gesture', went, [1, 2, 1, 2]);
+  st.arrived(); st.wheel(1, 12); st.arrived(); eq('a new gesture after a pause', went, [1, 2, 1, 2, 3]);
+  st.sync(S[S.length - 1]); st.step(1); eq('cannot step past the end', went, [1, 2, 1, 2, 3]);
+  st.sync(S[5] + 3); st.step(1); eq('after a drag, steps from the nearest stop', went, [1, 2, 1, 2, 3, 6]);
+}
+
 // 6. Same feel at any frame rate: the spring's step response at 60 and 144 frames per second.
 const t90 = (hz) => { let x = 0, v = 0, t = 0; while (x < 0.9 && t < 5) { [x, v] = smoothDamp(x, 1, v, 0.35, 1e9, 1 / hz); t += 1 / hz; } return t; };
 if (Math.abs(t90(60) - t90(144)) > 0.02) fail(`spring differs by frame rate: 90% at ${t90(60).toFixed(3)} s (60 Hz) vs ${t90(144).toFixed(3)} s (144 Hz)`);
@@ -113,4 +137,4 @@ if (fails.length) {
   for (const [, [count, first]] of seen) console.error(`  x${count}  ${first}`);
   process.exit(1);
 }
-console.log('\nOK: clearance, eye height, doors, bridges, floating objects, speed limits, no shake, reverse.\n');
+console.log('\nOK: clearance, eye height, doors, bridges, floating objects, speed limits, no shake, reverse, stops.\n');

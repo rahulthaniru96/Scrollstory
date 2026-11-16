@@ -68,12 +68,18 @@
   #hud .bad { color: #ff9c8a; }
   #mist { position: fixed; inset: 0; z-index: 3; background: #F6E7D2; opacity: 0; pointer-events: none; }
   #dusk { position: fixed; inset: 0; z-index: 1; background: #1a2030; mix-blend-mode: multiply; opacity: 0; pointer-events: none; } /* the intro starts on dark water */
-  header, #hint, #caption, #contact, #hud { transition: opacity 0.8s; }
-  body.intro header, body.intro #hint, body.intro #contact, body.intro #hud { opacity: 0; }
+  header, #hint, #caption, #contact, #hud, #pips { transition: opacity 0.8s; }
+  body.intro header, body.intro #hint, body.intro #contact, body.intro #hud, body.intro #pips { opacity: 0; }
   body.intro #caption { opacity: 0 !important; }
   /* film: grain and a soft vignette over the 3D, under the page text */
   #film { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, rgba(42, 26, 14, 0) 55%, rgba(42, 26, 14, 0.34) 100%); }
   #film::after { content: ''; position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  #pips { position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 5; display: flex; flex-direction: column; }
+  #pips[hidden] { display: none; }
+  #pips button { width: 16px; height: 11px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  #pips button::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--cream); opacity: 0.55; box-shadow: 0 0 4px rgba(20, 32, 29, 0.6); transition: transform 0.3s var(--ease), opacity 0.3s; }
+  #pips button.here::before { opacity: 1; transform: scale(2.2); background: var(--butter); }
+  #pips button:hover::before, #pips button:focus-visible::before { opacity: 1; transform: scale(1.8); }
   #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 4; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.6); }
   #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
   @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 84px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 8px; } #chooser article { padding: 10px 14px; } #chooser h3 { font-size: 22px; margin-bottom: 2px; } #chooser ul { margin: 6px 0 10px; font-size: 13px; }
@@ -134,7 +140,8 @@
   </div>
 </dialog>
 <div id="hud"></div>
-<div id="hint" class="mono">Scroll to walk · move the mouse · H hides the readout</div>
+<nav id="pips" aria-label="Stops of the walk"></nav>
+<div id="hint" class="mono">One scroll, one stop · move the mouse · H hides the readout</div>
 <div id="contact">
   <a class="pill" href="tel:+919949088659">Call</a>
   <a class="pill solid" href="https://wa.me/919949088659" target="_blank" rel="noopener">WhatsApp</a>

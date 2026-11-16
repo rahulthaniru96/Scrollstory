@@ -4,6 +4,7 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { buildRail } from './rail.js';
 import { smoothDamp } from './spring.js';
+import { stepper } from './stepper.js';
 import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
@@ -189,7 +190,13 @@ function atmosphere(h) {
 document.getElementById('track').style.height = `${rail.total + 100}vh`;
 const startAt = Number(new URLSearchParams(location.search).get('p')); // ?p=1118 opens the walk at that point
 if (startAt > 0) scrollTo(0, (startAt / rail.total) * (document.documentElement.scrollHeight - innerHeight));
-const lenis = new Lenis({ lerp: 0.1 });
+const free = new URLSearchParams(location.search).has('free'); // ?free=1: the old free scroll, for tuning
+const blocked = (e) => document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
+// One wheel gesture is one stop. Lenis hands every wheel event here first; returning false keeps it from scrolling.
+const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
+  if (free || !d.event.type.startsWith('wheel') || d.event.ctrlKey || blocked(d.event)) return true;
+  d.event.preventDefault(); if (Math.abs(d.deltaY) > 1) steps.wheel(Math.sign(d.deltaY), performance.now() / 1000); return false;
+} });
 gsap.ticker.lagSmoothing(0);
 
 const state = { body: 0, look: 0, vBody: 0, vLook: 0, fading: false, started: false, reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, hold: null };
@@ -208,6 +215,33 @@ addEventListener('pointermove', (e) => {
 });
 
 const holds = rail.moves.filter((m) => m.hold);
+// ---------- scroll to checkpoint ----------
+const stopPx = (i) => (rail.stops[i] / rail.total) * lenis.limit;
+const steps = stepper(rail.stops, (i) => {
+  const far = Math.abs(rail.stops[i] - target());
+  lenis.scrollTo(stopPx(i), { duration: Math.min(3.5, Math.max(1.2, far / 80)), easing: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2), lock: true, force: true, immediate: state.reduce, onComplete: () => steps.arrived() });
+  if (state.reduce) steps.arrived();
+});
+const pips = document.getElementById('pips');
+rail.stops.forEach((s, i) => {
+  const b = document.createElement('button'); b.setAttribute('aria-label', `Stop ${i + 1} of ${rail.stops.length}`); b.onclick = () => steps.goto(i); pips.append(b);
+});
+if (free) pips.hidden = true;
+else {
+  let settle = 0, ty = null;
+  // a scrollbar drag or a jump stays free, then comes to rest on the nearest stop
+  lenis.on('scroll', () => { if (steps.travelling) return; clearTimeout(settle); settle = setTimeout(() => { if (steps.travelling || blocked()) return; steps.sync(target()); if (Math.abs(rail.stops[steps.dest] - target()) > 1.5) steps.goto(steps.dest); }, 350); });
+  addEventListener('keydown', (e) => {
+    if (e.target.closest?.('input, textarea, select, button, a') || e.ctrlKey || e.metaKey || e.altKey || blocked(e)) return;
+    const dir = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1, ' ': e.shiftKey ? -1 : 1 }[e.key];
+    if (dir) { e.preventDefault(); steps.step(dir); }
+    else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); steps.goto(e.key === 'Home' ? 0 : rail.stops.length - 1); }
+  });
+  // touch: a swipe of 40 px or more is one step; the page itself does not drag
+  addEventListener('touchstart', (e) => { ty = blocked(e) || e.target.closest('button, a') ? null : e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchmove', (e) => { if (ty !== null && e.cancelable) e.preventDefault(); }, { passive: false });
+  addEventListener('touchend', (e) => { if (ty === null) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 40) steps.step(Math.sign(dy)); }, { passive: true });
+}
 const pinned = Number(new URLSearchParams(location.search).get('at')); // ?at=1118 freezes the walk there, for screenshots
 const target = () => (pinned > 0 ? pinned : lenis.limit > 0 ? (lenis.scroll / lenis.limit) * rail.total : 0);
 const veil = document.getElementById('mist');
@@ -344,7 +378,7 @@ addEventListener('click', (e) => {
 const plan = document.getElementById('plan'), planBtn = document.getElementById('planBtn');
 for (const r of rail.rooms) {
   const b = document.createElement('button'); b.className = 'mono'; b.textContent = r.name; b.setAttribute('role', 'menuitem');
-  b.onclick = () => { lenis.scrollTo((r.s / rail.total) * lenis.limit, { immediate: true, force: true }); togglePlan(false); };
+  b.onclick = () => { if (free) lenis.scrollTo((r.s / rail.total) * lenis.limit, { immediate: true, force: true }); else steps.goto(steps.nearest(r.s)); togglePlan(false); };
   plan.append(b); r.btn = b;
 }
 function togglePlan(open = !plan.classList.contains('open')) { plan.classList.toggle('open', open); planBtn.setAttribute('aria-expanded', open); }
@@ -372,8 +406,8 @@ gsap.ticker.add((time, deltaMs) => {
   let pT = target();
 
   if (state.reduce) { // reduced motion: fade between hold frames, never fly
-    const h = [...holds].reverse().find((m) => m.s0 <= pT + 1) || holds[0];
-    if (h !== state.hold && !state.fading) { state.hold = h; fadeTo(() => lerp(h.s0, h.s1, 0.6)); }
+    const h = free ? [...holds].reverse().find((m) => m.s0 <= pT + 1) || holds[0] : steps.dest, to = free ? lerp(h.s0, h.s1, 0.6) : rail.stops[h];
+    if (h !== state.hold && !state.fading) { state.hold = h; fadeTo(() => to); }
     pT = state.body;
   } else if (!state.started) { state.body = state.look = pT; state.started = true; } // open where the page was left
   else {
@@ -413,6 +447,8 @@ gsap.ticker.add((time, deltaMs) => {
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;
   caption(state.body); cards(state.body);
+  const near = steps.travelling ? steps.dest : steps.nearest(state.body);
+  if (near !== pips.at) { pips.children[pips.at]?.classList.remove('here'); pips.children[near].classList.add('here'); pips.at = near; }
   const k = state.reduce ? 0 : gel(state.body, time), hat = (state.body - HAT.s0) / (HAT.s1 - HAT.s0), inHat = hat > 0 && hat < 1;
   if (k > 0.002 || inHat) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
   else renderer.render(scene, camera);

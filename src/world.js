@@ -41,6 +41,18 @@ box('compound wall E', 2.1, 14, 0, 1.8, 17.85, 18.15, 'stone');
 box('gate pillar W', -2.1, -1.6, 0, 2.4, 17.75, 18.25);
 box('gate pillar E', 1.6, 2.1, 0, 2.4, 17.75, 18.25);
 
+// The street front's solid parts (drawn by facade.js).
+export const TOWER = { x: 7, z: 13.9, r: 1.9 }; // the rounded corner tower, outside the east end of the lobby front
+cyl('corner tower', TOWER.x, TOWER.z, TOWER.r + 0.55, 0, 14.9, 'wall', HID);
+box('stepped parapet', -4.6, 4.6, 9.3, 11.3, 12, 12.3, 'wall', HID);
+box('door leaf W', -1.28, -1.18, 0, 2.95, 12.8, 13.9, 'wall', HID);
+box('door leaf E', 1.18, 1.28, 0, 2.95, 12.8, 13.9, 'wall', HID);
+box('handrail W', -2, -1.9, 0, 0.95, 12.9, 14.95, 'rail', HID);
+box('handrail E', 1.9, 2, 0, 0.95, 12.9, 14.95, 'rail', HID);
+box('entrance canopy', -2.3, 2.3, 3.8, 3.95, 12.3, 13.2, 'ceiling', HID);
+// Everything at street level stands on one plinth (lake.js): the building, its yard and the compound wall.
+export const FOOTPRINT = { x0: -14.3, x1: 14.3, z0: -23.3, z1: 18.7 };
+
 // Lobby: x -6..6, z 0..12, 9 m tall.
 box('lobby front W', -6, -1.2, 0, H.roof, 12, 12 + W, 'facade');
 box('lobby front E', 1.2, 6, 0, H.roof, 12, 12 + W, 'facade');

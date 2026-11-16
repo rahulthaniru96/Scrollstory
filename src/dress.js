@@ -5,6 +5,9 @@ import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { WINDOWS, STAIR, PHI_END, stairPt, LAMP_ZONE, BIRD_PATH, INDOOR_CLOUD } from './world.js';
 import { furnish } from './rooms.js';
+import { facade } from './facade.js';
+import { lake } from './lake.js';
+import { HOLO } from './holo.js';
 
 const V3 = THREE.Vector3;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -123,6 +126,12 @@ export function dress({ scene, camera, lowQuality = false }) {
     const u = water.material.uniforms; u.time.value = t; u.fogCol.value.copy(env.fogColor); u.fogDen.value = env.fogDensity;
     water.visible = env.h < 15; // above the cloud the ground is never in view
   });
+  { // the reflection always shows the fully imagined building: every holographic outline, even where the real thing is solid
+    const draw = water.onBeforeRender;
+    water.onBeforeRender = function (...a) { HOLO.dream.value = 1; draw.apply(this, a); HOLO.dream.value = 0; };
+  }
+  facade({ scene, tick, mesh, basic, lit, glow });
+  lake({ scene, camera, tick, mesh, lit, basic, lowQuality, water });
   const ripple = (x, z, time) => { water.material.uniforms.ripples.value[rippleAt++ % RIPPLES].set(x, z, time); };
 
   // ---------- cloud sea: a soft-edged bank over the building, puffs around the stair and down its open well ----------

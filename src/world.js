@@ -84,20 +84,24 @@ box('arcade beam W', -6.25, -5.75, 3.6, H.wing, -16, 0, 'pillar');
 box('arcade beam E', 5.75, 6.25, 3.6, H.wing, -16, 0, 'pillar');
 box('arcade beam N', -6, 6, 3.6, H.wing, -16.25, -15.75, 'pillar');
 
-// 03 Workshop: three shop counters on the back wall.
-export const SHOPS = [-6, 0, 6].map((x, i) => ({ x, name: ['Starter', 'Signature', 'Signature + Admin'][i], color: [0xe8a89a, 0x2f5fa8, 0x3f6e68][i] }));
-for (const s of SHOPS) {
-  box(`shop ${s.name}`, s.x - 2, s.x + 2, 0, 1.0, -22, -20.6, 'furniture');
-  box(`shop sign ${s.name}`, s.x - 2.4, s.x + 2.4, 3.55, 4.2, -22, -21.6, 'sign', { color: s.color });
-}
-for (const s of SHOPS) air(`shop float ${s.name}`, s.x, 2.2, -21.0, 1.1); // each shop's device hovers over its counter, and floats forward on its beat
-for (const x of [-9, -3, 3, 9]) box(`shop divider x${x}`, x - 0.15, x + 0.15, 0, 4.2, -22, -21.3, 'wall', { color: 0xc47a5a }); // shallow, so all three shops show from the corner
+// The story runs who, proof, why, price. So the south room is 03 Worth it and the east room is 04 Workshop.
+// rooms.js still builds each room in the frame it was first drawn in (`u` is the place along that wall) and turns the whole room into place.
+// 03 Worth it: four counters on the south room's back wall, facing the courtyard.
+export const COUNTERS = [-11, -7, -3, 1].map((u, i) => ({ u, x: u + 5, z: -21.2, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
+export const COUNTER_ROOM = { turn: Math.PI / 2, x: 5, z: -9.85 };
+for (const c of COUNTERS) box(`counter ${c.name}`, c.x - 0.9, c.x + 0.9, 0, 1.1, -22, -20.9, 'furniture');
+for (const c of COUNTERS) air(`counter float ${c.name}`, c.x, 1.95, c.z, 0.7); // nothing rests on a counter
+air('coins rising', COUNTERS[3].x, 3.3, COUNTERS[3].z, 0.6);
 
-// 04 Worth it: four counters on the east wall.
-export const COUNTERS = [-11, -7, -3, 1].map((z, i) => ({ z, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
-for (const c of COUNTERS) box(`counter ${c.name}`, 10.9, 12, 0, 1.1, c.z - 0.9, c.z + 0.9, 'furniture');
-for (const c of COUNTERS) air(`counter float ${c.name}`, 11.35, 1.95, c.z, 0.7); // nothing rests on a counter
-air('coins rising', 11.35, 3.3, COUNTERS[3].z, 0.6);
+// 04 Workshop: three shop counters on the east wall, facing west.
+export const SHOPS = [-6, 0, 6].map((u, i) => ({ u, x: 11.35, z: u - 5, name: ['Starter', 'Signature', 'Signature + Admin'][i], color: [0xe8a89a, 0x2f5fa8, 0x3f6e68][i] }));
+export const SHOP_ROOM = { turn: -Math.PI / 2, x: -9.85, z: -5 };
+for (const s of SHOPS) {
+  box(`shop ${s.name}`, 10.6, 12, 0, 1.0, s.z - 2, s.z + 2, 'furniture');
+  box(`shop sign ${s.name}`, 11.6, 12, 3.55, 4.2, s.z - 2.4, s.z + 2.4, 'sign', { color: s.color });
+}
+for (const s of SHOPS) air(`shop float ${s.name}`, 11.15, 2.2, s.z, 1.1); // each shop's device hovers over its counter, and floats forward on its beat
+for (const z of [-8, -2, 4]) box(`shop divider z${z}`, 11.3, 12, 0, 4.2, z - 0.15, z + 0.15, 'wall', { color: 0xc47a5a }); // shallow, so all three shops show from the corner
 
 // 02 Gallery: floating website cards (placeholders until Rahul decides which sites show).
 export const CARDS = [4, 1, -2, -5, -8].map((z, i) => ({ x: i % 2 ? -11 : -7, y: 1.55, z, w: 1.6, h: 1.0, label: 'Demo' }));
@@ -107,15 +111,15 @@ for (const [i, c] of CARDS.entries()) sph(`card ${i + 1}`, c.x, c.y, c.z, 1.0, '
 // Windows are portals: each shows a different sky. `n` is the way the window faces (into the room).
 export const WINDOWS = [
   ...[5.5, 2.5, -0.5, -3.5, -6.5, -9.5].map((z, i) => ({ x: -12, y: 0.8, z, n: '+x', w: 1.5, h: 3.0, sky: ['gold', 'rose', 'gold', 'day', 'gold', 'rose'][i], shaft: 40 })),
-  ...COUNTERS.map((c, i) => ({ x: 12, y: 1.3, z: c.z, n: '-x', w: 1.7, h: 2.5, sky: ['night', 'dawn', 'day', 'gold'][i], shaft: 38 })),
-  ...SHOPS.map((s, i) => ({ x: s.x, y: 1.1, z: -22, n: '+z', w: 2.6, h: 2.3, sky: ['rose', 'day', 'night'][i], shaft: 36 })),
+  ...SHOPS.map((s, i) => ({ x: 12, y: 1.1, z: s.z, n: '-x', w: 2.6, h: 2.3, sky: ['rose', 'day', 'night'][i], shaft: 38 })),
+  ...COUNTERS.map((c, i) => ({ x: c.x, y: 1.3, z: -22, n: '+z', w: 1.7, h: 2.5, sky: ['night', 'dawn', 'day', 'gold'][i], shaft: 36 })),
   ...[2.2, 5.4].flatMap((z) => [
     { x: -6, y: 5.0, z, n: '+x', w: 1.6, h: 3.2, sky: 'gold', shaft: 40 },
     { x: 6, y: 5.0, z, n: '-x', w: 1.6, h: 3.2, sky: 'rose' },
   ]),
   // Walls the turns face, so no turn ends on a blank wall.
   { x: -12, y: 0.8, z: 9.2, n: '+x', w: 1.5, h: 3.0, sky: 'night' },
-  { x: 12, y: 1.0, z: -14, n: '-x', w: 1.7, h: 2.8, sky: 'rose' },
+  { x: 12, y: 1.0, z: -15, n: '-x', w: 1.5, h: 2.8, sky: 'rose' },
   { x: 9.2, y: 0.9, z: 12, n: '-z', w: 1.6, h: 2.9, sky: 'dawn' },
   { x: -9.6, y: 0.9, z: 12, n: '-z', w: 1.6, h: 2.9, sky: 'gold' },
   { x: 12, y: 0.9, z: -19.2, n: '-x', w: 1.6, h: 2.9, sky: 'day' },
@@ -131,7 +135,7 @@ box('door in the water', LONE_DOOR.x - 0.7, LONE_DOOR.x + 0.7, 0, 2.5, LONE_DOOR
 export const LAMP_ZONE = { x0: -4.6, x1: 4.6, z0: -14.6, z1: -1.4, y0: 0.5, y1: 3.0 };
 box('courtyard lamps', LAMP_ZONE.x0, LAMP_ZONE.x1, 0, 5, LAMP_ZONE.z0, LAMP_ZONE.z1, 'floating', { hidden: true });
 // Ledger pages leave the Income counter as paper birds, out through the arcade and up into the sky.
-export const BIRD_PATH = [[11.2, 1.5, 1], [10.6, 2.6, -1.2], [9.2, 3.1, -4], [7.4, 3.1, -5.8], [6, 3.0, -6.5], [3.5, 3.6, -7.5], [0, 5.5, -8], [-3, 8.5, -6], [-2, 12, 0]];
+export const BIRD_PATH = [[6, 1.5, -21.2], [5.4, 2.6, -19.6], [4.6, 3.0, -17.6], [4.5, 3.0, -15.4], [3.5, 3.4, -12], [0, 5.5, -8], [-3, 8.5, -6], [-2, 12, 0]];
 for (const [i, q] of BIRD_PATH.entries()) C.push({ t: 'sph', name: `paper birds path ${i}`, kind: 'floating', x: q[0], y: q[1], z: q[2], r: 0.4, hidden: true });
 // Long-rod ceiling fans and a cloud that has drifted indoors.
 export const FANS = [[-9, 3.6, -4], [9, 3.6, -4], [0, 3.6, -18.8]];

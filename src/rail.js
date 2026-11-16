@@ -98,35 +98,35 @@ export function buildRail() {
     look(a + d, 180, -3);
   });
   hold('Gallery hold', 50, '02 Gallery');
-  // ---- 03 Workshop: all three shops from the corner, one equal beat at each, then step back to choose ----
-  move('Corner into Workshop', 'room', 110, (a, d) => {
+  // ---- 03 Worth it: the why. Four counters on the south room's back wall, one beat at each ----
+  move('Corner into Worth it', 'room', 110, (a, d) => {
     look(a, 180, -3);
     g(-9.3, -13.5); key(a + d, g(-10.2, -17.4));
     look(a + d * 0.45, 250, 0); look(a + d * 0.85, 293, 0); look(a + d, 293, 0);
   });
-  hold('Workshop hold', 50, '03 Workshop');
-  for (const [i, sh] of SHOPS.entries()) {
-    move(`To ${sh.name}`, 'room', i ? 50 : 70, (a, d) => { key(a + d, line(sh.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
-    hold(`Shop: ${sh.name}`, 60);
-  }
-  move('Step back to choose', 'room', 60, (a, d) => { key(a + d, g(8.2, -17.5)); look(a + d * 0.85, 405, 0); look(a + d, 405, 0); });
-  hold('Choose one', 90);
-  // ---- 04 Worth it: down the row first, then a beat in front of each counter from across the room ----
-  const LANE = 7.6;
-  move('Corner into Worth it', 'room', 130, (a, d) => {
-    g(8.4, -15.8); key(a + d, g(LANE, -13.8));
-    look(a + d * 0.5, 300, 0);
-    const [y, p] = aim(here(), [11.35, EYE, -5], 200); look(a + d * 0.9, y, p); look(a + d, y, p);
-  });
-  hold('Worth it hold', 40, '04 Worth it');
-  for (const c of COUNTERS) {
-    move(`To ${c.name}`, 'room', 45, (a, d) => { key(a + d, line(LANE, c.z)); look(a + d * 0.85, 270, 0); look(a + d, 270, 0); });
+  hold('Worth it hold', 50, '03 Worth it');
+  for (const [i, c] of COUNTERS.entries()) {
+    move(`To ${c.name}`, 'room', i ? 45 : 70, (a, d) => { key(a + d, line(c.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
     hold(`Counter: ${c.name}`, 55);
   }
+  // ---- 04 Workshop: the price. Round the corner, down the row from its end, a beat at each shop, then step back to choose ----
+  const LANE = 7.6;
+  move('Corner into Workshop', 'room', 120, (a, d) => {
+    g(7.3, -17.4); key(a + d, g(LANE, -14.6));
+    look(a + d * 0.45, 300, 0);
+    const [y, p] = aim(here(), [11.35, EYE, -5], 200); look(a + d * 0.9, y, p); look(a + d, y, p);
+  });
+  hold('Workshop hold', 40, '04 Workshop');
+  for (const [i, sh] of SHOPS.entries()) {
+    move(`To ${sh.name}`, 'room', i ? 55 : 50, (a, d) => { key(a + d, line(LANE, sh.z)); look(a + d * 0.8, 270, 0); look(a + d, 270, 0); });
+    hold(`Shop: ${sh.name}`, 60);
+  }
+  move('Step back to choose', 'room', 50, (a, d) => { key(a + d, g(7.5, 2.8)); look(a + d * 0.85, 250, 0); look(a + d, 250, 0); });
+  hold('Choose one', 90);
   move('Back to the stair foot', 'room', 150, (a, d) => {
-    look(a + d * 0.3, 180, 0);
-    g(8.2, 3.5); g(8.4, 6.6); g(7.4, 8.6);
-    look(a + d * 0.5, 180, 0);
+    look(a + d * 0.35, 180, 0);
+    g(7.8, 5.2); g(7.9, 7.2); g(7.3, 8.7);
+    look(a + d * 0.55, 180, 0);
     key(a + d * 0.8, g(6.15, 9.2));
     look(a + d * 0.8, 90, 0);
     g(4.9, 8.25); g(3.8, 7.62); key(a + d, g(2.49, 7.3));

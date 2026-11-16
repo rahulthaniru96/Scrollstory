@@ -225,9 +225,9 @@ const dashed = (pts, extra = '') => `<polyline points="${pts.map((q) => f(q[0]) 
   g += stairPlan(G);
   for (const c of CARDS) g += rectP(G, c.x - 0.8, c.x + 0.8, c.z - 0.08, c.z + 0.08, '#E8A89A', `stroke="${INK}" stroke-width="0.8"`);
   g += lane(G, (q) => q[2] < 2.2 && q[0] < rail.moves.find((m) => m.name === 'Step onto the stair').s1);
-  g += tag(G, -3.6, 11.4, '01 LOBBY') + rot(G, -14.7, -2, '02 GALLERY') + tag(G, 0, -6.4, 'WATER COURTYARD', '#F7F1E6') + tag(G, 0, -16.9, '03 WORKSHOP') + rot(G, 16, -2, '04 WORTH IT') + tag(G, 0, 27, 'STREET', MUTED) + tag(G, 0, 19.6, 'GATE', MUTED, 9);
-  for (const s of SHOPS) g += tag(G, s.x, -22.9, s.name.toUpperCase(), MUTED, 8.5);
-  for (const c of COUNTERS) g += `<text x="${f(G.px(12.9))}" y="${f(G.py(c.z) + 3)}" ${MONO} font-size="7.5" letter-spacing="0.5" fill="${MUTED}">${c.name.toUpperCase()}</text>`;
+  g += tag(G, -3.6, 11.4, '01 LOBBY') + rot(G, -14.7, -2, '02 GALLERY') + tag(G, 0, -6.4, 'WATER COURTYARD', '#F7F1E6') + tag(G, 0, -16.9, '03 WORTH IT') + rot(G, 16, -2, '04 WORKSHOP') + tag(G, 0, 27, 'STREET', MUTED) + tag(G, 0, 19.6, 'GATE', MUTED, 9);
+  for (const c of COUNTERS) g += tag(G, c.x, -22.9, c.name.toUpperCase(), MUTED, 8.5);
+  for (const c of SHOPS) g += `<text x="${f(G.px(12.9))}" y="${f(G.py(c.z) + 3)}" ${MONO} font-size="7.5" letter-spacing="0.5" fill="${MUTED}">${c.name.toUpperCase()}</text>`;
   g += `<line x1="${f(G.px(-16))}" y1="${f(G.py(31.6))}" x2="${f(G.px(-11))}" y2="${f(G.py(31.6))}" stroke="${INK}" stroke-width="2"></line><text x="${f(G.px(-16))}" y="${f(G.py(31.6) - 6)}" ${MONO} font-size="9" fill="${MUTED}">5 m</text>`;
 
   // ---- upper floor ----

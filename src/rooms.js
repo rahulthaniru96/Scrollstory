@@ -2,7 +2,7 @@
 // things hover, turn, come apart and drift, slowly. Their space is declared in world.js so the rail check covers it.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { SHOPS, COUNTERS, LONE_DOOR, FANS, COLLIDERS, DEBRIS, UNDERSIDES, STAIR, H, WINDOW } from './world.js';
+import { SHOPS, COUNTERS, SHOP_ROOM, COUNTER_ROOM, LONE_DOOR, FANS, COLLIDERS, DEBRIS, UNDERSIDES, STAIR, H, WINDOW } from './world.js';
 
 const V3 = THREE.Vector3, X = new V3(1, 0, 0), Y = new V3(0, 1, 0), Z = new V3(0, 0, 1);
 const css = (c) => '#' + c.toString(16).padStart(6, '0');
@@ -23,7 +23,12 @@ export const STORY = [
 ];
 const EXTRAS = ['QR CODES', 'PHOTOS', 'SOCIAL POSTS', 'MENU / PRICE CARD']; // build plan, section 8
 
-export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTexture, lowQuality }) {
+export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: glow0, glowTexture, lowQuality }) {
+  // A room can be built in its own frame and then turned into place: while `root` is that room's group, everything made lands in it.
+  let root = scene;
+  const mesh = (geo, mat, x = 0, y = 0, z = 0, parent = root) => mesh0(geo, mat, x, y, z, parent);
+  const glow = (color, size, x, y, z, parent = root, opacity = 0.9) => glow0(color, size, x, y, z, parent, opacity);
+  const room = (r) => { root = new THREE.Group(); root.position.set(r.x, 0, r.z); root.rotation.y = r.turn; scene.add(root); };
   const loader = new GLTFLoader(), cache = {}, pending = [];
   // Plain XHR, not the loader's fetch: fetch cannot read file:// pages, and scripts/shot.sh captures the built page that way.
   const get = (url) => new Promise((res, rej) => { const r = new XMLHttpRequest(); r.open('GET', url); r.responseType = 'arraybuffer'; r.onload = () => loader.parse(r.response, '', res, rej); r.onerror = rej; r.send(); });
@@ -32,7 +37,7 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
     return g.scene;
   }));
   // A prop is a group placed now and filled when its model arrives. `then` gets the model, for parts that move.
-  const prop = (name, x, y, z, { ry = 0, s = 1, parent = scene, then } = {}) => {
+  const prop = (name, x, y, z, { ry = 0, s = 1, parent = root, then } = {}) => {
     const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; g.scale.setScalar(s); parent.add(g);
     pending.push(load(name).then((src) => { const m = src.clone(true); g.add(m); then?.(m, g); }).catch((e) => console.error(`model ${name}:`, e)));
     return g;
@@ -91,12 +96,13 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
   } }), 0.05, 0.6, 0.04);
 
   // ================= ground floor =================
-  // ---------- 03 Workshop: each shop's device hovers over its counter, and its pages come out of the screen ----------
+  // ---------- 04 Workshop: each shop's device hovers over its counter, and its pages come out of the screen ----------
   {
-    const [a, b, c] = SHOPS, z = -21.2;
+    room(SHOP_ROOM);
+    const LOCAL = SHOPS.map((s) => ({ ...s, x: s.u })), [a, b, c] = LOCAL, z = -21.2;
     // On its beat a shop lights up and its device floats forward. env.shop holds each shop's weight, from the scroll.
-    const front = SHOPS.map((s, i) => {
-      const g = new THREE.Group(); scene.add(g);
+    const front = LOCAL.map((s, i) => {
+      const g = new THREE.Group(); root.add(g);
       prop('hanging_lamp', s.x, 3.05, -20.85); glow(0xffc978, 1.5, s.x, 3.05, -20.85);
       const halo = glow(0xfff0cf, 2.4, s.x, 2.0, z + 0.2, g, 0.3);
       tick.push((t, dt, env) => { const w = env.shop[i]; g.position.z = w * 0.45; halo.material.opacity = 0.2 + w * 0.3; halo.scale.setScalar(2.4 + w * 0.8); });
@@ -113,14 +119,16 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
     const ring = panels.map((mat) => mesh(new THREE.PlaneGeometry(0.44, 0.33), mat));
     tick.push((t, dt, env) => { for (const [i, m] of ring.entries()) { const an = env.air * 0.25 + (i * 2 * Math.PI) / 3; m.position.set(c.x + Math.cos(an) * 0.78, 2.1 + Math.sin(an) * 0.2, z + 0.05 + Math.sin(an) * 0.32); m.rotation.y = Math.sin(an) * 0.4; } });
     keyAndLock(c.x, 2.62, z - 0.1, 1.3);
+    root = scene;
   }
 
-  // ---------- 04 Worth it: one idea hovering over each counter ----------
+  // ---------- 03 Worth it: one idea hovering over each counter ----------
   {
-    const [custom, secure, legal, income] = COUNTERS, x = 11.35, WEST = -Math.PI / 2;
-    for (const [i, c] of COUNTERS.entries()) { const halo = glow(0xfff0cf, 2.2, x - 0.25, 1.9, c.z, scene, 0.22); tick.push((t, dt, env) => { halo.material.opacity = 0.18 + env.counter[i] * 0.5; }); } // brighter on its beat
+    room(COUNTER_ROOM);
+    const LOCAL = COUNTERS.map((c) => ({ ...c, z: c.u })), [custom, secure, legal, income] = LOCAL, x = 11.35, WEST = -Math.PI / 2;
+    for (const [i, c] of LOCAL.entries()) { const halo = glow(0xfff0cf, 2.2, x - 0.25, 1.9, c.z, root, 0.22); tick.push((t, dt, env) => { halo.material.opacity = 0.18 + env.counter[i] * 0.5; }); } // brighter on its beat
     { // Custom: a page that keeps taking itself apart and putting itself back together
-      const g = new THREE.Group(); g.position.set(x, 2.0, custom.z); g.rotation.y = WEST; scene.add(g);
+      const g = new THREE.Group(); g.position.set(x, 2.0, custom.z); g.rotation.y = WEST; root.add(g);
       const blocks = [[0, 0.52, 1.0, 0.12, 0x1e2a26], [0, 0.22, 1.0, 0.4, 0xe8a89a], [-0.34, -0.2, 0.3, 0.32, 0x2f5fa8], [0, -0.2, 0.3, 0.32, 0x3f6e68], [0.34, -0.2, 0.3, 0.32, 0xf2d98b], [0, -0.5, 1.0, 0.1, 0x8c8a82]]
         .map(([bx, by, w, h, col], i) => [mesh(new THREE.BoxGeometry(w, h, 0.03), lit(col), bx, by, 0, g), bx, by, i]);
       tick.push((t, dt, env) => {
@@ -141,7 +149,7 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
     // Income: the ledger lies open in the air, coins climb out of it, and its pages leave as paper birds (dress.js).
     hover(prop('ledger', x, 1.5, income.z, { s: 1.7, ry: WEST, then: (m) => { m.rotation.x = 0.45; } }), 0.05, 0.4, 0.03);
     const N = 12, coins = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.07, 0.07, 0.012, 16), lit(0xe2b54a, { roughness: 0.45 }), N), o = new THREE.Object3D();
-    coins.frustumCulled = false; scene.add(coins);
+    coins.frustumCulled = false; root.add(coins);
     tick.push((t, dt, env) => {
       for (let i = 0; i < N; i++) {
         const u = (env.air * 0.05 + i / N) % 1, an = u * 9 + i;
@@ -150,6 +158,7 @@ export function furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTextu
       }
       coins.instanceMatrix.needsUpdate = true;
     });
+    root = scene;
   }
 
   // ---------- water courtyard: a door standing alone, a fan with no ceiling, newspapers that never land ----------

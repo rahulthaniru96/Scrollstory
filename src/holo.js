@@ -21,10 +21,11 @@ const RAMP = `vec3 holoRamp(float t){ t = fract(t) * 4.0;
 const edgeMats = {};
 // Edge lines of a geometry, a few pixels wide. They show above the boundary, everywhere in the reflection, or always with `everywhere`.
 // The colour comes from the ramp, by view angle, height and time; three's own line shader does the width.
-export function holoEdges(geometry, { angle = 30, everywhere = false, opacity = 0.95 } = {}) {
-  const mat = (edgeMats[`${everywhere}:${opacity}`] ||= (() => {
+// `fade` is an optional { value } that the caller animates; such lines get a material of their own.
+export function holoEdges(geometry, { angle = 30, everywhere = false, opacity = 0.95, fade } = {}) {
+  const make = () => {
     const m = new LineMaterial({ linewidth: 2.2, transparent: true, depthWrite: false });
-    Object.assign(m.uniforms, { hTime: HOLO.time, hBoundary: HOLO.boundary, hFlip: HOLO.flip, hDream: HOLO.dream, hEverywhere: { value: everywhere ? 1 : 0 }, hOpacity: { value: opacity } });
+    Object.assign(m.uniforms, { hTime: HOLO.time, hBoundary: HOLO.boundary, hFlip: HOLO.flip, hDream: HOLO.dream, hEverywhere: { value: everywhere ? 1 : 0 }, hOpacity: fade || { value: opacity } });
     m.vertexShader = m.vertexShader.replace('void main() {', 'varying vec3 vHW;\nvoid main() {\n vHW = (modelMatrix * vec4(position.y < 0.5 ? instanceStart : instanceEnd, 1.0)).xyz;');
     m.fragmentShader = m.fragmentShader
       .replace('void main() {', `uniform float hTime, hBoundary, hFlip, hDream, hEverywhere, hOpacity; varying vec3 vHW; ${RAMP}\nvoid main() {`)
@@ -33,7 +34,8 @@ export function holoEdges(geometry, { angle = 30, everywhere = false, opacity = 
         alpha *= hA * hOpacity; // three's line shader writes \`alpha\` itself, not diffuseColor.a
         vec4 diffuseColor = vec4(holoRamp(dot(normalize(vHW - cameraPosition), vec3(0.9, 0.6, 0.5)) * 1.4 + vHW.y * 0.06 + hTime * 0.05) * 0.85, alpha);`);
     return m;
-  })());
+  };
+  const mat = fade ? make() : (edgeMats[`${everywhere}:${opacity}`] ||= make());
   return new LineSegments2(new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(geometry, angle)), mat);
 }
 

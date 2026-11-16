@@ -5,8 +5,10 @@ import gsap from 'gsap';
 import { buildRail } from './rail.js';
 import { smoothDamp } from './spring.js';
 import { dress } from './dress.js';
+import { holoEdges } from './holo.js';
+import { membranes } from './membrane.js';
 import { STORY } from './rooms.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -51,6 +53,7 @@ const tinted = {};
 const matFor = (c) => (c.color !== undefined ? (tinted[c.color] ||= new THREE.MeshStandardMaterial({ color: c.color, roughness: 0.9 })) : mats[c.kind] || mats.wall);
 const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); scene.add(m); return m; };
 const drift = []; // floating things: [mesh, home y, phase]
+const demoCards = []; // the Gallery's demo sites
 const cardTexture = (() => {
   const c = document.createElement('canvas'); c.width = 320; c.height = 200;
   const x = c.getContext('2d');
@@ -77,8 +80,25 @@ for (const c of COLLIDERS) {
     geo.rotateX(-Math.PI / 2);
     add(geo, mats[c.kind] || mats.floor, 0, c.min[1], 0);
   } else if (c.t === 'sph' && c.shape === 'card') { // the other floating things are drawn by rooms.js
-    const m = add(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshBasicMaterial({ map: cardTexture, side: THREE.DoubleSide }), c.x, c.y, c.z);
+    // A demo site appears out of thin air as the scroll reaches it: motes, then an outline and a ghost, then the page itself.
+    const geo = new THREE.PlaneGeometry(1.6, 1.0), r = { value: 1 }, line = { value: 0 };
+    const m = add(geo, new THREE.ShaderMaterial({
+      side: THREE.DoubleSide, transparent: true, uniforms: { map: { value: cardTexture }, uR: r },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `uniform sampler2D map; uniform float uR; varying vec2 vUv;
+        void main(){ float k = (1.0 - smoothstep(0.5, 0.95, uR)) * 0.035; // the ghost's colours sit apart, then close up
+          vec3 c = vec3(texture2D(map, vUv + vec2(k, 0.0)).r, texture2D(map, vUv).g, texture2D(map, vUv - vec2(k, 0.0)).b);
+          gl_FragColor = vec4(c, smoothstep(0.22, 0.3, uR) * 0.15 + smoothstep(0.45, 0.6, uR) * 0.45 + smoothstep(0.78, 0.95, uR) * 0.4);
+          #include <colorspace_fragment>
+        }`,
+    }), c.x, c.y, c.z);
     m.rotation.y = Math.PI; // faces north, toward the camera that is backing away
+    m.add(holoEdges(geo, { everywhere: true, fade: line }));
+    const n = 40, at = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) at.set([(Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, (Math.random() - 0.5) * 0.3], i * 3);
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(at, 3)), new THREE.PointsMaterial({ size: 0.045, color: 0xd9c8ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.add(motes);
+    demoCards.push({ m, r, line, motes, z: c.z });
     drift.push([m, c.y, drift.length * 1.7]);
   }
 }
@@ -116,6 +136,31 @@ for (const b of BRIDGES) {
 }
 
 const dressing = dress({ scene, camera, lowQuality });
+
+// ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------
+const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) => d.name !== 'gate').map((d) => {
+  const x = (d.a[0] + d.b[0]) / 2, z = (d.a[1] + d.b[1]) / 2;
+  let at = 0, best = Infinity;
+  for (let p = 0; p < rail.total; p += 0.25) { const q = rail.pos(p), dist = Math.hypot(q[0] - x, q[2] - z); if (q[1] < 4 && dist < best) { best = dist; at = p; } }
+  return { x, z, at, w: Math.hypot(d.a[0] - d.b[0], d.a[1] - d.b[1]), turn: Math.abs(d.a[0] - d.b[0]) > Math.abs(d.a[1] - d.b[1]) ? 0 : Math.PI / 2 };
+}) });
+const gelPass = { // drawn only while the camera is inside a membrane
+  target: new THREE.WebGLRenderTarget(1, 1, { samples: lowQuality ? 0 : 4 }), scene: new THREE.Scene(), camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1),
+  mat: new THREE.ShaderMaterial({
+    depthTest: false, uniforms: { tDiffuse: { value: null }, k: { value: 0 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float k; varying vec2 vUv;
+      void main(){ vec2 c = vUv - 0.5; float r = length(c);
+        vec2 uv = vUv + normalize(c + 1e-5) * sin(r * 26.0 - k * 9.0) * 0.014 * k * smoothstep(0.0, 0.5, r); // a ring of refraction that moves with the scroll
+        vec3 col = vec3(texture2D(tDiffuse, uv + c * 0.008 * k).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - c * 0.008 * k).b);
+        col += vec3(0.75, 0.95, 1.0) * smoothstep(0.3, 0.72, r) * k * 0.5; // the bright rim of the gel closing behind
+        gl_FragColor = vec4(col, 1.0);
+        #include <colorspace_fragment>
+      }`,
+  }),
+};
+gelPass.mat.uniforms.tDiffuse.value = gelPass.target.texture;
+gelPass.scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), gelPass.mat));
 
 // ---------- fog and light by camera height (motion spec, section 7) ----------
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -214,6 +259,7 @@ function caption(p) {
 // ---------- what the scroll is pointing at: one shop, one counter, one TV channel ----------
 const byName = Object.fromEntries(rail.moves.map((m) => [m.name, m]));
 const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 - pad, m.s0 + 4, p) * (1 - sstep(m.s1 - 4, m.s1 + pad, p)); };
+const GALLERY = byName['Gallery, walking backwards'];
 const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = STORY.length + 1; // the last channel is "Your story?"
 function focus(p) {
   SHOPS.forEach((s, i) => { env.shop[i] = beat(`Shop: ${s.name}`, p); });
@@ -306,7 +352,7 @@ addEventListener('keydown', (e) => {
 });
 
 // ---------- frame ----------
-function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
 addEventListener('resize', resize); resize();
 
 let frames = 0, propsReady = false;
@@ -351,10 +397,19 @@ gsap.ticker.add((time, deltaMs) => {
 
   atmosphere(pos[1]);
   focus(state.body);
+  for (const c of demoCards) { // each card arrives as the backward walk brings it into the frame, and leaves the same way on the way back
+    const from = GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (8 - c.z)) / 17 - 4; // the walk runs from z = 7 to z = -10; a card shows once the camera is 1 m past it
+    const r = Math.min(1, Math.max(0, (state.body - from) / 36)), u = Math.max(0, (r - 0.8) / 0.2);
+    c.r.value = r; c.line.value = sstep(0.22, 0.3, r) * (0.6 + 0.4 * sstep(0.5, 0.6, r)) * (1 - sstep(0.82, 1, r));
+    c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
+    c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
+  }
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;
   caption(state.body); cards(state.body);
-  renderer.render(scene, camera);
+  const k = state.reduce ? 0 : gel(state.body, time);
+  if (k > 0.002) { gelPass.mat.uniforms.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
+  else renderer.render(scene, camera);
 
   if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }
   // Readout for tuning.

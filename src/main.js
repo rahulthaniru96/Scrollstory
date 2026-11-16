@@ -9,7 +9,7 @@ import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
 import { intro } from './intro.js';
 import { STORY } from './rooms.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -245,15 +245,17 @@ const lastMove = rail.moves[rail.moves.length - 1];
 let capFor = null;
 function caption(p) {
   const m = rail.moveAt(p), tv = env.tv.ch >= 0 && p < TV_SPAN[1]; // in the TV room each channel is its own caption
-  const name = tv ? 'tv' + env.tv.ch : m.name;
-  const c = tv ? (env.tv.ch < STORY.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, STORY[env.tv.ch], ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', '']) : COPY[name];
+  // on the stair, the milestone the camera is passing is the caption
+  const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.6) : -1;
+  const name = tv ? 'tv' + env.tv.ch : mi >= 0 ? 'ms' + mi : m.name;
+  const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < STORY.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, STORY[env.tv.ch], ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', '']) : COPY[name];
   if (!c) { cap.style.opacity = 0; cap.classList.remove('on'); return; }
   if (capFor !== name) {
     capFor = name; capLabel.textContent = c[0]; capH.textContent = c[1];
     if (c[2]) { const em = document.createElement('em'); em.textContent = c[2]; capH.append(em); }
-    capH.classList.toggle('small', tv && env.tv.ch < STORY.length); capCta.hidden = !(tv && env.tv.ch === STORY.length);
+    capH.classList.toggle('small', mi >= 0 || (tv && env.tv.ch < STORY.length)); capCta.hidden = !(tv && env.tv.ch === STORY.length);
   }
-  const u = tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
+  const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.6) / 1.2 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
   const o = (m === rail.moves[0] ? 1 : sstep(0.1, tv ? 0.25 : 0.4, u)) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly. The first caption is there when the intro ends.
   cap.style.opacity = o; cap.style.transform = `translateY(${(1 - o) * 16}px)`; cap.classList.toggle('on', o > 0.5);
 }

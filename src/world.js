@@ -139,6 +139,19 @@ for (const [i, q] of FANS.entries()) C.push({ t: 'sph', name: `wing fan ${i}`, k
 export const INDOOR_CLOUD = [4.4, 6.6, 9.6];
 C.push({ t: 'sph', name: 'cloud indoors', kind: 'floating', x: INDOOR_CLOUD[0], y: INDOOR_CLOUD[1], z: INDOOR_CLOUD[2], r: 1.6, hidden: true });
 
+// The wall of milestones: framed pictures hung just outside the stair's outer rail, up the lobby part of the climb.
+// Facts only, from D:\\rahul-context\\projects. A milestone with no known fact has no line.
+export const MILESTONES = [
+  ['The first website', ''],
+  ['Rishi Care Hospital', 'A hospital website with an admin dashboard for patients, inventory and billing.'],
+  ['Bhumi Insurance', 'An insurance website with an admin CRM behind it.'],
+  ['G-Thriftz', 'An online thrift store you walk into by scrolling.'],
+  ['Five demo sites', 'A café, a gym, a preschool, a coaching centre and a real estate project. All fictional.'],
+  ['Scrollstory Studio', 'This building.'],
+].map(([title, line], i) => { const phi = STAIR.phi0 + 1.2 + i * 1.3; return { title, line, phi, at: stairPt(phi, 3.75, 1.75) }; });
+for (const m of MILESTONES) air(`milestone: ${m.title}`, ...m.at, 0.5);
+cyl('landing plant', 2.6, 8.6, 0.45, H.landing, H.landing + 1.3, 'furniture', HID);
+
 // Landing fragment: 2.5 m of stone with the stair shaft through it.
 slabHole('landing slab', -11, 4.5, H.landing - 2.5, H.landing, -3, 10, 'floor');
 box('landing west wall', -11 - W, -11, H.landing, H.landing + 4, -3, 1.6);

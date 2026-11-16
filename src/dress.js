@@ -7,6 +7,7 @@ import { WINDOWS, STAIR, PHI_END, stairPt, LAMP_ZONE, BIRD_PATH, INDOOR_CLOUD } 
 import { furnish } from './rooms.js';
 import { facade } from './facade.js';
 import { lake } from './lake.js';
+import { stairs } from './stairs.js';
 import { HOLO } from './holo.js';
 
 const V3 = THREE.Vector3;
@@ -132,6 +133,7 @@ export function dress({ scene, camera, lowQuality = false }) {
   }
   const front = facade({ scene, tick, mesh, basic, lit, glow });
   lake({ scene, camera, tick, mesh, lit, basic, lowQuality, water });
+  stairs({ scene, camera, tick, mesh, basic, lit, glow, lowQuality });
   const ripple = (x, z, time) => { water.material.uniforms.ripples.value[rippleAt++ % RIPPLES].set(x, z, time); };
 
   // ---------- cloud sea: a soft-edged bank over the building, puffs around the stair and down its open well ----------

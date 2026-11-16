@@ -6,7 +6,7 @@ export const LEAN_SHIFT = 0.15; // how far the cursor may slide the camera sidew
 export const CLEAR = 0.6 + LEAN_SHIFT; // the 0.6 m rule plus that slide
 export const CLEAR_CEILING = 0.4;
 
-export const STAIR = { cx: 0, cz: 4.5, rWalk: 2.25, rIn: 1.2, rOut: 3.0, rise: 5, phi0: 0.2, turns: 5.2 };
+export const STAIR = { cx: 0, cz: 4.5, rWalk: 2.25, rIn: 1.2, rOut: 3.0, rise: 5, phi0: 0.2, turns: 1.2 }; // a short stair: the top hat at its head carries the camera the rest of the way up
 export const PHI_END = STAIR.phi0 + STAIR.turns * 2 * Math.PI;
 export const STAIR_EXIT_WEDGE = 1.75; // radians of Landing floor past the last tread
 export const stairY = (phi) => (STAIR.rise * (phi - STAIR.phi0)) / (2 * Math.PI);
@@ -152,8 +152,10 @@ export const MILESTONES = [
   ['G-Thriftz', 'An online thrift store you walk into by scrolling.'],
   ['Five demo sites', 'A café, a gym, a preschool, a coaching centre and a real estate project. All fictional.'],
   ['Scrollstory Studio', 'This building.'],
-].map(([title, line], i) => { const phi = STAIR.phi0 + 1.2 + i * 1.3; return { title, line, phi, at: stairPt(phi, 3.75, 1.75) }; });
+].map(([title, line], i) => { const phi = STAIR.phi0 + 1.2 + i * 1.05; return { title, line, phi, at: stairPt(phi, 3.75, 1.75) }; });
 for (const m of MILESTONES) air(`milestone: ${m.title}`, ...m.at, 0.5);
+air('pocket watch in the well', STAIR.cx, 4.3, STAIR.cz, 0.75);
+cyl('teacup tower', STAIR.cx, STAIR.cz, 0.35, 0, 1.9, 'furniture', HID);
 cyl('landing plant', 2.6, 8.6, 0.45, H.landing, H.landing + 1.3, 'furniture', HID);
 
 // Landing fragment: 2.5 m of stone with the stair shaft through it.

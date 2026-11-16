@@ -9,6 +9,7 @@ import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
 import { intro } from './intro.js';
 import { STORY } from './rooms.js';
+import { SWIRL } from './stairs.js';
 import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
@@ -105,24 +106,23 @@ for (const c of COLLIDERS) {
   }
 }
 
-// The spiral stair: treads, the Landing wedge it steps off onto, and two thin rails.
+// The spiral stair: checkered treads that are each a little wrong, the Landing wedge where the hat lets the camera out, and two rails that wander.
 {
   const PER_TURN = 33, dPhi = (2 * Math.PI) / PER_TURN;
-  const flat = Math.ceil(STAIR_EXIT_WEDGE / dPhi);
-  const count = Math.ceil((PHI_END - STAIR.phi0) / dPhi) + flat;
-  const treads = new THREE.InstancedMesh(new THREE.BoxGeometry(STAIR.rOut - STAIR.rIn, 0.15, 0.62), new THREE.MeshStandardMaterial({ color: 0xeadcbf, roughness: 0.85 }), count);
-  const o = new THREE.Object3D(), rMid = (STAIR.rIn + STAIR.rOut) / 2;
-  for (let i = 0; i < count; i++) {
-    const phi = STAIR.phi0 + i * dPhi;
-    const q = stairPt(Math.min(phi, PHI_END), rMid, -0.075);
-    o.position.set(STAIR.cx - rMid * Math.sin(phi), q[1], STAIR.cz + rMid * Math.cos(phi));
-    o.rotation.set(0, Math.atan2(-Math.cos(phi), -Math.sin(phi)), 0);
-    o.updateMatrix(); treads.setMatrixAt(i, o.matrix);
+  const flat = Math.ceil(STAIR_EXIT_WEDGE / dPhi), steps = Math.ceil((PHI_END - STAIR.phi0) / dPhi);
+  const treads = new THREE.InstancedMesh(new THREE.BoxGeometry(STAIR.rOut - STAIR.rIn, 0.15, 0.62), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }), steps + flat);
+  const o = new THREE.Object3D(), rMid = (STAIR.rIn + STAIR.rOut) / 2, cream = new THREE.Color(0xeadcbf), ink = new THREE.Color(0x2c3834);
+  for (let i = 0; i < steps + flat; i++) {
+    const wedge = i >= steps, phi = wedge ? PHI_END + (i - steps) * dPhi : STAIR.phi0 + i * dPhi;
+    o.position.set(STAIR.cx - rMid * Math.sin(phi), (wedge ? H.landing : stairPt(phi)[1]) - 0.075, STAIR.cz + rMid * Math.cos(phi));
+    o.rotation.set(0, Math.atan2(-Math.cos(phi), -Math.sin(phi)), wedge ? 0 : Math.sin(i * 1.7) * 0.045); // a small roll, never the same twice
+    o.scale.set(wedge ? 1 : 1 + 0.08 * Math.sin(i * 2.3), 1, 1);
+    o.updateMatrix(); treads.setMatrixAt(i, o.matrix); treads.setColorAt(i, wedge || i % 2 ? cream : ink);
   }
   scene.add(treads);
   for (const r of [STAIR.rIn, STAIR.rOut]) {
     const p = [];
-    for (let phi = STAIR.phi0; phi <= PHI_END; phi += 0.1) p.push(new THREE.Vector3(...stairPt(phi, r, 0.9)));
+    for (let phi = STAIR.phi0; phi <= PHI_END; phi += 0.1) p.push(new THREE.Vector3(...stairPt(phi, r + 0.04 * Math.sin(phi * 6 + r), 0.9 + 0.05 * Math.sin(phi * 4 + r * 2))));
     scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(p), p.length * 3, 0.022, 6), mats.rail));
   }
 }
@@ -146,16 +146,20 @@ const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) =
   for (let p = 0; p < rail.total; p += 0.25) { const q = rail.pos(p), dist = Math.hypot(q[0] - x, q[2] - z); if (q[1] < 4 && dist < best) { best = dist; at = p; } }
   return { x, z, at, w: Math.hypot(d.a[0] - d.b[0], d.a[1] - d.b[1]), turn: Math.abs(d.a[0] - d.b[0]) > Math.abs(d.a[1] - d.b[1]) ? 0 : Math.PI / 2 };
 }) });
-const gelPass = { // drawn only while the camera is inside a membrane
+const gelPass = { // drawn only while the camera is inside a membrane or the hat
   target: new THREE.WebGLRenderTarget(1, 1, { samples: lowQuality ? 0 : 4 }), scene: new THREE.Scene(), camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1),
   mat: new THREE.ShaderMaterial({
-    depthTest: false, uniforms: { tDiffuse: { value: null }, k: { value: 0 } },
+    depthTest: false, uniforms: { tDiffuse: { value: null }, k: { value: 0 }, hat: { value: -1 }, time: { value: 0 }, aspect: { value: 1 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `uniform sampler2D tDiffuse; uniform float k; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float k, hat, time, aspect; varying vec2 vUv; ${SWIRL}
       void main(){ vec2 c = vUv - 0.5; float r = length(c);
         vec2 uv = vUv + normalize(c + 1e-5) * sin(r * 26.0 - k * 9.0) * 0.014 * k * smoothstep(0.0, 0.5, r); // a ring of refraction that moves with the scroll
         vec3 col = vec3(texture2D(tDiffuse, uv + c * 0.008 * k).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - c * 0.008 * k).b);
         col += vec3(0.75, 0.95, 1.0) * smoothstep(0.3, 0.72, r) * k * 0.5; // the bright rim of the gel closing behind
+        if (hat >= 0.0) { // inside the hat: the tunnel closes in from the edges, and opens from its middle at the far end
+          vec2 q = c * vec2(aspect, 1.0); float cover = smoothstep(0.0, 0.14, hat) * (1.0 - smoothstep(0.8, 1.0, hat)), hole = (1.0 - cover) * 1.25;
+          col = mix(col, swirl(q, hat, time), smoothstep(hole - 0.14, hole, length(q)));
+        }
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>
       }`,
@@ -173,8 +177,6 @@ const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, win
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
-  env.dark = 1 - 0.75 * sstep(24, 25.2, h) * (1 - sstep(26.4, 27.6, h)); // the dark beat inside the stone
-  env.fogColor.multiplyScalar(env.dark);
   env.fogDensity = lerp(lerp(0.004, 0.33, sstep(11, 15, h)), 0.006, sstep(20.5, 23, h));
   env.h = h;
   scene.fog.color.copy(env.fogColor); scene.background.copy(env.fogColor); scene.fog.density = env.fogDensity;
@@ -246,7 +248,7 @@ let capFor = null;
 function caption(p) {
   const m = rail.moveAt(p), tv = env.tv.ch >= 0 && p < TV_SPAN[1]; // in the TV room each channel is its own caption
   // on the stair, the milestone the camera is passing is the caption
-  const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.6) : -1;
+  const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.52) : -1;
   const name = tv ? 'tv' + env.tv.ch : mi >= 0 ? 'ms' + mi : m.name;
   const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < STORY.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, STORY[env.tv.ch], ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', '']) : COPY[name];
   if (!c) { cap.style.opacity = 0; cap.classList.remove('on'); return; }
@@ -255,7 +257,7 @@ function caption(p) {
     if (c[2]) { const em = document.createElement('em'); em.textContent = c[2]; capH.append(em); }
     capH.classList.toggle('small', mi >= 0 || (tv && env.tv.ch < STORY.length)); capCta.hidden = !(tv && env.tv.ch === STORY.length);
   }
-  const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.6) / 1.2 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
+  const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.52) / 1.04 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
   const o = (m === rail.moves[0] ? 1 : sstep(0.1, tv ? 0.25 : 0.4, u)) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly. The first caption is there when the intro ends.
   cap.style.opacity = o; cap.style.transform = `translateY(${(1 - o) * 16}px)`; cap.classList.toggle('on', o > 0.5);
 }
@@ -263,7 +265,7 @@ function caption(p) {
 // ---------- what the scroll is pointing at: one shop, one counter, one TV channel ----------
 const byName = Object.fromEntries(rail.moves.map((m) => [m.name, m]));
 const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 - pad, m.s0 + 4, p) * (1 - sstep(m.s1 - 4, m.s1 + pad, p)); };
-const GALLERY = byName['Gallery, walking backwards'];
+const GALLERY = byName['Gallery, walking backwards'], HAT = byName['Through the hat'];
 const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = STORY.length + 1; // the last channel is "Your story?"
 function focus(p) {
   SHOPS.forEach((s, i) => { env.shop[i] = beat(`Shop: ${s.name}`, p); });
@@ -411,8 +413,8 @@ gsap.ticker.add((time, deltaMs) => {
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;
   caption(state.body); cards(state.body);
-  const k = state.reduce ? 0 : gel(state.body, time);
-  if (k > 0.002) { gelPass.mat.uniforms.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
+  const k = state.reduce ? 0 : gel(state.body, time), hat = (state.body - HAT.s0) / (HAT.s1 - HAT.s0), inHat = hat > 0 && hat < 1;
+  if (k > 0.002 || inHat) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
   else renderer.render(scene, camera);
 
   if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }

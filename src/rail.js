@@ -2,7 +2,7 @@
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
 import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, DESK, CARDS } from './world.js';
 
-export const TOTAL_VH = 4065; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 3860; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -136,45 +136,32 @@ export function buildRail() {
   const well = [STAIR.cx, EYE, STAIR.cz];
   move('Look up', 'stair', 60, (a, d) => { key(a + d, last()); const [y] = aim(here(), well, 40); look(a + d * 0.9, y, 50); });
   rooms.push({ name: 'The stairs', s: s - 20 });
-  const stairYaw = (phi) => {
-    const y = stairY(phi);
-    const w = Math.min(1, Math.max(0, (PHI_END - phi) / (Math.PI / 3))); // look-ahead fades out over the last 60 deg
-    const drift = y > 9 && y < 13 ? 25 * Math.sin((Math.PI * (y - 9)) / 4) ** 2 : 0; // look outward above the roof
-    return 90 - deg(phi) - 50 * w + drift;
-  };
-  const pitchByY = pchip([0, 9, 11, 13, 22, 23.5, 25, 26], [13, 13, -8, 13, 13, 30, 32, 0]);
+  const stairYaw = (phi) => 90 - deg(phi) - 50 * Math.min(1, Math.max(0, (PHI_END - phi) / (Math.PI / 3))); // the look-ahead fades out over the last 60 deg
+  const TOP = stairY(PHI_END), pitchByY = pchip([0, TOP - 1.5, TOP], [13, 13, 30]); // at the top the eyes lift toward the hat
   move('Step onto the stair', 'stair', 25, (a, d) => {
     const q = stairPt(STAIR.phi0, STAIR.rWalk, EYE); key(a + d, P(...q)); look(a + d, stairYaw(STAIR.phi0), 13);
   });
-  const zones = [
-    ['Spiral in the lobby', 'stair', 0, 9, 162],
-    ['Above the roof, open air', 'stair', 9, 13, 72],
-    ['Cloud core', 'cloud', 13, 22, 126],
-    ['Coming out on top', 'stair', 22, 24, 40],
-    ['Dark beat under the stone', 'stair', 24, 26, 60],
-  ];
-  const sByY = (y) => {
-    let acc = 0;
-    for (const [, , y0, y1, ds] of zones) { if (y <= y1) return acc + (ds * (y - y0)) / (y1 - y0); acc += ds; }
-    return acc;
-  };
-  {
-    const a = s, step = Math.PI / 6;
+  move("Up the Hatter's stair", 'stair', 150, (a, d) => {
+    const step = Math.PI / 6;
     for (let phi = STAIR.phi0 + step; ; phi += step) {
       if (phi > PHI_END - 0.05) phi = PHI_END;
-      const at = a + sByY(stairY(phi));
+      const at = a + (d * stairY(phi)) / TOP;
       key(at, P(...stairPt(phi, STAIR.rWalk, EYE))); look(at, stairYaw(phi), pitchByY(stairY(phi)));
       if (phi === PHI_END) break;
     }
-    let acc = a;
-    for (const [name, zone, , , ds] of zones) { moves.push({ name, zone, s0: acc, s1: acc + ds }); acc += ds; }
-    s = acc;
-  }
+  });
+  // The portal: straight up through the hat to the Landing. It is a real stretch of rail, so scrolling back goes down it again.
+  move('Through the hat', 'cloud', 110, (a, d) => {
+    const q = stairPt(PHI_END, STAIR.rWalk, EYE), yaw = stairYaw(PHI_END);
+    P(q[0], q[1] + 0.6, q[2]); P(q[0], 12, q[2]); P(q[0], 20, q[2]); P(q[0], H.landing + EYE - 0.6, q[2]); key(a + d, P(q[0], H.landing + EYE, q[2]));
+    look(a + d * 0.35, yaw, 65); look(a + d * 0.6, yaw, 65); look(a + d, yaw, 0);
+  });
+  moves[moves.length - 1].portal = true; // the camera leaves one floor and comes up through another: no eye-height rule in between
   const NORTH = 360 * Math.round((90 - deg(PHI_END)) / 360); // "north" after 5.2 turns of unwrapped yaw
   // ---- Landing ----
   const Hpose = [-5.5, H.landing + EYE, -0.8];
   move('Arrive at the Landing', 'stair', 90, (a, d) => {
-    g(-2.46, 2.79, H.landing); g(-3.3, 0.5, H.landing); key(a + d, P(...Hpose));
+    g(-2.3, 4.3, H.landing); g(-2.46, 2.79, H.landing); g(-3.3, 0.5, H.landing); key(a + d, P(...Hpose));
     const [y, p] = aim(Hpose, SUN_PATCH, NORTH + 140); look(a + d * 0.75, y, p); look(a + d, y, p);
   });
   move('Landing hold', 'room', 120, (a, d) => {
@@ -228,7 +215,7 @@ export function buildRail() {
   });
   rooms.push({ name: '06 Rooftop', s: s - 1 });
 
-  for (const m of moves) if (m.name === 'Arrival hold' || m.name === 'Gate push in') m.free = true; // crane: above eye height on purpose
+  for (const m of moves) if (m.name === 'Arrival hold' || m.name === 'Gate push in' || m.portal) m.free = true; // crane: above eye height on purpose
 
   // ---- scale to the total, then build the lookups ----
   const k = TOTAL_VH / s;

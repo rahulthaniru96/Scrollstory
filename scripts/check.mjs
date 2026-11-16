@@ -22,7 +22,7 @@ for (let L = 0; L <= rail.length; L += STEP) {
   if (c.margin < 0) fail(`clearance: ${c.dist.toFixed(2)} m from "${c.name}" in "${m.name}" at (${p.map((v) => v.toFixed(2))})`);
   const eyeErr = Math.abs(p[1] - floorAt(...p) - EYE);
   rec.eyeErr = Math.max(rec.eyeErr, eyeErr);
-  if (m.free ? p[1] - floorAt(...p) < EYE - EYE_TOL : eyeErr > EYE_TOL) fail(`eye height: ${(p[1] - floorAt(...p)).toFixed(2)} m above the floor in "${m.name}" at (${p.map((v) => v.toFixed(2))})`);
+  if (m.portal ? false : m.free ? p[1] - floorAt(...p) < EYE - EYE_TOL : eyeErr > EYE_TOL) fail(`eye height: ${(p[1] - floorAt(...p)).toFixed(2)} m above the floor in "${m.name}" at (${p.map((v) => v.toFixed(2))})`);
 }
 
 // 2. Doorways and bridges: at least 1.2 m wide, and the camera goes through the middle.

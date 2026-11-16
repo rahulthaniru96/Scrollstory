@@ -124,9 +124,9 @@ export function buildRail() {
   move('Step back to choose', 'room', 50, (a, d) => { key(a + d, g(7.5, 2.8)); look(a + d * 0.85, 250, 0); look(a + d, 250, 0); });
   hold('Choose one', 90);
   move('Back to the stair foot', 'room', 150, (a, d) => {
-    look(a + d * 0.35, 180, 0);
+    look(a + d * 0.35, 152, 0); // the eyes go to the lobby's east door early, so its membrane is in view for the whole approach
     g(7.8, 5.2); g(7.9, 7.2); g(7.3, 8.7);
-    look(a + d * 0.55, 180, 0);
+    look(a + d * 0.55, 113, 0);
     key(a + d * 0.8, g(6.15, 9.2));
     look(a + d * 0.8, 90, 0);
     g(4.9, 8.25); g(3.8, 7.62); key(a + d, g(2.49, 7.3));

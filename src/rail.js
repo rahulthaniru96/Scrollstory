@@ -187,7 +187,7 @@ export function buildRail() {
       const [y, p] = aim(here(), TV, NORTH + 30); look(a + (d * al) / 60, y, p);
     }
   });
-  hold('HOME hold', 120, 'HOME'); // long enough for the TV's seven channels
+  hold('HOME hold', 120, 'HOME'); // the TV's four channels share this and the orbit
   // ---- 05 Extras ----
   const boardL = [11, H.extras + 2.6, -24], boardR = [19, H.extras + 2.6, -24];
   move('Bridge to Extras', 'room', 150, (a, d) => {

@@ -9,9 +9,9 @@ import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
 import { intro } from './intro.js';
-import { STORY } from './rooms.js';
+import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -235,6 +235,7 @@ else {
     if (e.target.closest?.('input, textarea, select, button, a') || e.ctrlKey || e.metaKey || e.altKey || blocked(e)) return;
     const dir = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1, ' ': e.shiftKey ? -1 : 1 }[e.key];
     if (dir) { e.preventDefault(); steps.step(dir); }
+    else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && env.tv.ch >= 0 && state.body < TV_SPAN[1]) steps.step(e.key === 'ArrowLeft' ? -1 : 1); // change the channel
     else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); steps.goto(e.key === 'Home' ? 0 : rail.stops.length - 1); }
   });
   // touch: a swipe of 40 px or more is one step; the page itself does not drag
@@ -284,12 +285,12 @@ function caption(p) {
   // on the stair, the milestone the camera is passing is the caption
   const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.52) : -1;
   const name = tv ? 'tv' + env.tv.ch : mi >= 0 ? 'ms' + mi : m.name;
-  const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < STORY.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, STORY[env.tv.ch], ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', '']) : COPY[name];
+  const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < TV_BEATS.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, TV_BEATS[env.tv.ch].full, ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', "Let's put it on the screen."]) : COPY[name];
   if (!c) { cap.style.opacity = 0; cap.classList.remove('on'); return; }
   if (capFor !== name) {
     capFor = name; capLabel.textContent = c[0]; capH.textContent = c[1];
     if (c[2]) { const em = document.createElement('em'); em.textContent = c[2]; capH.append(em); }
-    capH.classList.toggle('small', mi >= 0 || (tv && env.tv.ch < STORY.length)); capCta.hidden = !(tv && env.tv.ch === STORY.length);
+    capH.classList.toggle('small', mi >= 0 || (tv && env.tv.ch < TV_BEATS.length)); capCta.hidden = !(tv && env.tv.ch === TV_BEATS.length);
   }
   const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.52) / 1.04 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
   const o = (m === rail.moves[0] ? 1 : sstep(0.1, tv ? 0.25 : 0.4, u)) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly. The first caption is there when the intro ends.
@@ -300,7 +301,7 @@ function caption(p) {
 const byName = Object.fromEntries(rail.moves.map((m) => [m.name, m]));
 const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 - pad, m.s0 + 4, p) * (1 - sstep(m.s1 - 4, m.s1 + pad, p)); };
 const GALLERY = byName['Gallery, walking backwards'], HAT = byName['Through the hat'];
-const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = STORY.length + 1; // the last channel is "Your story?"
+const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = TV_CHANNELS; // the last channel is "Your story?"
 function focus(p) {
   SHOPS.forEach((s, i) => { env.shop[i] = beat(`Shop: ${s.name}`, p); });
   COUNTERS.forEach((c, i) => { env.counter[i] = beat(`Counter: ${c.name}`, p); });
@@ -368,9 +369,13 @@ formBox.addEventListener('close', () => lenis.start());
 for (const b of formBox.querySelectorAll('.close')) b.onclick = () => formBox.close();
 startBtn.onclick = () => openForm();
 const deskBox = new THREE.Box3(new THREE.Vector3(13.4, H.rooftop, 7), new THREE.Vector3(16.6, H.rooftop + 2.6, 8)); // the desk and the plan cards over it
+const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set and its picture in the air
 addEventListener('click', (e) => {
-  if (rail.moveAt(state.body) !== lastMove || e.target.closest('button, a, dialog, #info, #chooser')) return;
+  if (e.target.closest('button, a, dialog, #info, #chooser')) return;
+  const onTv = env.tv.ch >= 0 && state.body < TV_SPAN[1];
+  if (rail.moveAt(state.body) !== lastMove && !onTv) return;
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
+  if (onTv) { if (ray.ray.intersectsBox(tvBox)) steps.step(env.tv.ch === CHANNELS - 1 ? -1 : 1); return; } // a click changes the channel
   if (ray.ray.intersectsBox(deskBox)) openForm();
 });
 

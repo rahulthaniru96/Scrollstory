@@ -21,6 +21,12 @@ export const STORY = [
   'And the systems behind them.',
   'Our goal is to help businesses go digital.',
 ];
+// The TV tells it in three beats. `short` is what the screen says (seven words at most, Rahul's own); `full` is the caption under it.
+export const TV_BEATS = [
+  { short: "I've loved building websites.", full: `${STORY[0]} ${STORY[1]}` },
+  { short: 'A tool that brings a business income.', full: `${STORY[2]} ${STORY[3]} ${STORY[4]}` },
+  { short: 'Help businesses go digital.', full: STORY[5] },
+];
 const EXTRAS = ['QR CODES', 'PHOTOS', 'SOCIAL POSTS', 'MENU / PRICE CARD']; // build plan, section 8
 
 export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: glow0, glowTexture, lowQuality }) {
@@ -283,35 +289,85 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     // The phone of that year: back cover off, battery out, charging on its own. Here the pieces drift apart.
     hover(prop('phone', -9.2, y + 1.5, -16.6, { s: 3, then: (m) => { m.rotation.x = 0.9; apart(m, { cover: [0, -0.04, 0], battery: [0.02, 0.05, -0.03], charger: [0.06, 0, 0.02] }); } }), 0.05, 0.5, 0.05, 0.6);
 
-    // The TV plays the story, one line at a time.
-    const c = document.createElement('canvas'); c.width = 400; c.height = 320;
+    // The TV plays the story as three moving pictures and a question. It also throws its picture into the room, large enough to watch.
+    const c = document.createElement('canvas'); c.width = 800; c.height = 640;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-    const draw = (ch, snow) => {
+    x.scale(2, 2); // drawn in 400 x 320 units
+    const CREAM = '#f7efe2', BUTTER = '#f2d98b', ROSE = '#e8a89a', TEAL = '#3f6e68', OXIDE = '#9e3b2c';
+    const pop = (t, at) => Math.min(1, Math.max(0, (t - at) / 0.35)); // 0 to 1 over a third of a second, from `at`
+    const box = (px, py, w, h, col, k = 1) => { if (k <= 0) return; x.fillStyle = col; x.globalAlpha = k; x.fillRect(px, py + (1 - k) * 8, w, h); x.globalAlpha = 1; };
+    const shop = (px, py, lit, col) => { // a small shop front: awning, window, door
+      box(px, py, 44, 40, '#2a343a'); box(px + 5, py + 12, 20, 16, lit ? BUTTER : '#3d4a52'); box(px + 30, py + 14, 9, 26, lit ? CREAM : '#3d4a52');
+      for (let i = 0; i < 4; i++) box(px - 3 + i * 12.5, py - 6, 12.5, 9, i % 2 ? CREAM : col);
+    };
+    const SCENES = [
+      (t) => { // a page builds itself in a browser window
+        const u = t % 5;
+        x.strokeStyle = CREAM; x.lineWidth = 2; x.strokeRect(70, 58, 260, 150); box(70, 58, 260, 14, CREAM);
+        for (let i = 0; i < 3; i++) { x.fillStyle = [OXIDE, BUTTER, TEAL][i]; x.beginPath(); x.arc(79 + i * 9, 65, 2.5, 0, 7); x.fill(); }
+        box(82, 82, 236, 8, TEAL, pop(u, 0.3)); box(82, 98, 130, 56, ROSE, pop(u, 0.9)); box(222, 100, 96, 7, CREAM, pop(u, 1.5)); box(222, 114, 70, 7, CREAM, pop(u, 1.8));
+        box(222, 134, 50, 16, BUTTER, pop(u, 2.3)); for (let i = 0; i < 3; i++) box(82 + i * 80, 164, 72, 32, '#56666e', pop(u, 2.8 + i * 0.3));
+        const cx = 90 + Math.min(1, u / 3.8) * 200, cy = 90 + Math.sin(u * 2) * 20 + u * 18; // the cursor that is doing the building
+        x.fillStyle = CREAM; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + 9, cy + 9); x.lineTo(cx + 4, cy + 9.5); x.lineTo(cx, cy + 14); x.fill();
+      },
+      (t) => { // enquiries leave the website and arrive at the shop as income
+        x.strokeStyle = CREAM; x.lineWidth = 2; x.strokeRect(62, 84, 96, 66); box(50, 152, 120, 6, CREAM); box(72, 94, 76, 8, TEAL); box(72, 108, 44, 30, ROSE); box(122, 124, 26, 12, BUTTER);
+        shop(276, 112, true, OXIDE); box(262, 152, 76, 4, CREAM);
+        for (let i = 0; i < 5; i++) { // coins along an arc
+          const u = (t * 0.35 + i / 5) % 1, px = 150 + u * 142, py = 122 - Math.sin(u * Math.PI) * 58;
+          x.globalAlpha = Math.sin(u * Math.PI) ** 0.5; x.fillStyle = BUTTER; x.beginPath(); x.arc(px, py, 8, 0, 7); x.fill();
+          x.fillStyle = '#5a4a12'; x.font = '700 10px sans-serif'; x.textAlign = 'center'; x.fillText('\u20b9', px, py + 3.5); x.globalAlpha = 1;
+        }
+      },
+      (t) => { // a street of shops comes online, one after another
+        const u = t % 5;
+        box(40, 170, 320, 3, CREAM);
+        for (let i = 0; i < 5; i++) {
+          const on = u > 0.5 + i * 0.7, px = 52 + i * 62;
+          shop(px, 130, on, [OXIDE, TEAL, ROSE, OXIDE, TEAL][i]);
+          if (on) for (let k = 0; k < 3; k++) { const a = pop(u, 0.5 + i * 0.7 + k * 0.15); x.globalAlpha = a * (1 - k * 0.25); x.strokeStyle = BUTTER; x.lineWidth = 2; x.beginPath(); x.arc(px + 22, 112, 6 + k * 7, Math.PI * 1.2, Math.PI * 1.8); x.stroke(); x.globalAlpha = 1; }
+        }
+      },
+      (t) => { // an empty page, waiting
+        x.setLineDash([6, 6]); x.strokeStyle = BUTTER; x.lineWidth = 2; x.strokeRect(100, 62, 200, 120); x.setLineDash([]);
+        if (t % 1 < 0.55) box(196, 96, 3, 50, CREAM);
+      },
+    ];
+    const draw = (ch, snow, t) => {
       if (snow) { // CRT static between channels
         for (let py = 0; py < 320; py += 8) for (let px = 0; px < 400; px += 8) { const v = (40 + Math.random() * 180) | 0; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(px, py, 8, 8); }
         tex.needsUpdate = true; return;
       }
       const g = x.createRadialGradient(200, 160, 20, 200, 160, 260); g.addColorStop(0, '#34424a'); g.addColorStop(1, '#161b1f');
       x.fillStyle = g; x.fillRect(0, 0, 400, 320);
-      const story = ch >= 0 && ch < STORY.length;
-      x.font = '600 15px monospace'; x.fillStyle = '#f2d98b'; x.textAlign = 'left'; x.fillText('SCROLLSTORY TV', 22, 36);
-      if (ch >= 0) { x.textAlign = 'right'; x.fillText(`CH 0${ch + 1}`, 378, 36); }
-      x.font = `500 ${story ? 30 : 44}px Georgia, serif`; x.textAlign = 'center'; x.fillStyle = '#f7efe2';
+      x.font = '600 13px monospace'; x.fillStyle = BUTTER; x.textAlign = 'left'; x.fillText('SCROLLSTORY TV', 20, 32);
+      if (ch >= 0) { x.textAlign = 'right'; x.fillText(`CH 0${ch + 1} / 0${SCENES.length}`, 380, 32); SCENES[ch](t); }
+      const words = ch < 0 ? 'Scrollstory TV' : ch < TV_BEATS.length ? TV_BEATS[ch].short : 'Your story?', big = ch < 0 || ch >= TV_BEATS.length;
+      x.font = `600 ${big ? 40 : 25}px Georgia, serif`; x.textAlign = 'center'; x.fillStyle = CREAM;
       const lines = []; let line = '';
-      for (const word of (ch < 0 ? 'Scrollstory TV' : story ? STORY[ch] : 'Your story?').split(' ')) { if (x.measureText(line + word).width > 330) { lines.push(line.trim()); line = ''; } line += word + ' '; }
+      for (const word of words.split(' ')) { if (x.measureText(line + word).width > 350) { lines.push(line.trim()); line = ''; } line += word + ' '; }
       lines.push(line.trim());
-      for (const [k, l] of lines.entries()) x.fillText(l, 200, 182 + (k - (lines.length - 1) / 2) * 40);
+      for (const [k, l] of lines.entries()) x.fillText(l, 200, (big ? 250 : 246) + (k - (lines.length - 1) / 2) * 30);
       x.fillStyle = 'rgba(0,0,0,0.14)'; for (let sy = 0; sy < 320; sy += 4) x.fillRect(0, sy, 400, 1);
       tex.needsUpdate = true;
     };
     const tv = hover(prop('box_tv', -6.5, y + 0.3, -19.45, { s: 2, ry: 0.45 }), 0.05, 0.35, 0.015); // turned a little toward the hold frame
     mesh(new THREE.PlaneGeometry(0.5, 0.4), basic(0xffffff, { map: tex }), -0.085, 0.36, 0.2625, tv);
     glow(0xcfe0ff, 3.6, -6.3, y + 1.0, -18.6, scene, 0.3);
-    let shown = '';
+    // the picture, thrown into the air over the set and always turned to the viewer
+    const big = mesh(new THREE.PlaneGeometry(2.7, 2.16), basic(0xffffff, { map: tex, transparent: true, opacity: 0.94, depthWrite: false }), -6.5, y + 2.5, -19.2, scene);
+    const beam = mesh(new THREE.ConeGeometry(1.5, 1.1, 4, 1, true), basic(0xcfe0ff, { transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), -6.5, y + 1.35, -19.3, scene);
+    beam.rotation.x = Math.PI; big.renderOrder = 3;
+    let shown = '', last = 0, since = 0, was = -2;
     tick.push((t, dt, env) => { // the scroll picks the channel (env.tv), with a blip of static at each flip
       if (camera.position.y < H.landing - 1) return;
-      const { ch, f } = env.tv, snow = ch >= 0 && f < 0.1, k = snow ? 's' + Math.floor(t * 14) : 'c' + ch;
-      if (shown !== k) { shown = k; draw(ch, snow); }
+      const { ch, f } = env.tv, snow = ch >= 0 && f < 0.1, open = ch > 0 ? 1 : ch === 0 ? Math.min(1, f / 0.2) : 0;
+      big.visible = beam.visible = open > 0.01; big.scale.setScalar(open); beam.scale.set(open, 1, open);
+      big.rotation.y = Math.atan2(camera.position.x - big.position.x, camera.position.z - big.position.z);
+      if (ch !== was) { was = ch; since = t; }
+      const k = snow ? 's' + Math.floor(t * 14) : 'c' + ch;
+      if (shown === k && (ch < 0 || t - last < (lowQuality ? 0.1 : 0.05))) return; // moving pictures: 20 frames a second (10 on phones)
+      shown = k; last = t; draw(ch, snow, t - since);
     });
   }
 

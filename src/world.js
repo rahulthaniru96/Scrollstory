@@ -181,7 +181,7 @@ box('teapoy and lamp', -7.1, -5.9, H.home, H.home + 5, -18.1, -17.1, 'furniture'
 box('home trunk', -12.95, -12.15, H.home, H.home + 0.6, -20.6, -19.4, 'furniture', HID);
 air('home stool', -11.6, H.home + 0.5, -18.2, 0.45);
 air('home phone and battery', -9.2, H.home + 1.5, -16.6, 0.45); // west of the sofa, clear of every line of sight to the TV
-export const TV_CHANNELS = 7; // one stop of the walk for each
+export const TV_CHANNELS = 4; // three beats of the story, then "Your story?"; // one stop of the walk for each
 export const TV = [-6.5, H.home + 1.0, -19];
 
 // Extras fragment.

@@ -111,13 +111,15 @@ export function facade({ scene, tick, mesh, basic, lit, glow }) {
   }
 
   // ---------- holographic outlines: on everything built here, and on the two big blocks behind it ----------
+  const blocks = [];
   for (const m of edged) m.add(holoEdges(m.geometry));
   for (const [x0, x1, y1, z0] of [[-6.3, 6.3, H.roof + 0.3, -0.15], [-12.3, 12.3, H.wing + 0.3, -22.3]]) {
-    const e = holoEdges(new THREE.BoxGeometry(x1 - x0, y1, F - z0)); e.position.set((x0 + x1) / 2, y1 / 2, (z0 + F) / 2); G.add(e);
+    const e = holoEdges(new THREE.BoxGeometry(x1 - x0, y1, F - z0)); e.position.set((x0 + x1) / 2, y1 / 2, (z0 + F) / 2); G.add(e); blocks.push(e);
   }
   tick.push((t, dt, env) => {
     HOLO.time.value = t; HOLO.flip.value = env.dusk;
     HOLO.boundary.value = 6.6 + 0.3 * Math.sin((t * Math.PI * 2) / 8); // the line between real and imagined breathes, 0.3 m over 8 s
     for (const m of upper) m.opacity = 0.7 + 0.3 * env.dusk; // against the dark sky the top turns solid
   });
+  return { parts: edged, blocks }; // what the intro builds: the pieces, and the outlines of the two blocks
 }

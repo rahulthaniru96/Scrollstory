@@ -67,6 +67,10 @@
   #hud b { color: var(--butter); font-weight: 500; }
   #hud .bad { color: #ff9c8a; }
   #mist { position: fixed; inset: 0; z-index: 3; background: #F6E7D2; opacity: 0; pointer-events: none; }
+  #dusk { position: fixed; inset: 0; z-index: 1; background: #1a2030; mix-blend-mode: multiply; opacity: 0; pointer-events: none; } /* the intro starts on dark water */
+  header, #hint, #caption, #contact, #hud { transition: opacity 0.8s; }
+  body.intro header, body.intro #hint, body.intro #contact, body.intro #hud { opacity: 0; }
+  body.intro #caption { opacity: 0 !important; }
   /* film: grain and a soft vignette over the 3D, under the page text */
   #film { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, rgba(42, 26, 14, 0) 55%, rgba(42, 26, 14, 0.34) 100%); }
   #film::after { content: ''; position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
@@ -137,6 +141,7 @@
 </div>
 <div id="film"></div>
 <div id="mist"></div>
+<div id="dusk"></div>
 <div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp +91 99490 88659.</p></div>
 
 <script type="module" src="/src/main.js"></script>

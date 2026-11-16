@@ -128,9 +128,9 @@ export function dress({ scene, camera, lowQuality = false }) {
   });
   { // the reflection always shows the fully imagined building: every holographic outline, even where the real thing is solid
     const draw = water.onBeforeRender;
-    water.onBeforeRender = function (...a) { HOLO.dream.value = 1; draw.apply(this, a); HOLO.dream.value = 0; };
+    water.onBeforeRender = function (...a) { HOLO.dream.value = 1; draw.apply(this, a); HOLO.dream.value = HOLO.base.value; };
   }
-  facade({ scene, tick, mesh, basic, lit, glow });
+  const front = facade({ scene, tick, mesh, basic, lit, glow });
   lake({ scene, camera, tick, mesh, lit, basic, lowQuality, water });
   const ripple = (x, z, time) => { water.material.uniforms.ripples.value[rippleAt++ % RIPPLES].set(x, z, time); };
 
@@ -221,9 +221,10 @@ export function dress({ scene, camera, lowQuality = false }) {
     scene.add(new THREE.Mesh(patch, (patchMats[w.sky] ||= basic(light, { transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))));
   }
 
+  let plaque;
   // ---------- the plaque on the parapet: the wordmark and the Doorway S (logo A on the design board) ----------
   {
-    const g = new THREE.Group(); g.position.set(0, 7.9, 12.3); scene.add(g); // on the lobby front, facing the street
+    const g = plaque = new THREE.Group(); g.position.set(0, 7.9, 12.3); scene.add(g); // on the lobby front, facing the street
     const clay = lit(0xc9733f, { emissive: 0xc9733f, emissiveIntensity: 0.55, roughness: 0.5 });
     mesh(new THREE.BoxGeometry(6.7, 1.95, 0.08), clay, 0, 0, 0.04, g); // a clay rim behind the ink panel
     mesh(new THREE.BoxGeometry(6.5, 1.75, 0.16), lit(0x1e2a26, { roughness: 0.6 }), 0, 0, 0.08, g);
@@ -350,5 +351,5 @@ export function dress({ scene, camera, lowQuality = false }) {
   });
 
   const ready = furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTexture, lowQuality });
-  return { update: (time, dt, env) => { for (const f of tick) f(time, dt, env); }, ripple, ready };
+  return { update: (time, dt, env) => { for (const f of tick) f(time, dt, env); }, ripple, ready, front, plaque };
 }

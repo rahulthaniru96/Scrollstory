@@ -7,6 +7,7 @@ import { smoothDamp } from './spring.js';
 import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
+import { intro } from './intro.js';
 import { STORY } from './rooms.js';
 import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS } from './world.js';
 
@@ -54,6 +55,7 @@ const matFor = (c) => (c.color !== undefined ? (tinted[c.color] ||= new THREE.Me
 const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); scene.add(m); return m; };
 const drift = []; // floating things: [mesh, home y, phase]
 const demoCards = []; // the Gallery's demo sites
+const shell = []; // the ground building's blockout meshes, which the intro builds
 const cardTexture = (() => {
   const c = document.createElement('canvas'); c.width = 320; c.height = 200;
   const x = c.getContext('2d');
@@ -69,7 +71,7 @@ for (const c of COLLIDERS) {
   if (c.hidden) continue; // drawn by dress.js
   if (c.t === 'box') {
     const s = c.max.map((v, i) => v - c.min[i]);
-    add(new THREE.BoxGeometry(...s), matFor(c), ...c.min.map((v, i) => v + s[i] / 2));
+    const m = add(new THREE.BoxGeometry(...s), matFor(c), ...c.min.map((v, i) => v + s[i] / 2)); if (c.min[1] < 14) shell.push(m);
   } else if (c.t === 'cyl') {
     add(new THREE.CylinderGeometry(c.r, c.r, c.y1 - c.y0, 20), mats.furniture, c.x, (c.y0 + c.y1) / 2, c.z);
   } else if (c.t === 'slabHole') {
@@ -78,7 +80,7 @@ for (const c of COLLIDERS) {
     const hole = new THREE.Path(); hole.absarc(c.hx, -c.hz, c.hr, 0, Math.PI * 2, true); sh.holes.push(hole);
     const geo = new THREE.ExtrudeGeometry(sh, { depth: c.max[1] - c.min[1], bevelEnabled: false, curveSegments: 40 });
     geo.rotateX(-Math.PI / 2);
-    add(geo, mats[c.kind] || mats.floor, 0, c.min[1], 0);
+    const m = add(geo, mats[c.kind] || mats.floor, 0, c.min[1], 0); if (c.min[1] < 14) shell.push(m);
   } else if (c.t === 'sph' && c.shape === 'card') { // the other floating things are drawn by rooms.js
     // A demo site appears out of thin air as the scroll reaches it: motes, then an outline and a ghost, then the page itself.
     const geo = new THREE.PlaneGeometry(1.6, 1.0), r = { value: 1 }, line = { value: 0 };
@@ -252,7 +254,7 @@ function caption(p) {
     capH.classList.toggle('small', tv && env.tv.ch < STORY.length); capCta.hidden = !(tv && env.tv.ch === STORY.length);
   }
   const u = tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
-  const o = sstep(0.1, tv ? 0.25 : 0.4, u) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly
+  const o = (m === rail.moves[0] ? 1 : sstep(0.1, tv ? 0.25 : 0.4, u)) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly. The first caption is there when the intro ends.
   cap.style.opacity = o; cap.style.transform = `translateY(${(1 - o) * 16}px)`; cap.classList.toggle('on', o > 0.5);
 }
 
@@ -433,6 +435,17 @@ gsap.ticker.add((time, deltaMs) => {
     for (const r of rail.rooms) r.btn.classList.toggle('here', r === [...rail.rooms].reverse().find((q) => q.s <= state.body + 30));
   }
 });
+
+// ---------- the intro: once per session, never on a pinned frame or a page opened part-way down ----------
+{
+  const freeze = new URLSearchParams(location.search).get('intro'); // ?intro=3.2 holds the intro at 3.2 s, for screenshots
+  let seen = false;
+  try { seen = sessionStorage.getItem('intro') === '1'; sessionStorage.setItem('intro', '1'); } catch { /* private mode: play it */ }
+  if (freeze !== null || (!pinned && !seen && !(startAt > 0) && scrollY < innerHeight * 0.3)) {
+    if (state.reduce && freeze === null) gsap.fromTo(veil, { opacity: 1 }, { opacity: 0, duration: 1, ease: 'none' }); // reduced motion: a 1 s fade
+    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), freezeAt: freeze === null ? null : Number(freeze) }); }
+  }
+}
 
 if (import.meta.env.DEV) window.__world = { state, rail, lenis, FEEL, env }; // for tuning from the console
 

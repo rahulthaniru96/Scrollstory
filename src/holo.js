@@ -10,7 +10,8 @@ export const HOLO = {
   time: { value: 0 },
   boundary: { value: 6.6 }, // world height where the building stops being solid and starts being imagined
   flip: { value: 0 }, // 1 at purple-sky time: the lower half glows and the upper half goes solid
-  dream: { value: 0 }, // 1 only while the water draws its reflection, which always shows the whole dream
+  dream: { value: 0 }, // 1 while the water draws its reflection, which always shows the whole dream; otherwise it rests at `base`
+  base: { value: 0 }, // 1 during the intro, when every outline shows
 };
 
 // Thin-film colours: cyan, violet, pink, gold, and round again.
@@ -40,18 +41,19 @@ export function holoEdges(geometry, { angle = 30, everywhere = false, opacity = 
 }
 
 // A see-through iridescent fill. `reveal` 0 to 1 dissolves it in through noise, with a bright rim at the dissolve edge.
-export function holoFill({ reveal = { value: 1 }, opacity = 0.3 } = {}) {
+// `floor` is an optional { value }: nothing is drawn below that world height (the intro's scan line).
+export function holoFill({ reveal = { value: 1 }, opacity = 0.3, floor = { value: -1e3 } } = {}) {
   return new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false,
-    uniforms: { time: HOLO.time, uReveal: reveal, opacity: { value: opacity } },
+    uniforms: { time: HOLO.time, uReveal: reveal, uFloor: floor, opacity: { value: opacity } },
     vertexShader: 'varying vec3 vW, vN; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }',
-    fragmentShader: `uniform float time, uReveal, opacity; varying vec3 vW, vN; ${RAMP}
+    fragmentShader: `uniform float time, uReveal, uFloor, opacity; varying vec3 vW, vN; ${RAMP}
       float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
       float noise(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
         return mix(mix(mix(hash(i), hash(i + vec3(1, 0, 0)), f.x), mix(hash(i + vec3(0, 1, 0)), hash(i + vec3(1, 1, 0)), f.x), f.y),
                    mix(mix(hash(i + vec3(0, 0, 1)), hash(i + vec3(1, 0, 1)), f.x), mix(hash(i + vec3(0, 1, 1)), hash(i + vec3(1, 1, 1)), f.x), f.y), f.z); }
       void main(){ float n = noise(vW * 1.7) * 0.999;
-        if (n > uReveal) discard;
+        if (n > uReveal || vW.y < uFloor) discard;
         float rim = smoothstep(uReveal - 0.1, uReveal, n) * step(uReveal, 0.999);
         float fres = pow(1.0 - abs(dot(normalize(vN), normalize(vW - cameraPosition))), 2.0);
         gl_FragColor = vec4(holoRamp(fres * 0.8 + vW.y * 0.05 + time * 0.04) * (0.6 + fres) + rim, min(1.0, opacity + rim)); }`,

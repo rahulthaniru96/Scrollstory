@@ -198,13 +198,14 @@ export function buildRail() {
     key(a + d, g(-6.5, -13, H.home));
     const [y, p] = aim(here(), TV, NORTH); look(a + d, y, p);
   });
+  rooms.push({ name: 'HOME', s: s - 30 }); // the room starts as the bridge lands, so the TV's first channels are already HOME
   move('HOME partial orbit', 'room', 90, (a, d) => {
     for (const al of [20, 40, 60]) {
       key(a + (d * al) / 60, g(TV[0] + 6 * Math.sin(rad(al)), TV[2] + 6 * Math.cos(rad(al)), H.home));
       const [y, p] = aim(here(), TV, NORTH + 30); look(a + (d * al) / 60, y, p);
     }
   });
-  hold('HOME hold', 120, 'HOME'); // the TV's four channels share this and the orbit
+  hold('HOME hold', 120); // the TV's four channels share this and the orbit
   // ---- 06 Drafting Room: off HOME's east end and up a rope bridge. A giant wireframe page stands across the room; the walk goes through it ----
   const ramp = (br, u) => g(br.a[0] + (br.b[0] - br.a[0]) * u, br.a[1] + (br.b[1] - br.a[1]) * u, br.ya + (br.yb - br.ya) * u);
   const [ROPE, CAR, CANAL] = ['rope bridge', 'funicular', 'sky canal'].map((n) => BRIDGES.find((b) => b.name === n));
@@ -288,11 +289,11 @@ export function buildRail() {
     key(a + d, g(15, 1.2, H.rooftop));
     look(a + d * 0.2, N2 + 390, 8); look(a + d * 0.55, N2 + 435, 4); look(a + d, N2 + 540, 2);
   });
+  rooms.push({ name: '10 Rooftop', s: s - 30 }); // as the kites set the walk down
   // one straight, level glide to the desk: no look up at the sky first, so the last step does not lurch
   move('Settle on the desk', 'room', 120, (a, d) => {
     key(a + d, g(15, 3.6, H.rooftop)); const [y, p] = aim(here(), DESK, N2 + 540); look(a + d, y, p);
   });
-  rooms.push({ name: '10 Rooftop', s: s - 1 });
 
   for (const m of moves) if (m.name === 'Arrival hold' || m.name === 'Gate push in' || m.portal || m.name === 'A short fall' || m.name === 'Kites up to the Rooftop') m.free = true; // crane: above eye height on purpose
 

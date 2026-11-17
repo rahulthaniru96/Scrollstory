@@ -48,6 +48,23 @@
   #info, #chooser, #startBtn { position: fixed; z-index: 4; opacity: 0; pointer-events: none; }
   #info.on, #chooser.on, #startBtn.on { pointer-events: auto; }
   #info input.sign { width: 100%; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--ink); border-radius: 10px; background: #fff; font: inherit; }
+  #cards3d { position: fixed !important; inset: 0; z-index: 4; pointer-events: none; }
+  .c3 { width: 420px; padding: 26px 30px 28px; background: rgba(247, 239, 226, 0.97); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 24px; box-shadow: 0 40px 70px rgba(20, 32, 29, 0.32), inset 0 7px 0 var(--accent); font: 400 20px/1.4 var(--text); pointer-events: none; transition: opacity 0.2s; }
+  .c3.on { pointer-events: auto; }
+  .c3::before { content: ''; position: absolute; left: -64px; top: 50%; width: 56px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); } /* a line back to the thing it explains */
+  .c3::after { content: ''; position: absolute; left: -72px; top: calc(50% - 5px); width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+  .c3 .label { font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.75; }
+  .c3 h2 { font: 420 40px/1.04 var(--display); letter-spacing: -0.02em; margin: 8px 0 10px; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
+  .c3 p { margin: 0 0 6px; }
+  .c3 .pill { margin-top: 12px; font-size: 17px; padding: 12px 20px; }
+  .c3.plan { width: 400px; box-shadow: 0 40px 70px rgba(20, 32, 29, 0.32), inset 0 10px 0 var(--plan); }
+  .c3.plan::before { left: 60px; top: -400px; width: 2px; height: 400px; background: rgba(30, 42, 38, 0.5); box-shadow: 280px 0 0 rgba(30, 42, 38, 0.5); } /* the two cords it hangs from */
+  .c3.plan::after { display: none; }
+  .c3.plan .price { font: 500 34px var(--display); margin-bottom: 6px; }
+  .c3.plan ul { margin: 6px 0 0; padding-left: 20px; font-size: 18px; }
+  .c3.head { width: auto; background: none; border: 0; box-shadow: none; text-align: center; color: var(--cream); text-shadow: 0 2px 18px rgba(20, 32, 29, 0.6); }
+  .c3.head::before, .c3.head::after { display: none; }
+  .c3.head h2 { font-size: 72px; margin: 0; } .c3.head p { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; }
   #info { right: 5vw; bottom: 16vh; width: min(340px, 90vw); padding: 18px 20px; background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; box-shadow: inset 0 4px 0 var(--accent); }
   #info h2, #chooser h3, #form h2 { font-family: var(--display); font-weight: 420; letter-spacing: -0.02em; margin: 6px 0 8px; line-height: 1.05; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
   #info h2 { font-size: 34px; }

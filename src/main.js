@@ -16,6 +16,7 @@ import { intro } from './intro.js';
 import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
 import { portalRide } from './portal.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
@@ -371,6 +372,54 @@ SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} 
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 const info = document.getElementById('info'), chooser = document.getElementById('chooser');
 let infoFor = null;
+// ---------- 3D cards: on a desktop, a room's card stands in the room beside the thing it explains, and folds away when the walk moves on ----------
+// HTML in 3D (CSS3DRenderer): readable text and real buttons, held at a world position. Phones keep the flat card, which fits a small screen better.
+const css = new CSS3DRenderer(), cssScene = new THREE.Scene();
+css.domElement.id = 'cards3d'; document.body.append(css.domElement);
+const C3 = 0.0026; // metres per CSS pixel: a 420 px card is 1.1 m wide
+const ANCHOR = {}; // INFO key: [x, y, z, yaw] where its card stands
+COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x + 1.35, 1.7, -20.4, 0]; }); // right of what floats over the counter
+SHOPS.forEach((s) => { ANCHOR[`Shop: ${s.name}`] = [10.25, 1.7, s.z + 1.3, -Math.PI / 2]; }); // right of the shop's device
+EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - 1.5) * 1.45, H.extras + 1.15, -20.85, 0]; }); // stepping out of the front of its carriage
+demoCards.forEach((c, i) => { // beside each demo world, on the side away from the page
+  const y = c.m.rotation.y, side = new THREE.Vector3(Math.cos(y), 0, -Math.sin(y)), toward = new THREE.Vector3(Math.sin(y), 0, Math.cos(y));
+  const at = c.m.position.clone().addScaledVector(side, 1.75).addScaledVector(toward, 0.7); ANCHOR['site' + i] = [at.x, c.m.position.y + 0.05, at.z, y];
+});
+const BIG = { site0: 1.45, site1: 1.45, site2: 1.45, site3: 1.45, site4: 1.45 }; // the demo worlds are seen from further away
+const card3d = {}; // key: { obj, box }
+function fillCard(box, d) {
+  box.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
+  if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); box.append(b); }
+  if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; box.append(b); }
+}
+function getCard(key) {
+  if (card3d[key]) return card3d[key];
+  const box = el('article', null, 'c3'); fillCard(box, INFO[key]);
+  const obj = new CSS3DObject(box), [x, y, z, yaw] = ANCHOR[key]; obj.position.set(x, y, z); obj.rotation.y = yaw; obj.userData.k = BIG[key] || 1; obj.scale.setScalar(C3); cssScene.add(obj);
+  return (card3d[key] = { obj, box });
+}
+const flatCards = lowQuality; // phones: the flat card
+// "Choose one": the three plans hang in the room in a shallow arc in front of the walk, each on two cords.
+const chooseCards = [];
+{
+  const cm = byName['Choose one'], s = lerp(cm.s0, cm.s1, 0.6), p = rail.pos(s), yr = THREE.MathUtils.degToRad(rail.yaw(s));
+  const f = new THREE.Vector3(-Math.sin(yr), 0, -Math.cos(yr)), r = new THREE.Vector3(Math.cos(yr), 0, -Math.sin(yr));
+  PLANS.forEach((pl, k) => {
+    const box = el('article', null, 'c3 plan'), ul = el('ul'), b = el('button', `Choose ${pl.name}`, 'pill solid');
+    box.style.setProperty('--plan', '#' + SHOPS[k].color.toString(16).padStart(6, '0'));
+    for (const t of pl.bullets) ul.append(el('li', t));
+    b.onclick = () => openForm(pl.name);
+    box.append(el('div', `Plan 0${k + 1} of 03`, 'label mono'), el('h2', pl.name), el('div', pl.price, 'price'), ul, b);
+    const obj = new CSS3DObject(box), at = new THREE.Vector3(p[0], 1.75, p[2]).addScaledVector(f, 3.1).addScaledVector(r, (k - 1) * 1.28).addScaledVector(f, -Math.abs(k - 1) * 0.35);
+    obj.position.copy(at); obj.rotation.y = Math.atan2(p[0] - at.x, p[2] - at.z); obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj);
+  });
+  const head = el('div', null, 'c3 head'); head.append(el('h2', 'Choose one'), el('p', 'Launch prices, for the first 5 clients', 'mono'));
+  const obj = new CSS3DObject(head); obj.position.set(p[0], 2.75, p[2]).addScaledVector(f, 3.2); obj.rotation.y = yr; obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj);
+}
+function show3d(obj, o) { // fade in, rise a little, tilt up into place
+  const e = obj.element; e.style.opacity = o; e.classList.toggle('on', o > 0.5); obj.visible = o > 0.01;
+  obj.scale.setScalar(C3 * (obj.userData.k || 1) * (0.92 + 0.08 * o));
+}
 function cards(p) {
   const m = rail.moveAt(p), si = env.site.findIndex((f) => f > 0.3), u = (p - m.s0) / (m.s1 - m.s0);
   if (hidden.opened >= 0 && m !== SHELF_HOLD) hidden.open(-1); // the book goes back when the walk moves on
@@ -383,9 +432,15 @@ function cards(p) {
     if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; info.append(i); }
   }
   const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (m === lastMove ? 1 : 1 - sstep(0.8, 1, u)) : 0;
-  info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
+  const in3d = !flatCards && !pinnedCard && ANCHOR[key];
+  for (const k in card3d) show3d(card3d[k].obj, in3d && k === key ? o : 0);
+  if (in3d) getCard(key) && show3d(card3d[key].obj, o);
+  const of = in3d ? 0 : o;
+  info.style.opacity = of; info.style.transform = `translateY(${(1 - of) * 14}px)`; info.classList.toggle('on', of > 0.5);
   const oc = m.name === 'Choose one' ? sstep(0.05, 0.25, u) * (1 - sstep(0.85, 1, u)) : 0;
-  chooser.style.opacity = oc; chooser.classList.toggle('on', oc > 0.5);
+  for (const c of chooseCards) show3d(c, flatCards ? 0 : oc);
+  const ocf = flatCards ? oc : 0;
+  chooser.style.opacity = ocf; chooser.classList.toggle('on', ocf > 0.5);
   sitBtn.classList.toggle('on', !state.seat && env.tv.ch >= 0 && p < TV_SPAN[1] && !!m.hold);
   startBtn.classList.toggle('on', m === lastMove && u > 0.45); who.classList.toggle('on', m === lastMove && u > 0.45);
 }
@@ -504,7 +559,7 @@ addEventListener('pointermove', (e) => { // a book under the cursor slides half 
   const hit = hidden.pick(ray); hidden.hover(hit?.book ?? -1); canvas.style.cursor = hit ? 'pointer' : '';
 });
 addEventListener('click', (e) => {
-  if (e.target.closest('button, a, dialog, #info, #chooser, #plan, header, #pips') || document.body.classList.contains('intro')) return;
+  if (e.target.closest('button, a, dialog, #info, #chooser, #plan, header, #pips, .c3') || document.body.classList.contains('intro')) return;
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
   if (state.secret) { if (hidden.press(ray, state.secret.id)) sfx.blip(); return; }
   const hit = hidden.pick(ray);
@@ -559,7 +614,7 @@ function resize() {
   renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
   // portrait: widen the view so the sides of each frame (the plaque, the sign, the shelf) stay in it; at least 48 degrees across, at most 85 up and down
   camera.fov = camera.aspect < 1 ? Math.min(85, Math.max(55, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(24)) / camera.aspect)))) : 55;
-  camera.updateProjectionMatrix(); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
+  camera.updateProjectionMatrix(); css.setSize(innerWidth, innerHeight); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
 addEventListener('resize', resize); resize();
 
 let frames = 0, propsReady = false;
@@ -634,6 +689,7 @@ gsap.ticker.add((time, deltaMs) => {
   if ((k > 0.002 || inHat) && !state.secret) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera);
     if (inHat && !state.reduce) { ride.update(hat, env.air, camera.aspect); renderer.autoClear = false; renderer.clearDepth(); renderer.render(ride.scene, ride.camera); renderer.autoClear = true; } } // things tumbling past in the hat
   else renderer.render(scene, camera);
+  if (!flatCards) css.render(cssScene, camera); // the 3D cards, over the picture
 
   if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }
   // Readout for tuning.

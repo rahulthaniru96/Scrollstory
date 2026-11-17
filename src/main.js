@@ -161,16 +161,22 @@ const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) =
 const gelPass = { // drawn only while the camera is inside a membrane or the hat
   target: new THREE.WebGLRenderTarget(1, 1, { samples: lowQuality ? 0 : 4 }), scene: new THREE.Scene(), camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1),
   mat: new THREE.ShaderMaterial({
-    depthTest: false, uniforms: { tDiffuse: { value: null }, k: { value: 0 }, hat: { value: -1 }, time: { value: 0 }, aspect: { value: 1 } },
+    depthTest: false, uniforms: { tDiffuse: { value: null }, k: { value: 0 }, hat: { value: -1 }, time: { value: 0 }, aspect: { value: 1 }, under: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `uniform sampler2D tDiffuse; uniform float k, hat, time, aspect; varying vec2 vUv; ${SWIRL}
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float k, hat, time, aspect, under; varying vec2 vUv; ${SWIRL}
       void main(){ vec2 c = vUv - 0.5; float r = length(c);
         vec2 uv = vUv + normalize(c + 1e-5) * sin(r * 26.0 - k * 9.0) * 0.014 * k * smoothstep(0.0, 0.5, r); // a ring of refraction that moves with the scroll
+        // under the water (the mirror): slow crossing waves bend everything, so the room seems to sway
+        uv += under * vec2(sin(vUv.y * 11.0 + time * 1.3) + 0.6 * sin(vUv.y * 23.0 - time * 0.9 + vUv.x * 7.0), cos(vUv.x * 9.0 + time * 1.1) + 0.5 * sin(vUv.x * 19.0 + time * 1.7)) * 0.006;
         vec3 col = vec3(texture2D(tDiffuse, uv + c * 0.008 * k).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - c * 0.008 * k).b);
         col += vec3(0.75, 0.95, 1.0) * smoothstep(0.3, 0.72, r) * k * 0.5; // the bright rim of the gel closing behind
         if (hat >= 0.0) { // inside the hat: the tunnel closes in from the edges, and opens from its middle at the far end
           vec2 q = c * vec2(aspect, 1.0); float cover = smoothstep(0.0, 0.14, hat) * (1.0 - smoothstep(0.8, 1.0, hat)), hole = (1.0 - cover) * 1.25;
           col = mix(col, swirl(q, hat, time), smoothstep(hole - 0.14, hole, length(q)));
+        }
+        if (under > 0.0) { // caustics: bright threads of light that drift, and a deeper blue at the edges
+          vec2 q = vUv * vec2(aspect, 1.0) * 6.0; float cst = pow(abs(sin(q.x + sin(q.y * 1.3 + time * 0.7) * 1.4 + time * 0.4) * sin(q.y * 1.1 + sin(q.x * 0.9 - time * 0.5) * 1.6)), 6.0);
+          col = mix(col, col * vec3(0.78, 0.92, 1.05) + vec3(0.7, 0.9, 1.0) * cst * 0.18, under) * mix(1.0, 1.0 - 0.35 * smoothstep(0.35, 0.8, r), under);
         }
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>
@@ -699,7 +705,8 @@ gsap.ticker.add((time, deltaMs) => {
   const k = state.reduce ? 0 : gel(state.body, time); if (k > 0.5 && sfxWas.k <= 0.5) sfx.gloop(); sfxWas.k = k;
   const hat = (state.body - HAT.s0) / (HAT.s1 - HAT.s0), inHat = hat > 0 && hat < 1;
   if (inHat !== sfxWas.hat) { sfxWas.hat = inHat; if (inHat) sfx.whoosh(); }
-  if ((k > 0.002 || inHat) && !state.secret) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera);
+  const under = state.secret?.flip ? 1 : 0;
+  if (((k > 0.002 || inHat) && !state.secret) || under) { const U = gelPass.mat.uniforms; U.under.value = under; U.hat.value = inHat && !under ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = under ? 0 : k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera);
     if (inHat && !state.reduce) { ride.update(hat, env.air, camera.aspect); renderer.autoClear = false; renderer.clearDepth(); renderer.render(ride.scene, ride.camera); renderer.autoClear = true; } } // things tumbling past in the hat
   else renderer.render(scene, camera);
   if (!flatCards) css.render(cssScene, camera); // the 3D cards, over the picture

@@ -555,7 +555,11 @@ addEventListener('keydown', (e) => {
 });
 
 // ---------- frame ----------
-function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
+  // portrait: widen the view so the sides of each frame (the plaque, the sign, the shelf) stay in it; at least 48 degrees across, at most 85 up and down
+  camera.fov = camera.aspect < 1 ? Math.min(85, Math.max(55, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(24)) / camera.aspect)))) : 55;
+  camera.updateProjectionMatrix(); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
 addEventListener('resize', resize); resize();
 
 let frames = 0, propsReady = false;

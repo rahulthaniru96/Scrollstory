@@ -2,7 +2,7 @@
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
 import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER } from './world.js';
 
-export const TOTAL_VH = 3960; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 4090; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -174,6 +174,9 @@ export function buildRail() {
   });
   moves[moves.length - 1].hold = true;
   rooms.push({ name: 'Landing', s: s - 80 });
+  // The west wall carries the bookshelf ("How we work") and Door 201.
+  move('To the bookshelf', 'room', 70, (a, d) => { key(a + d, g(-7.4, -0.8, H.landing)); look(a + d * 0.8, NORTH + 90, 2); look(a + d, NORTH + 90, 2); });
+  hold('Bookshelf hold', 60);
   move('Look, then turn to the bridge', 'room', 100, (a, d) => {
     g(-6.2, -2, H.landing); key(a + d, g(-6.5, -3, H.landing));
     look(a + d * 0.85, NORTH, 4); look(a + d, NORTH, 4);

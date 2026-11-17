@@ -26,6 +26,9 @@
   #plan.open { display: block; }
   #plan button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--ink); }
   #plan button:hover, #plan button:focus-visible, #plan button.here { background: var(--butter); }
+  #found { border-top: 1px solid rgba(30, 42, 38, 0.25); margin-top: 8px; padding-top: 8px; }
+  #found > div { padding: 4px 10px 6px; opacity: 0.75; }
+  body.under #film { background: radial-gradient(ellipse at 50% 46%, rgba(40, 90, 150, 0.18) 0%, rgba(14, 40, 90, 0.5) 100%); }
   #caption { position: fixed; left: 5vw; bottom: 12vh; z-index: 4; max-width: 80vw; color: var(--cream); text-shadow: 0 2px 24px rgba(20, 32, 29, 0.55); opacity: 0; transform: translateY(16px); pointer-events: none; }
   #caption .label { margin-bottom: 10px; }
   #caption h1 { font-family: var(--display); font-weight: 380; font-size: clamp(34px, 5vw, 70px); line-height: 1.02; letter-spacing: -0.025em; margin: 0; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
@@ -103,10 +106,11 @@
 <header>
   <div class="brand">scrollstory <small class="mono">studio · by <b>Rahul Thaniru</b></small></div>
   <nav>
+    <button class="pill mono" id="soundBtn" aria-pressed="false" title="Sound (M)">Sound off</button>
     <button class="pill mono" id="planBtn" aria-expanded="false" aria-controls="plan">Floor plan</button>
   </nav>
 </header>
-<div id="plan" role="menu" aria-label="Floor plan"></div>
+<div id="plan" role="menu" aria-label="Floor plan"><div id="found"></div></div>
 
 <div id="level" class="mono" aria-live="polite"></div>
 <div id="caption" aria-live="polite"><div class="num" aria-hidden="true"></div><div class="label mono"></div><h1></h1>
@@ -153,7 +157,7 @@
 </dialog>
 <div id="hud"></div>
 <nav id="pips" aria-label="Stops of the walk"></nav>
-<div id="hint" class="mono">One scroll, one stop · move the mouse · H hides the readout</div>
+<div id="hint" class="mono">One scroll, one stop · some things open when clicked · H hides the readout</div>
 <div id="contact">
   <a class="pill" href="tel:+919949088659">Call</a>
   <a class="pill solid" href="https://wa.me/919949088659" target="_blank" rel="noopener">WhatsApp</a>

@@ -9,6 +9,8 @@ import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
 import { gallery, SITES } from './gallery.js';
+import { secrets, BOOKS, SECRETS } from './secrets.js';
+import { sound } from './sound.js';
 import { intro } from './intro.js';
 import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
@@ -144,6 +146,7 @@ for (const b of BRIDGES) {
 
 const dressing = dress({ scene, camera, lowQuality });
 const expand = gallery({ scene, cards: demoCards, lowQuality });
+const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
 
 // ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------
 const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) => d.name !== 'gate').map((d) => {
@@ -198,7 +201,7 @@ function theme(p) {
   const a = LEVELS[i], b = LEVELS[Math.min(i + 1, LEVELS.length - 1)], t = b === a ? 0 : sstep(0.3, 0.7, (p - a.s) / (b.s - a.s));
   env.tint.lerpColors(a.tint, b.tint, t);
   const k = t < 0.5 ? i : i + 1;
-  if (k !== levelNow) { levelNow = k; document.documentElement.style.setProperty('--accent', LEVELS[k].accent); levelChip.textContent = `Level ${String(k + 1).padStart(2, '0')} / ${LEVELS.length} · ${LEVELS[k].name.replace(/^\d+ /, '')}`; }
+  if (k !== levelNow) { levelNow = k; sfx.level(k); document.documentElement.style.setProperty('--accent', LEVELS[k].accent); levelChip.textContent = `Level ${String(k + 1).padStart(2, '0')} / ${LEVELS.length} · ${LEVELS[k].name.replace(/^\d+ /, '')}`; }
 }
 
 // ---------- scroll, springs and caps ----------
@@ -206,7 +209,7 @@ document.getElementById('track').style.height = `${rail.total + 100}vh`;
 const startAt = Number(new URLSearchParams(location.search).get('p')); // ?p=1118 opens the walk at that point
 if (startAt > 0) scrollTo(0, (startAt / rail.total) * (document.documentElement.scrollHeight - innerHeight));
 const free = new URLSearchParams(location.search).has('free'); // ?free=1: the old free scroll, for tuning
-const blocked = (e) => document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
+const blocked = (e) => state.secret || document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
 // One wheel gesture is one stop. Lenis hands every wheel event here first; returning false keeps it from scrolling.
 const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
   if (free || !d.event.type.startsWith('wheel') || d.event.ctrlKey || blocked(d.event)) return true;
@@ -214,7 +217,7 @@ const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
 } });
 gsap.ticker.lagSmoothing(0);
 
-const state = { body: 0, look: 0, vBody: 0, vLook: 0, fading: false, started: false, reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, hold: null };
+const state = { secret: null, body: 0, look: 0, vBody: 0, vLook: 0, fading: false, started: false, reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, hold: null };
 const pointer = { x: 0, y: 0, sx: 0, sy: 0, vx: 0, vy: 0, cx: 0, cy: 0, cvx: 0, cvy: 0, lastX: 0, lastY: 0, lastT: 0, stirred: -9 };
 env.pointer = pointer;
 const ray = new THREE.Raycaster(), waterPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
@@ -234,7 +237,7 @@ const holds = rail.moves.filter((m) => m.hold);
 const stopPx = (i) => (rail.stops[i] / rail.total) * lenis.limit;
 const steps = stepper(rail.stops, (i) => {
   const far = Math.abs(rail.stops[i] - target());
-  lenis.scrollTo(stopPx(i), { duration: Math.min(3.5, Math.max(1.2, far / 80)), easing: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2), lock: true, force: true, immediate: state.reduce, onComplete: () => steps.arrived() });
+  lenis.scrollTo(stopPx(i), { duration: Math.min(3.5, Math.max(1.2, far / 80)), easing: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2), lock: true, force: true, immediate: state.reduce, onComplete: () => { steps.arrived(); sfx.tick(); } });
   if (state.reduce) steps.arrived();
 });
 const pips = document.getElementById('pips');
@@ -289,6 +292,7 @@ const COPY = {
   'Workshop hold': ['Room 04 · The workshop', 'Three shops.', 'One for where you are now.'],
   'Look up': ['The stairs', 'Keep climbing.', 'The best view is upstairs.'],
   'Landing hold': ['The landing · core memory', '', ''],
+  'Bookshelf hold': ['The landing · How we work', 'Five volumes.', 'Pull one out.'],
   'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
   'Extras hold': ['Room 05 · Extras', 'Everything else', 'it takes to go digital.'],
   'Settle on the desk': ['Room 06 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
@@ -303,7 +307,7 @@ function caption(p) {
   const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.52) : -1;
   const name = tv ? 'tv' + env.tv.ch : mi >= 0 ? 'ms' + mi : m.name;
   const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < TV_BEATS.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, TV_BEATS[env.tv.ch].full, ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', "Let's put it on the screen."]) : COPY[name];
-  if (!c) { cap.style.opacity = 0; cap.classList.remove('on'); return; }
+  if (!c || state.secret) { cap.style.opacity = 0; cap.classList.remove('on'); return; } // inside a secret, its own card does the talking
   if (capFor !== name) {
     capFor = name; capLabel.textContent = c[0]; capH.replaceChildren(); capWords = [];
     const put = (text, into) => { for (const w of text.split(' ')) { const s = el('span', w, 'w'); capWords.push(s); into.append(s, ' '); } }; // one span a word: they arrive one after another
@@ -356,17 +360,22 @@ PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} o
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
+BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['The shelf moves. Step in', () => enterSecret('lab')] : null }; });
+SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} of 0${SECRETS.length}`, h: s.name, lines: [s.text], act: ['Back to the walk', () => leaveSecret()] }; });
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 const info = document.getElementById('info'), chooser = document.getElementById('chooser');
 let infoFor = null;
 function cards(p) {
-  const m = rail.moveAt(p), si = env.site.findIndex((f) => f > 0.3), key = si >= 0 ? 'site' + si : m.name, d = INFO[key], u = (p - m.s0) / (m.s1 - m.s0);
+  const m = rail.moveAt(p), si = env.site.findIndex((f) => f > 0.3), u = (p - m.s0) / (m.s1 - m.s0);
+  if (hidden.opened >= 0 && m !== SHELF_HOLD) hidden.open(-1); // the book goes back when the walk moves on
+  const pinnedCard = state.secret ? 'secret:' + state.secret.id : hidden.opened >= 0 ? 'book' + hidden.opened : null, key = pinnedCard || (si >= 0 ? 'site' + si : m.name), d = INFO[key];
   if (d && infoFor !== key) {
     infoFor = key;
     info.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
     if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
+    if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; info.append(b); }
   }
-  const o = si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (1 - sstep(0.8, 1, u)) : 0;
+  const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (1 - sstep(0.8, 1, u)) : 0;
   info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
   const oc = m.name === 'Choose one' ? sstep(0.05, 0.25, u) * (1 - sstep(0.85, 1, u)) : 0;
   chooser.style.opacity = oc; chooser.classList.toggle('on', oc > 0.5);
@@ -400,9 +409,40 @@ formBox.addEventListener('close', () => lenis.start());
 for (const b of formBox.querySelectorAll('.close')) b.onclick = () => formBox.close();
 startBtn.onclick = () => openForm();
 const deskBox = new THREE.Box3(new THREE.Vector3(13.4, H.rooftop, 7), new THREE.Vector3(16.6, H.rooftop + 2.6, 8)); // the desk and the plan cards over it
+// ---------- secrets: side trips off the walk. The camera fades into each and back to the same spot. What was found is kept in this browser only. ----------
+const SHELF_HOLD = byName['Bookshelf hold'], foundIds = new Set();
+try { for (const id of JSON.parse(localStorage.getItem('secrets') || '[]')) if (SECRETS.some((s) => s.id === id)) foundIds.add(id); } catch { /* private mode: nothing is kept */ }
+const foundBox = document.getElementById('found');
+function showFound() {
+  foundBox.replaceChildren(el('div', foundIds.size === SECRETS.length ? 'You found every secret' : `${foundIds.size} of ${SECRETS.length} secrets found`, 'mono'));
+  for (const s of SECRETS) if (foundIds.has(s.id)) { const b = el('button', '✦ ' + s.name, 'mono'); b.onclick = () => { togglePlan(false); enterSecret(s.id); }; foundBox.append(b); }
+  for (const id of foundIds) hidden.found(id);
+}
+function through(change) { // a short fade covers every jump in or out
+  if (state.fading) return;
+  state.fading = true;
+  gsap.to(veil, { opacity: 1, duration: 0.45, ease: 'none', onComplete() { change(); gsap.to(veil, { opacity: 0, duration: 0.45, ease: 'none', onComplete() { state.fading = false; } }); } });
+}
+function enterSecret(id) {
+  const s = SECRETS.find((q) => q.id === id);
+  through(() => {
+    state.secret = s; document.body.classList.toggle('under', !!s.flip); hidden.open(-1);
+    if (!foundIds.has(id)) { foundIds.add(id); sfx.chime(foundIds.size); try { localStorage.setItem('secrets', JSON.stringify([...foundIds])); } catch { /* not kept */ } showFound(); }
+  });
+}
+function leaveSecret() { through(() => { state.secret = null; document.body.classList.remove('under'); }); }
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set and its picture in the air
+addEventListener('pointermove', (e) => { // a book under the cursor slides half out
+  if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
+  ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
+  const hit = hidden.pick(ray); hidden.hover(hit?.book ?? -1); canvas.style.cursor = hit ? 'pointer' : '';
+});
 addEventListener('click', (e) => {
-  if (e.target.closest('button, a, dialog, #info, #chooser')) return;
+  if (e.target.closest('button, a, dialog, #info, #chooser, #plan, header, #pips') || state.secret || document.body.classList.contains('intro')) return;
+  ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
+  const hit = hidden.pick(ray);
+  if (hit?.secret) return enterSecret(hit.secret);
+  if (hit && rail.moveAt(state.body) === SHELF_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }
   const onTv = env.tv.ch >= 0 && state.body < TV_SPAN[1];
   if (rail.moveAt(state.body) !== lastMove && !onTv) return;
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
@@ -415,14 +455,17 @@ const plan = document.getElementById('plan'), planBtn = document.getElementById(
 for (const r of rail.rooms) {
   const b = document.createElement('button'); b.className = 'mono'; b.textContent = r.name; b.setAttribute('role', 'menuitem');
   b.onclick = () => { if (free) lenis.scrollTo((r.s / rail.total) * lenis.limit, { immediate: true, force: true }); else steps.goto(steps.nearest(r.s)); togglePlan(false); };
-  plan.append(b); r.btn = b;
+  plan.insertBefore(b, foundBox); r.btn = b;
 }
 function togglePlan(open = !plan.classList.contains('open')) { plan.classList.toggle('open', open); planBtn.setAttribute('aria-expanded', open); }
 planBtn.onclick = () => togglePlan();
-const hud = document.getElementById('hud');
+const hud = document.getElementById('hud'), soundBtn = document.getElementById('soundBtn');
+soundBtn.onclick = () => { const on = sfx.toggle(); soundBtn.textContent = on ? 'Sound on' : 'Sound off'; soundBtn.setAttribute('aria-pressed', on); if (on) sfx.level(levelNow); };
+showFound();
 addEventListener('keydown', (e) => {
   if (e.target.closest?.('input, textarea, select')) return; // typing in the form
-  if (e.key === 'Escape') togglePlan(false);
+  if (e.key === 'Escape') { togglePlan(false); if (state.secret) leaveSecret(); }
+  if (e.key === 'm' || e.key === 'M') soundBtn.click();
   if (e.key === 'h' || e.key === 'H') hud.classList.toggle('off');
   if (e.key === 'r' || e.key === 'R') { state.reduce = !state.reduce; state.hold = null; }
 });
@@ -432,6 +475,7 @@ function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.asp
 addEventListener('resize', resize); resize();
 
 let frames = 0, propsReady = false;
+const sfxWas = { ch: -1, k: 0, hat: false };
 dressing.ready.then(() => { propsReady = true; });
 const prev = { pos: null, yaw: 0, t: 0 };
 const shown = { speed: 0, turn: 0, fps: 0 };
@@ -469,6 +513,8 @@ gsap.ticker.add((time, deltaMs) => {
   const yr = THREE.MathUtils.degToRad(yaw);
   camera.position.set(pos[0] + Math.cos(yr) * pointer.cx * L.shift, pos[1] + S.bob * Math.sin(time * 0.6), pos[2] - Math.sin(yr) * pointer.cx * L.shift);
   camera.rotation.set(THREE.MathUtils.degToRad(pitch), yr, 0); // no roll: the horizon stays level
+  if (state.secret?.flip) camera.rotation.z = Math.PI; // the mirror: the same place, upside down, with the water for a sky
+  else if (state.secret) { const q = state.secret.pose; camera.position.set(q.pos[0] + pointer.cx * 0.25, q.pos[1] + S.bob * Math.sin(time * 0.6), q.pos[2]); camera.rotation.set(THREE.MathUtils.degToRad(q.pitch - pointer.cy * 3), THREE.MathUtils.degToRad(q.yaw - pointer.cx * 8), 0); }
   camera.updateMatrixWorld();
 
   theme(state.body); atmosphere(pos[1]);
@@ -480,14 +526,17 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
-  expand(env.site, env.air);
+  expand(env.site, env.air); hidden.update(time, dt, pointer);
+  if (env.tv.ch !== sfxWas.ch) { sfxWas.ch = env.tv.ch; if (env.tv.ch >= 0) sfx.blip(); }
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;
   caption(state.body); cards(state.body);
   const near = steps.travelling ? steps.dest : steps.nearest(state.body);
   if (near !== pips.at) { pips.children[pips.at]?.classList.remove('here'); pips.children[near].classList.add('here'); pips.at = near; }
-  const k = state.reduce ? 0 : gel(state.body, time), hat = (state.body - HAT.s0) / (HAT.s1 - HAT.s0), inHat = hat > 0 && hat < 1;
-  if (k > 0.002 || inHat) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
+  const k = state.reduce ? 0 : gel(state.body, time); if (k > 0.5 && sfxWas.k <= 0.5) sfx.gloop(); sfxWas.k = k;
+  const hat = (state.body - HAT.s0) / (HAT.s1 - HAT.s0), inHat = hat > 0 && hat < 1;
+  if (inHat !== sfxWas.hat) { sfxWas.hat = inHat; if (inHat) sfx.whoosh(); }
+  if ((k > 0.002 || inHat) && !state.secret) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
   else renderer.render(scene, camera);
 
   if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }
@@ -524,7 +573,7 @@ gsap.ticker.add((time, deltaMs) => {
   }
 }
 
-if (import.meta.env.DEV) window.__world = { state, rail, lenis, FEEL, env }; // for tuning from the console
+if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
 
 // Stop drawing when the tab is hidden.
 document.addEventListener('visibilitychange', () => (document.hidden && !pinned ? gsap.ticker.sleep() : gsap.ticker.wake())); // a headless capture counts as hidden

@@ -18,7 +18,7 @@ export const BOOKS = [
 const DEEP = -60; // the floor of the secret rooms
 // pose: where the camera stands inside. flip: no room, the walk's own view turned upside down.
 export const SECRETS = [
-  { id: 'lab', clue: 'Five volumes on the Landing. The last one is more than a book.', name: 'The Lab', text: "Experiments, Blender renders, and a kids' game prototype. Move the cursor over the tablet to brush it clean.", pose: { pos: [60, DEEP + 1.6, 1.9], yaw: 0, pitch: -3 } },
+  { id: 'lab', clue: 'Five volumes on the Landing. The last one is more than a book.', name: 'The Lab', text: 'Experiments, Blender renders, and a little page builder. Tap blocks on the tablet to build a page, then launch it.', pose: { pos: [60, DEEP + 1.6, 1.9], yaw: 0, pitch: -3 } },
   { id: 'mirror', clue: 'In the Lobby, a ring of light sits on the water. Step into it.', name: 'The mirror', text: 'An upside-down copy of the room, where the sky is underwater.', flip: true },
   { id: '201', clue: 'A teal door on the Landing has a number on it. Knock.', name: 'Door 201 · The sketch room', text: 'Where a site starts. Click a colour, a typeface and a layout on the desk, and the screen sketches a first homepage.', pose: { pos: [80.6, DEEP + 1.55, 1.5], yaw: 0, pitch: -6 } },
 ];
@@ -133,32 +133,70 @@ export function secrets({ scene, camera, lowQuality }) {
     box(3.4, 0.07, 0.9, lit(0x9b7a55), 0, 0.82, -2.5, g); for (const s of [-1.5, 1.5]) box(0.07, 0.8, 0.8, lit(0x6b4a32), s, 0.4, -2.5, g);
     const tex = new THREE.TextureLoader().load(renders); tex.colorSpace = THREE.SRGBColorSpace;
     box(3.3, 1.9, 0.05, lit(0x1c2124), 0, 2.05, -3.14, g); mesh(new THREE.PlaneGeometry(3.14, 1.76), basic(0xffffff, { map: tex }), 0, 2.05, -3.1, g); // the real Blender render of every prop in the building
-    // "brush it clean": the kids' game prototype, playable. Dust covers a little picture; the cursor brushes it away.
-    const tablet = canvasTex(512, 320, (x) => {
-      x.fillStyle = '#bfe3f2'; x.fillRect(0, 0, 512, 320); x.fillStyle = '#f2d98b'; x.beginPath(); x.arc(420, 70, 40, 0, 7); x.fill(); // sky and sun
-      x.fillStyle = '#7fae7a'; x.fillRect(0, 250, 512, 70); // grass
-      x.fillStyle = '#e8a89a'; x.fillRect(150, 130, 210, 120); x.fillStyle = '#9e3b2c'; x.beginPath(); x.moveTo(130, 135); x.lineTo(255, 60); x.lineTo(380, 135); x.fill(); // a little house
-      x.fillStyle = '#3f6e68'; x.fillRect(235, 185, 40, 65); x.fillStyle = '#f7efe2'; x.fillRect(170, 160, 44, 36); x.fillRect(296, 160, 44, 36);
-      x.fillStyle = '#1e2a26'; x.textAlign = 'center'; x.font = '600 34px Fraunces, Georgia, serif'; x.fillText('Sparkling!', 256, 300);
-    });
-    const dustC = document.createElement('canvas'); dustC.width = 256; dustC.height = 160; const dx = dustC.getContext('2d'), dust = new THREE.CanvasTexture(dustC); dust.colorSpace = THREE.SRGBColorSpace;
-    const fillDust = () => {
-      dx.globalCompositeOperation = 'source-over'; dx.fillStyle = '#8a7356'; dx.fillRect(0, 0, 256, 160);
-      for (let k = 0; k < 900; k++) { dx.fillStyle = `rgba(${90 + Math.random() * 60},${70 + Math.random() * 40},${50 + Math.random() * 30},0.6)`; dx.fillRect(Math.random() * 256, Math.random() * 160, 3, 3); }
-      dx.fillStyle = '#f7efe2'; dx.font = '600 22px "Martian Mono", monospace'; dx.textAlign = 'center'; dx.fillText('BRUSH IT CLEAN', 128, 86); dust.needsUpdate = true;
+    // The page builder: tap blocks on the left of the tablet and they stack into a page on the phone at its right.
+    // Colour changes the palette, Undo takes the last block off, Launch puts it live (only here: nothing is sent or kept).
+    const W = 1024, Hh = 640, c = document.createElement('canvas'); c.width = W; c.height = Hh; const x = c.getContext('2d'), tabTex = new THREE.CanvasTexture(c); tabTex.colorSpace = THREE.SRGBColorSpace;
+    const BLOCKS = ['Header', 'Hero', 'Photos', 'Menu', 'Map', 'WhatsApp', 'Footer'];
+    const PAL = [['#f6e7d2', '#3a2416', '#c2562f'], ['#eef5f3', '#1e3a36', '#3f8f86'], ['#16161d', '#f5f0e6', '#f2c94c'], ['#fbeef0', '#4a2030', '#d4587a']];
+    const page = { blocks: [], pal: 0, live: 0, hover: -1 };
+    const BTN = [...BLOCKS.map((b, i) => [b, 40, 92 + i * 62]), ['Colour', 40, 552], ['Undo', 190, 552]]; // [label, x, y], 140 x 50 each
+    const LAUNCH = [380, 560, 200, 56];
+    const block = (name, px, py, w, [bg, ink, acc]) => { // one section of the page, drawn small; returns its height
+      const h = { Header: 34, Hero: 120, Photos: 78, Menu: 92, Map: 70, WhatsApp: 44, Footer: 40 }[name];
+      x.fillStyle = name === 'Header' || name === 'Footer' ? ink : bg; x.fillRect(px, py, w, h);
+      if (name === 'Header') { x.fillStyle = bg; x.font = '600 15px Fraunces, Georgia, serif'; x.fillText('Your business', px + 10, py + 22); for (let k = 0; k < 3; k++) x.fillRect(px + w - 90 + k * 28, py + 15, 20, 4); }
+      if (name === 'Hero') { x.fillStyle = acc; x.globalAlpha = 0.3; x.fillRect(px, py, w, h); x.globalAlpha = 1; x.fillStyle = ink; x.font = '600 24px Fraunces, Georgia, serif'; x.fillText('Come in.', px + 12, py + 50); x.fillStyle = acc; x.fillRect(px + 12, py + 70, 90, 26); }
+      if (name === 'Photos') { for (let k = 0; k < 3; k++) { x.fillStyle = acc; x.globalAlpha = 0.35 + k * 0.2; x.fillRect(px + 8 + k * ((w - 16) / 3), py + 8, (w - 16) / 3 - 6, h - 16); } x.globalAlpha = 1; }
+      if (name === 'Menu') { x.fillStyle = ink; x.font = '600 14px Fraunces, Georgia, serif'; x.fillText('Menu', px + 12, py + 22); for (let k = 0; k < 3; k++) { x.fillStyle = ink; x.globalAlpha = 0.5; x.fillRect(px + 12, py + 36 + k * 18, w * 0.5, 6); x.fillRect(px + w - 50, py + 36 + k * 18, 36, 6); x.globalAlpha = 1; } }
+      if (name === 'Map') { x.fillStyle = '#9fc6a8'; x.fillRect(px + 8, py + 8, w - 16, h - 16); x.fillStyle = acc; x.beginPath(); x.arc(px + w / 2, py + h / 2 - 4, 9, 0, 7); x.fill(); }
+      if (name === 'WhatsApp') { x.fillStyle = '#25d366'; x.fillRect(px + 12, py + 8, w - 24, h - 16); x.fillStyle = '#fff'; x.font = '600 14px Arial, sans-serif'; x.textAlign = 'center'; x.fillText('WhatsApp us', px + w / 2, py + 27); x.textAlign = 'left'; }
+      if (name === 'Footer') { x.fillStyle = bg; x.globalAlpha = 0.6; x.fillRect(px + 12, py + 16, 80, 5); x.globalAlpha = 1; }
+      return h;
     };
-    fillDust();
-    const slate = new THREE.Group(); slate.position.set(-1.2, 1.35, -1.3); slate.rotation.set(-0.12, 0.35, 0); g.add(slate);
-    box(1.32, 0.86, 0.04, lit(0x1c2124), 0, 0, 0, slate); mesh(new THREE.PlaneGeometry(1.24, 0.78), basic(0xffffff, { map: tablet }), 0, 0, 0.021, slate);
-    const dustPlane = mesh(new THREE.PlaneGeometry(1.24, 0.78), basic(0xffffff, { map: dust, transparent: true }), 0, 0, 0.024, slate);
-    box(0.05, 1.0, 0.05, lit(0x6b4a32), 0, -0.9, -0.05, slate); // its stand
-    lab.brush = (ray) => {
-      const hit = ray.intersectObject(dustPlane)[0]; if (!hit) return false;
-      dx.globalCompositeOperation = 'destination-out'; dx.beginPath(); dx.arc(hit.uv.x * 256, (1 - hit.uv.y) * 160, 16, 0, 7); dx.fill(); dust.needsUpdate = true;
-      return true;
+    const draw = (t = 0) => {
+      const p = PAL[page.pal];
+      x.fillStyle = '#f7efe2'; x.fillRect(0, 0, W, Hh);
+      x.fillStyle = '#1e2a26'; x.font = '500 22px "Martian Mono", monospace'; x.fillText('PAGE BUILDER · TAP A BLOCK', 40, 56);
+      for (const [k, [label, bx, by]] of BTN.entries()) {
+        const hot = page.hover === k; x.fillStyle = hot ? '#f2d98b' : k < BLOCKS.length ? '#fffaf0' : '#e9e1d2'; x.strokeStyle = '#1e2a26'; x.lineWidth = 2;
+        x.beginPath(); x.roundRect(bx, by, k < BLOCKS.length ? 290 : 140, 50, 12); x.fill(); x.stroke();
+        x.fillStyle = '#1e2a26'; x.font = '500 24px "Familjen Grotesk", Arial, sans-serif'; x.fillText((k < BLOCKS.length ? '+ ' : '') + label, bx + 18, by + 33);
+      }
+      x.fillStyle = page.blocks.length ? '#1e2a26' : '#8c8a82'; x.beginPath(); x.roundRect(...LAUNCH, 28); x.fill(); x.fillStyle = '#f7efe2'; x.font = '600 24px "Familjen Grotesk", Arial, sans-serif'; x.textAlign = 'center'; x.fillText(page.live ? 'Live ✓' : 'Launch', LAUNCH[0] + 100, LAUNCH[1] + 37); x.textAlign = 'left';
+      // the phone
+      const fx = 640, fy = 40, fw = 320, fh = 560; x.fillStyle = '#1e2a26'; x.beginPath(); x.roundRect(fx - 14, fy - 14, fw + 28, fh + 28, 36); x.fill();
+      x.save(); x.beginPath(); x.rect(fx, fy, fw, fh); x.clip(); x.fillStyle = p[0]; x.fillRect(fx, fy, fw, fh);
+      let y = fy; for (const b of page.blocks) y += block(b, fx, y, fw, p);
+      if (!page.blocks.length) { x.fillStyle = '#8c8a82'; x.font = '400 20px "Familjen Grotesk", Arial, sans-serif'; x.textAlign = 'center'; x.fillText('An empty page.', fx + fw / 2, fy + fh / 2 - 10); x.fillText('Tap a block to start.', fx + fw / 2, fy + fh / 2 + 18); x.textAlign = 'left'; }
+      if (page.live) { // launched: a bar across the top and a little burst
+        x.fillStyle = 'rgba(30,42,38,0.9)'; x.fillRect(fx, fy, fw, 30); x.fillStyle = '#25d366'; x.beginPath(); x.arc(fx + 16, fy + 15, 6, 0, 7); x.fill(); x.fillStyle = '#f7efe2'; x.font = '500 14px "Martian Mono", monospace'; x.fillText('LIVE · yourbusiness.in', fx + 30, fy + 20);
+        for (let k = 0; k < 18; k++) { const a = k * 0.35 + t, r = 40 + ((t * 120 + k * 23) % 160); x.fillStyle = p[2]; x.globalAlpha = Math.max(0, 1 - r / 200); x.fillRect(fx + fw / 2 + Math.cos(a) * r, fy + fh / 2 + Math.sin(a) * r, 6, 6); } x.globalAlpha = 1;
+      }
+      x.restore(); tabTex.needsUpdate = true;
     };
-    lab.left = () => { const d = dx.getImageData(0, 0, 256, 160).data; let n = 0; for (let k = 3; k < d.length; k += 16) n += d[k] > 40; return n / (d.length / 16); }; // how much dust is left, 0 to 1
-    lab.reset = fillDust;
+    draw();
+    const slate = new THREE.Group(); slate.position.set(-0.85, 1.45, -0.5); slate.rotation.set(-0.1, 0.3, 0); g.add(slate);
+    box(1.78, 1.14, 0.05, lit(0x1c2124), 0, 0, 0, slate);
+    const screenPlane = mesh(new THREE.PlaneGeometry(1.7, 1.06), basic(0xffffff, { map: tabTex }), 0, 0, 0.026, slate);
+    box(0.06, 1.1, 0.06, lit(0x6b4a32), 0, -1.1, -0.06, slate); // its stand
+    const which = (ray) => { // the button under the ray, or -1; LAUNCH is BTN.length
+      const hit = ray.intersectObject(screenPlane)[0]; if (!hit) return null;
+      const px = hit.uv.x * W, py = (1 - hit.uv.y) * Hh;
+      const k = BTN.findIndex(([, bx, by], j) => px >= bx && px <= bx + (j < BLOCKS.length ? 290 : 140) && py >= by && py <= by + 50);
+      if (k >= 0) return k;
+      return px >= LAUNCH[0] && px <= LAUNCH[0] + LAUNCH[2] && py >= LAUNCH[1] && py <= LAUNCH[1] + LAUNCH[3] ? BTN.length : -1;
+    };
+    lab.over = (ray) => { const k = which(ray); const h = k === null ? -1 : k; if (h !== page.hover) { page.hover = h; draw(); } return k !== null && k >= 0; };
+    lab.press = (ray) => {
+      const k = which(ray); if (k === null || k < 0) return false;
+      if (k < BLOCKS.length) { if (page.blocks.length < 9) page.blocks.push(BLOCKS[k]); page.live = 0; }
+      else if (BTN[k]?.[0] === 'Colour') page.pal = (page.pal + 1) % PAL.length;
+      else if (BTN[k]?.[0] === 'Undo') { page.blocks.pop(); page.live = 0; }
+      else if (k === BTN.length && page.blocks.length) page.live = 1;
+      draw(); return true;
+    };
+    lab.tick = (t) => { if (page.live) { page.live += 0.016; draw(page.live); } };
+    lab.count = () => page.blocks.length;
     // experiments: wireframe shapes turning in the air
     const shapes = [[new THREE.IcosahedronGeometry(0.36, 0), 1.7, 1.5, -1.6], [new THREE.TorusKnotGeometry(0.24, 0.07, 48, 8), 2.0, 1.9, -0.9], [new THREE.OctahedronGeometry(0.3, 0), 0.9, 1.2, -2.3]].map(([geo, x, y, z]) => {
       const m = mesh(geo, holoFill({ opacity: 0.2 }), x, y, z, g); m.add(holoEdges(geo, { angle: 1, everywhere: true })); return m;
@@ -217,13 +255,14 @@ export function secrets({ scene, camera, lowQuality }) {
     get opened() { return want; },
     // inside a secret: a click on one of its things. Returns true when something answered.
     press(ray, id) {
+      if (id === 'lab') return lab.press(ray);
       if (id !== '201') return false;
       const hit = ray.intersectObjects(sketch.items)[0]; if (!hit) return false;
       const { kind, i } = hit.object.userData; sketch[kind] = i; sketch.draw(); return true;
     },
-    over(ray, id) { return id === '201' ? ray.intersectObjects(sketch.items).length > 0 : id === 'lab' ? lab.brush(ray) : false; }, // the cursor over something live; in the Lab, brushing
+    over(ray, id) { return id === '201' ? ray.intersectObjects(sketch.items).length > 0 : id === 'lab' ? lab.over(ray) : false; }, // the cursor over something live
     sketchName(t) { sketch.name = t; sketch.draw(); },
-    dustLeft: () => lab.left(),
+    labBlocks: () => lab.count(),
     // What a ray from the cursor is on: a book, a secret's way in, or nothing. Only things within reach of the camera count.
     pick(ray) {
       if (want >= 0 && open.visible && ray.intersectObject(open, true).length) return { book: want }; // a click on the open book closes it
@@ -272,6 +311,7 @@ export function secrets({ scene, camera, lowQuality }) {
         const s2 = since('kite'), u = s2 < 0 ? 0 : sstep(0, 0.6, s2) * (1 - sstep(6, 6.8, s2)); banner.scale.y = Math.max(0.001, u); kite.rotation.z = Math.sin(t * 0.8) * 0.2;
         const open3 = ways.find((q) => q.id === 'tank').found ? 1 : 0; hatch.rotation.z += (open3 * 1.9 - hatch.rotation.z) * Math.min(1, dt * 3); hatchGlow.material.opacity = 0.8 * open3;
       }
+      if (camera.position.y < DEEP + 10) lab.tick(t);
       for (const f of tick) f(t);
     },
   };

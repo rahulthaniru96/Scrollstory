@@ -563,7 +563,7 @@ const carBoxes = EXTRAS.map((e, k) => new THREE.Box3().setFromCenterAndSize(new 
 const carAt = (r) => (state.body > EX0.s0 - 5 && state.body < ROOF.s0 + 5 ? carBoxes.findIndex((b) => r.ray.intersectsBox(b)) : -1);
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
 addEventListener('pointermove', (e) => { // a book under the cursor slides half out; inside a secret, its live things
-  if (state.secret && !state.secret.flip) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = hidden.over(ray, state.secret.id) ? (state.secret.id === 'lab' ? 'grab' : 'pointer') : ''; return; }
+  if (state.secret && !state.secret.flip) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = hidden.over(ray, state.secret.id) ? 'pointer' : ''; return; }
   if (!state.secret && state.body > EX0.s0 - 5 && state.body < ROOF.s0 + 5) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = carAt(ray) >= 0 ? 'pointer' : ''; return; }
   if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
@@ -738,7 +738,7 @@ gsap.ticker.add((time, deltaMs) => {
   }
 }
 
-if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
+if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
 
 // Stop drawing when the tab is hidden.
 document.addEventListener('visibilitychange', () => (document.hidden && !pinned ? gsap.ticker.sleep() : gsap.ticker.wake())); // a headless capture counts as hidden

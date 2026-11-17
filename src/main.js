@@ -95,16 +95,16 @@ for (const c of COLLIDERS) {
     // A demo site appears out of thin air as the scroll reaches it: motes, then an outline and a ghost, then the page itself.
     const geo = new THREE.PlaneGeometry(1.6, 1.0), r = { value: 1 }, line = { value: 0 };
     const m = add(geo, new THREE.ShaderMaterial({
-      side: THREE.DoubleSide, transparent: true, uniforms: { map: { value: cardTexture }, uR: r },
+      side: THREE.DoubleSide, transparent: true, uniforms: { map: { value: cardTexture }, uR: r, uK: { value: 1 } },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: `uniform sampler2D map; uniform float uR; varying vec2 vUv;
+      fragmentShader: `uniform sampler2D map; uniform float uR, uK; varying vec2 vUv;
         void main(){ float k = (1.0 - smoothstep(0.5, 0.95, uR)) * 0.035; // the ghost's colours sit apart, then close up
           vec3 c = vec3(texture2D(map, vUv + vec2(k, 0.0)).r, texture2D(map, vUv).g, texture2D(map, vUv - vec2(k, 0.0)).b);
-          gl_FragColor = vec4(c, smoothstep(0.22, 0.3, uR) * 0.15 + smoothstep(0.45, 0.6, uR) * 0.45 + smoothstep(0.78, 0.95, uR) * 0.4);
+          gl_FragColor = vec4(c, uK * (smoothstep(0.22, 0.3, uR) * 0.15 + smoothstep(0.45, 0.6, uR) * 0.45 + smoothstep(0.78, 0.95, uR) * 0.4));
           #include <colorspace_fragment>
         }`,
     }), c.x, c.y, c.z);
-    m.rotation.y = Math.PI; // faces north, toward the camera that is backing away
+    m.rotation.y = Math.atan2(-9 - c.x, -3); // faces the spot on the walk 3 m past it, where the camera rests
     m.add(holoEdges(geo, { everywhere: true, fade: line }));
     const n = 40, at = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) at.set([(Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, (Math.random() - 0.5) * 0.3], i * 3);

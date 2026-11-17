@@ -91,14 +91,15 @@ export function buildRail() {
     look(a + d * 0.92, 180, -3); look(a + d, 180, -3);
   });
   // ---- 02 Gallery ----
-  const LAST_CARD = 180 + 24;
+  const cardAim = (c) => [180 + deg(Math.atan2(c.x + 9, 3)), deg(Math.atan2(c.y - EYE, Math.hypot(c.x + 9, 3))) * 0.8]; // from 3 m past it, on the walk's line
+  const LAST_CARD = cardAim(CARDS[CARDS.length - 1])[0];
   move('Gallery, walking backwards', 'room', 220, (a, d) => {
     key(a + d, line(-9, -10));
     for (const c of CARDS) { // each demo site gets a stop 3 m past it, with the eyes on it while it opens
-      const u = (10 - c.z) / 17;
-      if (u < 1) look(a + d * u, 180 + (c.x > -9 ? 17 : -17), -2);
+      const u = (10 - c.z) / 17, [y, p] = cardAim(c);
+      if (u < 1) look(a + d * u, y, p);
     }
-    look(a + d, LAST_CARD, -2); // the last one opens on the Gallery hold
+    const [y, p] = cardAim(CARDS[CARDS.length - 1]); look(a + d, y, p); // the last one opens on the Gallery hold
   });
   hold('Gallery hold', 50, '02 Gallery');
   // ---- 03 Worth it: the why. Four counters on the south room's back wall, one beat at each ----

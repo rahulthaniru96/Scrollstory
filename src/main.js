@@ -21,6 +21,8 @@ import { drafting } from './drafting.js';
 import { tower } from './tower.js';
 import { signalCabin } from './signal.js';
 import { journeys } from './journeys.js';
+import { mapRoom } from './maproom.js';
+import { greenhouse } from './greenhouse.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE, RENO } from './world.js';
 
@@ -179,7 +181,7 @@ const dressing = dress({ scene, camera, lowQuality });
 const expand = gallery({ scene, cards: demoCards, lowQuality, camera });
 const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
 const reno = renovation({ scene, lowQuality });
-const draft = drafting({ scene, lowQuality }), clock = tower({ scene, lowQuality }), cabin = signalCabin({ scene, lowQuality }), rides = journeys({ scene, lowQuality }), railAt = new THREE.Vector3();
+const draft = drafting({ scene, lowQuality }), clock = tower({ scene, lowQuality }), cabin = signalCabin({ scene, lowQuality }), rides = journeys({ scene, lowQuality }), atlas = mapRoom({ scene, lowQuality }), garden = greenhouse({ scene, lowQuality }), railAt = new THREE.Vector3();
 
 // ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------
 const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) => d.name !== 'gate').map((d) => {
@@ -225,7 +227,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const DAY = { hemi: new THREE.Color(0xfff4e4), sun: new THREE.Color(0xffe2b8) }, DUSK = { hemi: new THREE.Color(0xd9cdf0), sun: new THREE.Color(0xf6c66a) };
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, wipe: -99, page: 0, cards: 0, levers: 0, seated: 0, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, wipe: -99, page: 0, cards: 0, levers: 0, map: 0, grow: 0, tools: 0, seated: 0, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -388,6 +390,7 @@ const EX = EXTRAS.map((e) => byName[`Extra: ${e.name}`]), EX0 = byName['Extras h
 const LINE = byName['Through the line'], RENO_SPAN = [byName['Renovation hold'].s0 - 30, byName['Renovated'].s1 + 30];
 const PAGE_MOVE = byName['Through the page'], INTO_CABIN = byName['Into the cabin'], TO_PANEL = byName['To the admin panel'];
 function focus(p) {
+  env.map = beat('Map hold', p, 40); env.tools = beat('Care tools', p, 30); env.grow = sstep(byName['Sky canal to the Greenhouse'].s1 - 60, byName['Care tools'].s0, p);
   env.cards = sstep(INTO_CABIN.s0 + 10, byName['Signal Cabin hold'].s1, p); env.levers = Math.min(1, Math.max(0, (p - TO_PANEL.s0) / (TO_PANEL.s1 - TO_PANEL.s0 + 25)));
   env.page = sstep(lerp(PAGE_MOVE.s0, PAGE_MOVE.s1, 0.28), lerp(PAGE_MOVE.s0, PAGE_MOVE.s1, 0.75), p); // the colour spreads from where the walk goes through
   // The Renovation's line follows the walk across the room. Resting at either end, the cursor slides it back and forth to compare.
@@ -620,7 +623,7 @@ const carBoxes = EXTRAS.map((e, k) => new THREE.Box3().setFromCenterAndSize(new 
 const carAt = (r) => (state.body > EX0.s0 - 5 && state.body < EX_END.s0 + 5 ? carBoxes.findIndex((b) => r.ray.intersectsBox(b)) : -1);
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
 // Things in the Sky Quarter rooms that answer a click, each only while the walk is in its room.
-const ROOMS3 = [{ span: [byName['Drafting hold'].s0 - 20, byName['Back through to the funicular'].s1], m: draft }, { span: [byName['Into the cabin'].s0, byName['Out of the cabin'].s0 + 20], m: cabin }];
+const ROOMS3 = [{ span: [byName['Drafting hold'].s0 - 20, byName['Back through to the funicular'].s1], m: draft }, { span: [byName['Into the cabin'].s0, byName['Out of the cabin'].s0 + 20], m: cabin }, { span: [byName['Into the Greenhouse'].s0, byName['Kites up to the Rooftop'].s0 + 20], m: garden }];
 const room3 = () => (state.secret || state.seat ? null : ROOMS3.find((r) => state.body > r.span[0] && state.body < r.span[1]));
 addEventListener('pointermove', (e) => { // a book under the cursor slides half out; inside a secret, its live things
   const r3 = room3(); if (r3) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = r3.m.over(ray) ? 'pointer' : ''; return; }
@@ -751,7 +754,7 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
-  reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); cabin.update(time, dt, env.cards, env.levers);
+  reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); cabin.update(time, dt, env.cards, env.levers); atlas.update(time, dt, env.extra.u, env.map); garden.update(time, dt, env.grow, env.tools);
   const KM = byName['Kites up to the Rooftop'], kite = state.body < KM.s0 ? -1 : state.body > KM.s1 ? 2 : (state.body - KM.s0) / (KM.s1 - KM.s0);
   rides.update(time, dt, railAt.set(...pos), kite); // the car, the boat and the kites carry the walk, not the cursor's lean clock.update(time, dt, state.body / rail.total, env.dusk);
   expand(env.site, env.air); hidden.update(time, dt, pointer); if (!free) nudge(time);

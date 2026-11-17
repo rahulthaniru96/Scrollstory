@@ -290,7 +290,7 @@ box('greenhouse south glass', GREEN.x0, GREEN.x1, H.greenhouse, H.greenhouse + 4
 box('plant staging', 33.1, 34.9, H.greenhouse, H.greenhouse + 1.3, -3.2, 5.2, 'furniture', HID);
 air('plants on the staging', 34, H.greenhouse + 2.3, 1, 1.1);
 box('seed vault', 29.3, 31.1, H.greenhouse, H.greenhouse + 2.0, GREEN.z0, GREEN.z0 + 0.7, 'furniture', HID);
-cyl('ledger lectern', 31.2, 5.0, 0.4, H.greenhouse, H.greenhouse + 1.2, 'furniture', HID);
+cyl('ledger lectern', 32.1, -2.9, 0.4, H.greenhouse, H.greenhouse + 1.2, 'furniture', HID);
 air('watering can', 32.2, H.greenhouse + 2.4, -1.6, 0.5);
 // Ground floor: the Renovation, a glass pavilion in the water courtyard. The fictional demo cafe's old site and its new one, split by a line that sweeps as you walk.
 export const RENO = { x0: -5.2, x1: 1.2, z0: -13.4, z1: -6, h: 3.6, walk: -9.3 };

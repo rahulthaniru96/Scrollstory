@@ -62,7 +62,31 @@ const tone = { wall: 0xefe3c8, facade: 0xe3dccf, stone: 0x8c8a82, ceiling: 0xf4e
 const mats = Object.fromEntries(Object.entries(tone).map(([k, c]) => [k, new THREE.MeshStandardMaterial({ color: c, roughness: 0.9 })]));
 Object.assign(mats.glass, { transparent: true, opacity: 0.18, roughness: 0.1 });
 const tinted = {};
-const matFor = (c) => (c.color !== undefined ? (tinted[c.color] ||= new THREE.MeshStandardMaterial({ color: c.color, roughness: 0.9 })) : mats[c.kind] || mats.wall);
+// Paint, room by room: [wall, dado]. The dado runs to 1 m with a brass line on top, so each room reads as decorated, not blocked out.
+const PAINT = { lobby: [0xf1e8d8, 0xb7a58a], gallery: [0xe8e4ee, 0x8f86a6], worth: [0xdfe6d3, 0x7f9478], workshop: [0xf2dccb, 0xb07a62], upper: [0xefe3c8, 0xc9b08a] };
+const roomOf = (c) => {
+  const x = (c.min[0] + c.max[0]) / 2, y = (c.min[1] + c.max[1]) / 2, z = (c.min[2] + c.max[2]) / 2;
+  if (y > 12) return 'upper';
+  if (z < -16) return 'worth';
+  if (x < -6) return 'gallery';
+  if (x > 6) return 'workshop';
+  return 'lobby';
+};
+const painted = {};
+const paint = (room) => painted[room] ||= (() => {
+  const [wall, dado] = PAINT[room], m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
+  m.onBeforeCompile = (s) => {
+    s.uniforms.uWall = { value: new THREE.Color(wall) }; s.uniforms.uDado = { value: new THREE.Color(dado) };
+    s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nvarying float vWY;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;');
+    s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uWall, uDado; varying float vWY;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        vec3 paint = mix(uDado, uWall, step(1.0, vWY));
+        paint = mix(paint, vec3(0.79, 0.64, 0.29), 1.0 - step(0.035, abs(vWY - 1.0))); // the brass line
+        diffuseColor.rgb *= paint;`);
+  };
+  return m;
+})();
+const matFor = (c) => (c.color !== undefined ? (tinted[c.color] ||= new THREE.MeshStandardMaterial({ color: c.color, roughness: 0.9 })) : c.kind === 'wall' && c.t === 'box' && roomOf(c) !== 'upper' ? paint(roomOf(c)) : mats[c.kind] || mats.wall);
 const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); scene.add(m); return m; };
 const drift = []; // floating things: [mesh, home y, phase]
 const demoCards = []; // the Gallery's demo sites

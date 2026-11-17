@@ -89,7 +89,7 @@ box('arcade beam N', -6, 6, 3.6, H.wing, -16.25, -15.75, 'pillar');
 // 03 Worth it: four counters on the south room's back wall, facing the courtyard.
 export const COUNTERS = [-11, -7, -3, 1].map((u, i) => ({ u, x: u + 5, z: -21.2, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
 export const COUNTER_ROOM = { turn: Math.PI / 2, x: 5, z: -9.85 };
-for (const c of COUNTERS) box(`counter ${c.name}`, c.x - 0.9, c.x + 0.9, 0, 1.1, -22, -20.9, 'furniture');
+for (const c of COUNTERS) box(`counter ${c.name}`, c.x - 0.9, c.x + 0.9, 0, 1.1, -22, -20.9, 'furniture', HID); // a terrazzo plinth, drawn by rooms.js
 for (const c of COUNTERS) air(`counter float ${c.name}`, c.x, 1.95, c.z, 0.7); // nothing rests on a counter
 air('coins rising', COUNTERS[3].x, 3.3, COUNTERS[3].z, 0.6);
 
@@ -97,7 +97,7 @@ air('coins rising', COUNTERS[3].x, 3.3, COUNTERS[3].z, 0.6);
 export const SHOPS = [-6, 0, 6].map((u, i) => ({ u, x: 11.35, z: u - 5, name: ['Starter', 'Signature', 'Signature + Admin'][i], color: [0xe8a89a, 0x2f5fa8, 0x3f6e68][i] }));
 export const SHOP_ROOM = { turn: -Math.PI / 2, x: -9.85, z: -5 };
 for (const s of SHOPS) {
-  box(`shop ${s.name}`, 10.6, 12, 0, 1.0, s.z - 2, s.z + 2, 'furniture');
+  box(`shop ${s.name}`, 10.6, 12, 0, 1.0, s.z - 2, s.z + 2, 'furniture', HID); // a fluted timber counter, drawn by rooms.js
   box(`shop sign ${s.name}`, 11.6, 12, 3.55, 4.2, s.z - 2.4, s.z + 2.4, 'sign', { color: s.color });
 }
 for (const s of SHOPS) air(`shop float ${s.name}`, 11.15, 2.2, s.z, 1.1); // each shop's device hovers over its counter, and floats forward on its beat

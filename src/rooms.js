@@ -133,6 +133,41 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     root = scene;
   }
 
+  // ---------- furniture: the Worth it plinths and the Workshop counters (their solid boxes are in world.js) ----------
+  {
+    root = scene;
+    // Worth it: a terrazzo plinth with a rounded front, a brass rim, a lit glass top and its number on a brass plate.
+    const terrazzo = canvasTex(256, 256, (x, w, h) => {
+      x.fillStyle = '#e9e2d4'; x.fillRect(0, 0, w, h);
+      for (let k = 0; k < 900; k++) { x.fillStyle = ['#b9a98f', '#8f9a86', '#c98b6a', '#6f7a72', '#f7efe2'][k % 5]; const s = 1 + ((k * 7) % 5); x.fillRect((k * 97) % w, (k * 61 + k * k) % h, s, s); }
+    });
+    terrazzo.wrapS = terrazzo.wrapT = THREE.RepeatWrapping; terrazzo.repeat.set(2, 1.4);
+    const stone = lit(0xffffff, { map: terrazzo, roughness: 0.55 }), brass = lit(0xc9a24a, { roughness: 0.3, metalness: 0.6 });
+    for (const [i, c] of COUNTERS.entries()) {
+      const g = new THREE.Group(); g.position.set(c.x, 0, -21.6); scene.add(g);
+      mesh(new THREE.BoxGeometry(1.8, 1.0, 0.8), stone, 0, 0.5, 0, g); // the back half
+      const front = mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.0, 40, 1, false, -Math.PI / 2, Math.PI), stone, 0, 0.5, 0.0, g); front.scale.z = 0.78; // the rounded front, to z -20.9
+      mesh(new THREE.BoxGeometry(1.84, 0.06, 0.84), brass, 0, 1.03, 0, g);
+      const rim = mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.06, 40, 1, true, -Math.PI / 2, Math.PI), brass, 0, 1.03, 0, g); rim.scale.z = 0.79; rim.material.side = THREE.DoubleSide;
+      const top = mesh(new THREE.CylinderGeometry(0.86, 0.86, 0.04, 40, 1, false, -Math.PI / 2, Math.PI), basic(0xfff3d6, { transparent: true, opacity: 0.75 }), 0, 1.075, 0, g); top.scale.z = 0.75; // lit from inside
+      mesh(new THREE.BoxGeometry(1.76, 0.04, 0.78), basic(0xfff3d6, { transparent: true, opacity: 0.75 }), 0, 1.075, 0, g);
+      mesh(new THREE.BoxGeometry(1.86, 0.08, 0.86), lit(0x3a3330), 0, 0.04, 0, g); // a dark plinth line at the floor
+      const plate = mesh(new THREE.PlaneGeometry(0.62, 0.16), basic(0xffffff, { map: canvasTex(310, 80, (x) => { x.fillStyle = '#c9a24a'; x.fillRect(0, 0, 310, 80); x.fillStyle = '#3a2810'; x.font = '500 34px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText(`0${i + 1} · ${c.name.toUpperCase()}`, 155, 52); }) }), 0, 0.72, 0.705, g);
+      plate.rotation.x = -0.05;
+    }
+    // Workshop: a fluted timber counter along each shop, a pale stone top, a brass foot rail and a line of the shop's colour under the top.
+    const timber = lit(0x8a5a3c, { roughness: 0.6 }), flute = new THREE.CylinderGeometry(0.045, 0.045, 0.82, 10), top = lit(0xeee6d8, { roughness: 0.4 });
+    for (const s of SHOPS) {
+      mesh(new THREE.BoxGeometry(1.3, 0.86, 4.0), timber, 11.3, 0.47, s.z);
+      const n = 30, fl = new THREE.InstancedMesh(flute, timber, n), o = new THREE.Object3D();
+      for (let k = 0; k < n; k++) { o.position.set(10.66, 0.47, s.z - 1.94 + (k * 3.88) / (n - 1)); o.updateMatrix(); fl.setMatrixAt(k, o.matrix); }
+      scene.add(fl);
+      mesh(new THREE.BoxGeometry(1.5, 0.08, 4.12), top, 11.25, 0.94, s.z);
+      mesh(new THREE.BoxGeometry(0.02, 0.025, 3.9), basic(s.color), 10.52, 0.87, s.z); // the colour line under the top's edge
+      const rail = mesh(new THREE.CylinderGeometry(0.025, 0.025, 3.9, 10), lit(0xc9a24a, { roughness: 0.3, metalness: 0.6 }), 10.45, 0.16, s.z); rail.rotation.x = Math.PI / 2;
+      mesh(new THREE.BoxGeometry(1.32, 0.06, 4.02), lit(0x2b2f2e), 11.3, 0.03, s.z); // the kick
+    }
+  }
   // ---------- 03 Worth it: one idea hovering over each counter ----------
   {
     room(COUNTER_ROOM);

@@ -297,7 +297,7 @@ const COPY = {
   'Landing hold': ['The landing · core memory', '', ''],
   'Bookshelf hold': ['The landing · How we work', 'Five volumes.', 'Pull one out.'],
   'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
-  'Extras hold': ['Room 05 · Extras', 'Everything else', 'it takes to go digital.'],
+  'Extras hold': ['Room 05 · Extras', 'Everything else it takes to go digital.', 'Click a carriage to see what it carries.'],
   'Bridge up to the Rooftop': ['Room 06 · The rooftop', 'Up on the roof.', 'The desk is one step away.'],
   'Settle on the desk': ['Room 06 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
 };
@@ -551,9 +551,12 @@ remoteBar.querySelector('.prev').onclick = () => remote(state.seat.ch - 1);
 remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
 remoteBar.querySelector('.up').onclick = () => sit(false);
 remoteBar.querySelector('.tell').onclick = () => { sit(false); openForm(); };
+const carBoxes = EXTRAS.map((e, k) => new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(15 + (k - 1.5) * 1.45, H.extras + 0.7, -21.7), new THREE.Vector3(1.32, 1.0, 0.8)));
+const carAt = (r) => (state.body > EX0.s0 - 5 && state.body < ROOF.s0 + 5 ? carBoxes.findIndex((b) => r.ray.intersectsBox(b)) : -1);
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
 addEventListener('pointermove', (e) => { // a book under the cursor slides half out; inside a secret, its live things
   if (state.secret && !state.secret.flip) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = hidden.over(ray, state.secret.id) ? (state.secret.id === 'lab' ? 'grab' : 'pointer') : ''; return; }
+  if (!state.secret && state.body > EX0.s0 - 5 && state.body < ROOF.s0 + 5) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = carAt(ray) >= 0 ? 'pointer' : ''; return; }
   if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
   const hit = hidden.pick(ray); hidden.hover(hit?.book ?? -1); canvas.style.cursor = hit ? 'pointer' : '';
@@ -566,6 +569,8 @@ addEventListener('click', (e) => {
   if (hit?.secret) return enterSecret(hit.secret);
   if (hit && rail.moveAt(state.body) === SHELF_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }
   if (state.seat) { const hit = ray.intersectObjects(seat.tiles)[0]; if (hit) remote(hit.object.userData.ch); return; }
+  const car = carAt(ray); // the Extras train: a click on a carriage goes to that add-on's stop, and its card steps out of it
+  if (car >= 0) { const m = byName[`Extra: ${EXTRAS[car].name}`]; steps.goto(rail.stops.findIndex((s) => s >= m.s0 - 1 && s <= m.s1 + 1)); sfx.blip(); return; }
   const onTv = env.tv.ch >= 0 && state.body < TV_SPAN[1];
   if (rail.moveAt(state.body) !== lastMove && !onTv) return;
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);

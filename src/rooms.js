@@ -17,6 +17,8 @@ const canvasTex = (w, h, draw) => {
 // The rooftop desk's front carries a neon sign the visitor writes: their business name, lit, for as long as the page is open. Nothing is stored.
 const sign = { draw: () => {} };
 export const deskSign = (text) => sign.draw(text);
+// Sitting on the HOME sofa: main.js reads the screen's place to fly the camera there, and clicks the floating channel tiles.
+export const seat = { screen: null, normal: null, tiles: [] };
 export const STORY = [
   "I've loved building websites for a long time.",
   'So I looked for clients, and built what they actually need.',
@@ -292,7 +294,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     // The phone of that year: back cover off, battery out, charging on its own. Here the pieces drift apart.
     hover(prop('phone', -9.2, y + 1.5, -16.6, { s: 3, then: (m) => { m.rotation.x = 0.9; apart(m, { cover: [0, -0.04, 0], battery: [0.02, 0.05, -0.03], charger: [0.06, 0, 0.02] }); } }), 0.05, 0.5, 0.05, 0.6);
 
-    // The TV plays the story as three moving pictures and a question. It also throws its picture into the room, large enough to watch.
+    // The TV plays the story as three moving pictures and a question. Sitting on the sofa brings the camera close to it.
     const c = document.createElement('canvas'); c.width = 800; c.height = 640;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
     x.scale(2, 2); // drawn in 400 x 320 units
@@ -357,16 +359,29 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     const tv = hover(prop('box_tv', -6.5, y + 0.3, -19.45, { s: 2, ry: 0.45 }), 0.05, 0.35, 0.015); // turned a little toward the hold frame
     mesh(new THREE.PlaneGeometry(0.5, 0.4), basic(0xffffff, { map: tex }), -0.085, 0.36, 0.2625, tv);
     glow(0xcfe0ff, 3.6, -6.3, y + 1.0, -18.6, scene, 0.3);
-    // the picture, thrown into the air over the set and always turned to the viewer
-    const big = mesh(new THREE.PlaneGeometry(2.7, 2.16), basic(0xffffff, { map: tex, transparent: true, opacity: 0.94, depthWrite: false }), -6.5, y + 2.5, -19.2, scene);
-    const beam = mesh(new THREE.ConeGeometry(1.5, 1.1, 4, 1, true), basic(0xcfe0ff, { transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), -6.5, y + 1.35, -19.3, scene);
-    beam.rotation.x = Math.PI; big.renderOrder = 3;
+    // Where the screen is and which way it faces, for the seated view (the set is turned 0.45 rad toward the hold frame).
+    tv.updateMatrixWorld(true);
+    seat.screen = new V3(-0.085, 0.36, 0.2625).applyMatrix4(tv.matrixWorld); seat.normal = new V3(Math.sin(0.45), 0, Math.cos(0.45)); seat.side = new V3(Math.cos(0.45), 0, -Math.sin(0.45));
+    // Four channel tiles hang in the air beside the set, only while someone is seated. Clicking one changes the channel.
+    const side = new V3(Math.cos(0.45), 0, -Math.sin(0.45));
+    seat.tiles = Array.from({ length: TV_BEATS.length + 1 }, (_, i) => {
+      const words = i < TV_BEATS.length ? TV_BEATS[i].short : 'Your story?';
+      const t = canvasTex(256, 160, (x, w, h) => {
+        x.fillStyle = '#1b2226'; x.fillRect(0, 0, w, h); x.strokeStyle = '#f2d98b'; x.lineWidth = 4; x.strokeRect(2, 2, w - 4, h - 4);
+        x.fillStyle = '#f2d98b'; x.font = '600 22px "Martian Mono", monospace'; x.fillText(`CH 0${i + 1}`, 16, 36);
+        x.fillStyle = '#f7efe2'; x.font = '600 24px Fraunces, Georgia, serif'; let line = '', yy = 80;
+        for (const word of words.split(' ')) { if (x.measureText(line + word).width > 220) { x.fillText(line, 16, yy); yy += 30; line = ''; } line += word + ' '; }
+        x.fillText(line, 16, yy);
+      });
+      const m = mesh(new THREE.PlaneGeometry(0.34, 0.21), basic(0xffffff, { map: t, transparent: true, depthWrite: false }), 0, 0, 0, scene);
+      m.position.copy(seat.screen).addScaledVector(side, 1.0).addScaledVector(seat.normal, 0.25); m.position.y += 0.36 - i * 0.25;
+      m.rotation.y = 0.45; m.userData.ch = i; m.visible = false; return m;
+    });
     let shown = '', last = 0, since = 0, was = -2;
     tick.push((t, dt, env) => { // the scroll picks the channel (env.tv), with a blip of static at each flip
       if (camera.position.y < H.landing - 1) return;
-      const { ch, f } = env.tv, snow = ch >= 0 && f < 0.1, open = ch > 0 ? 1 : ch === 0 ? Math.min(1, f / 0.2) : 0;
-      big.visible = beam.visible = open > 0.01; big.scale.setScalar(open); beam.scale.set(open, 1, open);
-      big.rotation.y = Math.atan2(camera.position.x - big.position.x, camera.position.z - big.position.z);
+      const { ch, f } = env.tv, snow = ch >= 0 && f < 0.1;
+      for (const m of seat.tiles) { m.visible = env.seated > 0.9; const on = m.userData.ch === ch; m.material.opacity = on ? 1 : 0.55; m.scale.setScalar(on ? 1.12 : 1); }
       if (ch !== was) { was = ch; since = t; }
       const k = snow ? 's' + Math.floor(t * 14) : 'c' + ch;
       if (shown === k && (ch < 0 || t - last < (lowQuality ? 0.1 : 0.05))) return; // moving pictures: 20 frames a second (10 on phones)

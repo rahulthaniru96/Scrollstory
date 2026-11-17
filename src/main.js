@@ -9,7 +9,7 @@ import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
 import { gallery, SITES } from './gallery.js';
-import { deskSign } from './rooms.js';
+import { deskSign, seat } from './rooms.js';
 import { secrets, BOOKS, SECRETS } from './secrets.js';
 import { sound } from './sound.js';
 import { intro } from './intro.js';
@@ -183,7 +183,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const DAY = { hemi: new THREE.Color(0xfff4e4), sun: new THREE.Color(0xffe2b8) }, DUSK = { hemi: new THREE.Color(0xd9cdf0), sun: new THREE.Color(0xf6c66a) };
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, seated: 0, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -210,7 +210,7 @@ document.getElementById('track').style.height = `${rail.total + 100}vh`;
 const startAt = Number(new URLSearchParams(location.search).get('p')); // ?p=1118 opens the walk at that point
 if (startAt > 0) scrollTo(0, (startAt / rail.total) * (document.documentElement.scrollHeight - innerHeight));
 const free = new URLSearchParams(location.search).has('free'); // ?free=1: the old free scroll, for tuning
-const blocked = (e) => state.secret || document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
+const blocked = (e) => state.secret || state.seat || document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
 // One wheel gesture is one stop. Lenis hands every wheel event here first; returning false keeps it from scrolling.
 const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
   if (free || !d.event.type.startsWith('wheel') || d.event.ctrlKey || blocked(d.event)) return true;
@@ -218,7 +218,7 @@ const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
 } });
 gsap.ticker.lagSmoothing(0);
 
-const state = { secret: null, body: 0, look: 0, vBody: 0, vLook: 0, fading: false, started: false, reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, hold: null };
+const state = { seat: null, secret: null, body: 0, look: 0, vBody: 0, vLook: 0, fading: false, started: false, reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, hold: null };
 const pointer = { x: 0, y: 0, sx: 0, sy: 0, vx: 0, vy: 0, cx: 0, cy: 0, cvx: 0, cvy: 0, lastX: 0, lastY: 0, lastT: 0, stirred: -9 };
 env.pointer = pointer;
 const ray = new THREE.Raycaster(), waterPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
@@ -342,6 +342,7 @@ function focus(p) {
   COUNTERS.forEach((c, i) => { env.counter[i] = beat(`Counter: ${c.name}`, p); });
   const x = ((p - TV_SPAN[0]) / (TV_SPAN[1] - TV_SPAN[0])) * CHANNELS, ch = Math.floor(x);
   env.tv.ch = x < 0 ? -1 : Math.min(CHANNELS - 1, ch); env.tv.f = x < 0 || x >= CHANNELS ? 1 : x - ch;
+  if (state.seat) { env.tv.ch = state.seat.ch; env.tv.f = Math.min(1, (performance.now() / 1000 - state.seat.at) / 1.5); } // seated: the remote, not the scroll, picks the channel
 }
 
 // ---------- room cards: what each shop and counter means, in HTML over the canvas ----------
@@ -384,6 +385,7 @@ function cards(p) {
   info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
   const oc = m.name === 'Choose one' ? sstep(0.05, 0.25, u) * (1 - sstep(0.85, 1, u)) : 0;
   chooser.style.opacity = oc; chooser.classList.toggle('on', oc > 0.5);
+  sitBtn.classList.toggle('on', !state.seat && env.tv.ch >= 0 && p < TV_SPAN[1] && !!m.hold);
   startBtn.classList.toggle('on', m === lastMove && u > 0.45); who.classList.toggle('on', m === lastMove && u > 0.45);
 }
 for (const pl of PLANS) {
@@ -437,7 +439,21 @@ function enterSecret(id) {
   });
 }
 function leaveSecret() { through(() => { state.secret = null; document.body.classList.remove('under'); }); }
-const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set and its picture in the air
+// ---------- the HOME sofa: sit to watch. The camera sits, then leans in to the set; the channel tiles float beside it. ----------
+const sitBtn = document.getElementById('sitBtn'), remoteBar = document.getElementById('remote');
+function remote(ch) { if (!state.seat) return; state.seat.ch = (ch + CHANNELS) % CHANNELS; state.seat.at = performance.now() / 1000; sfx.blip(); remoteBar.querySelector('b').textContent = `CH 0${state.seat.ch + 1}`; remoteBar.classList.toggle('last', state.seat.ch === CHANNELS - 1); }
+function sit(on) {
+  if (on === !!state.seat) return;
+  if (on) { state.seat = { ch: Math.max(0, env.tv.ch), at: 0 }; remote(state.seat.ch); } else state.seat = null;
+  document.body.classList.toggle('seated', on);
+  gsap.to(env, { seated: on ? 2 : 0, duration: state.reduce ? 0.01 : on ? 2.2 : 1.4, ease: 'power2.inOut', overwrite: true });
+}
+sitBtn.onclick = () => sit(true);
+remoteBar.querySelector('.prev').onclick = () => remote(state.seat.ch - 1);
+remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
+remoteBar.querySelector('.up').onclick = () => sit(false);
+remoteBar.querySelector('.tell').onclick = () => { sit(false); openForm(); };
+const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
 addEventListener('pointermove', (e) => { // a book under the cursor slides half out
   if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
@@ -449,10 +465,11 @@ addEventListener('click', (e) => {
   const hit = hidden.pick(ray);
   if (hit?.secret) return enterSecret(hit.secret);
   if (hit && rail.moveAt(state.body) === SHELF_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }
+  if (state.seat) { const hit = ray.intersectObjects(seat.tiles)[0]; if (hit) remote(hit.object.userData.ch); return; }
   const onTv = env.tv.ch >= 0 && state.body < TV_SPAN[1];
   if (rail.moveAt(state.body) !== lastMove && !onTv) return;
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
-  if (onTv) { if (ray.ray.intersectsBox(tvBox)) steps.step(env.tv.ch === CHANNELS - 1 ? -1 : 1); return; } // a click changes the channel
+  if (onTv) { if (ray.ray.intersectsBox(tvBox)) sit(true); return; } // a click on the set sits down to watch
   if (ray.ray.intersectsBox(deskBox)) openForm();
 });
 
@@ -485,7 +502,8 @@ soundBtn.onclick = () => { const on = sfx.toggle(); soundBtn.textContent = on ? 
 showFound();
 addEventListener('keydown', (e) => {
   if (e.target.closest?.('input, textarea, select')) return; // typing in the form
-  if (e.key === 'Escape') { togglePlan(false); if (state.secret) leaveSecret(); }
+  if (e.key === 'Escape') { togglePlan(false); if (state.secret) leaveSecret(); sit(false); }
+  if (state.seat && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) remote(state.seat.ch + (e.key === 'ArrowLeft' ? -1 : 1));
   if (e.key === 'm' || e.key === 'M') soundBtn.click();
   if (e.key === 'h' || e.key === 'H') hud.classList.toggle('off');
   if (e.key === 'r' || e.key === 'R') { state.reduce = !state.reduce; state.hold = null; }
@@ -536,6 +554,12 @@ gsap.ticker.add((time, deltaMs) => {
   camera.rotation.set(THREE.MathUtils.degToRad(pitch), yr, 0); // no roll: the horizon stays level
   if (state.secret?.flip) camera.rotation.z = Math.PI; // the mirror: the same place, upside down, with the water for a sky
   else if (state.secret) { const q = state.secret.pose; camera.position.set(q.pos[0] + pointer.cx * 0.25, q.pos[1] + S.bob * Math.sin(time * 0.6), q.pos[2]); camera.rotation.set(THREE.MathUtils.degToRad(q.pitch - pointer.cy * 3), THREE.MathUtils.degToRad(q.yaw - pointer.cx * 8), 0); }
+  if (env.seated > 0) { // seated: from the walk to the sofa (0 to 1), then leaning in to the set (1 to 2)
+    const k = env.seated, sofa = new THREE.Vector3(-6.5, H.home + 1.15, -16.2), close = seat.screen.clone().addScaledVector(seat.normal, 1.45).addScaledVector(seat.side, 0.3);
+    const look = new THREE.Quaternion().setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-pointer.cy * 2), 0.45 - pointer.cx * 0.05, 0, 'YXZ'));
+    camera.position.lerp(sofa, Math.min(1, k)).lerp(close, Math.max(0, k - 1));
+    camera.quaternion.slerp(look, Math.min(1, k * 1.2));
+  }
   camera.updateMatrixWorld();
 
   theme(state.body); atmosphere(pos[1]);

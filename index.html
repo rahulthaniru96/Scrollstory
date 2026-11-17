@@ -58,6 +58,13 @@
   #chooser ul { margin: 10px 0 14px; padding-left: 18px; line-height: 1.4; font-size: 14px; flex: 1; }
   #startBtn { left: 50%; bottom: 62px; transform: translateX(-50%); transition: opacity 0.4s; font-size: 12px; padding: 14px 22px; }
   #startBtn.on { opacity: 1; }
+  #sitBtn { position: fixed; z-index: 4; right: 5vw; bottom: 16vh; opacity: 0; pointer-events: none; transition: opacity 0.4s; font-size: 12px; padding: 14px 22px; }
+  #sitBtn.on { opacity: 1; pointer-events: auto; }
+  #remote { position: fixed; z-index: 5; left: 50%; bottom: 40px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 999px; background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); opacity: 0; pointer-events: none; transition: opacity 0.5s 0.8s; }
+  #remote b { min-width: 64px; text-align: center; }
+  body.seated #remote { opacity: 1; pointer-events: auto; }
+  body.seated #pips, body.seated #info, body.seated #sitBtn, body.seated #caption { opacity: 0 !important; pointer-events: none; }
+  #remote .tell { display: none; } #remote.last .tell { display: inline-block; }
   #form { border: 1px solid var(--ink); border-radius: 16px; background: var(--cream); color: var(--ink); padding: 24px; width: min(480px, 94vw); max-height: 92vh; }
   #form::backdrop { background: rgba(30, 42, 38, 0.55); }
   #form h2 { font-size: 34px; margin-top: 0; }
@@ -128,6 +135,8 @@
   <p class="note mono">Launch prices, for the first 5 clients</p>
 </section>
 <button id="startBtn" class="pill solid mono">Start your project</button>
+<button id="sitBtn" class="pill solid mono">Sit to view</button>
+<div id="remote" class="mono" role="group" aria-label="TV remote"><button class="pill prev" aria-label="Previous channel">&larr;</button><b>CH 01</b><button class="pill next" aria-label="Next channel">&rarr;</button><button class="pill solid tell">Tell Rahul yours</button><button class="pill up">Stand up</button></div>
 <p id="who" class="mono">Rahul Thaniru · Founder · <a href="tel:+919949088659" style="color:inherit">+91 99490 88659</a></p>
 <dialog id="form" aria-labelledby="formTitle" data-lenis-prevent>
   <form>

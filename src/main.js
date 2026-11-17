@@ -180,8 +180,9 @@ for (const b of BRIDGES.filter((q) => q.ride === 'doors')) { // the rides draw t
 const dressing = dress({ scene, camera, lowQuality });
 const expand = gallery({ scene, cards: demoCards, lowQuality, camera });
 const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
-const reno = renovation({ scene, lowQuality });
-const draft = drafting({ scene, lowQuality }), clock = tower({ scene, lowQuality }), cabin = signalCabin({ scene, lowQuality }), rides = journeys({ scene, lowQuality }), atlas = mapRoom({ scene, lowQuality }), garden = greenhouse({ scene, lowQuality }), railAt = new THREE.Vector3();
+const withRoot = (m) => Object.assign(m, { root: scene.children[scene.children.length - 1] }); // each of these adds one group to the scene, last
+const reno = withRoot(renovation({ scene, lowQuality }));
+const draft = withRoot(drafting({ scene, lowQuality })), clock = withRoot(tower({ scene, lowQuality })), cabin = withRoot(signalCabin({ scene, lowQuality })), rides = withRoot(journeys({ scene, lowQuality })), atlas = withRoot(mapRoom({ scene, lowQuality })), garden = withRoot(greenhouse({ scene, lowQuality })), railAt = new THREE.Vector3();
 
 // ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------
 const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) => d.name !== 'gate').map((d) => {
@@ -546,17 +547,21 @@ function showFound() {
   for (const s of SECRETS) if (foundIds.has(s.id) && s.egg) foundBox.append(el('p', '✦ ' + s.name, 'mono egg'));
   for (const s of SECRETS) if (!foundIds.has(s.id)) { // a clue for each one still hidden, and a way to get close
     const row = el('div', null, 'clue'), b = el('button', 'Take me near', 'mono'); row.append(el('p', '? ' + s.clue));
-    b.onclick = () => { togglePlan(false); const w = hidden.ways.find((q) => q.id === s.id); jump(nearStop(w.at)); hidden.beckon(s.id, now + 9); };
+    b.onclick = () => { togglePlan(false); const w = hidden.ways.find((q) => q.id === s.id); jump(nearStop(w)); hidden.beckon(s.id, now + 9); };
     row.append(b); foundBox.append(row);
   }
   for (const id of foundIds) hidden.found(id);
 }
 // the closest stop that has a point in front of the camera (within 38 degrees of its view), for the floor plan's hints
-const nearStop = (at) => rail.stops.reduce((b, s, i) => {
+const blockers = new THREE.Raycaster(); blockers.camera = camera; // sprites need it to be hit-tested
+const nearStop = (w) => rail.stops.reduce((b, s, i) => { const at = w.at;
   const p = rail.pos(s), y = THREE.MathUtils.degToRad(rail.yaw(s)), q = THREE.MathUtils.degToRad(rail.pitch(s));
   const v = [at.x - p[0], at.y - p[1], at.z - p[2]], d = Math.hypot(...v), f = [-Math.sin(y) * Math.cos(q), Math.sin(q), -Math.cos(y) * Math.cos(q)];
-  const facing = (v[0] * f[0] + v[1] * f[1] + v[2] * f[2]) / d > Math.cos(THREE.MathUtils.degToRad(38)); // shortcut: no wall test, so a stop behind a wall could win; fine for the three ways in today
-  return facing && d < b[1] ? [i, d] : b;
+  const facing = (v[0] * f[0] + v[1] * f[1] + v[2] * f[2]) / d > Math.cos(THREE.MathUtils.degToRad(38)); 
+  if (!facing || d >= b[1] || d > w.near) return b; // in reach of a click, and the nearest so far
+  blockers.set(new THREE.Vector3(...p), new THREE.Vector3(...v).normalize()); blockers.far = d - 0.7;
+  const wall = blockers.intersectObjects(scene.children, true).find((h) => h.object.isMesh && h.object.visible && !h.object.material.transparent); // something solid in between
+  return wall ? b : [i, d];
 }, [0, 1e9])[0];
 // A nudge: resting at a stop with a way in on screen that is still hidden, a line says so, once per secret per visit.
 const nudgeBox = document.getElementById('nudge'), nudged = new Set(), scrN = new THREE.Vector3();
@@ -760,6 +765,8 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
+  // The cloud sea hides one level from the other, so each is drawn only from its own side of it (and so not in the water's reflection either).
+  const up = camera.position.y > 18; reno.root.visible = !up; for (const m of [draft, clock, cabin, rides, atlas, garden]) m.root.visible = up;
   reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); clock.keyhole.material.emissiveIntensity = [...foundIds].filter((q) => q !== 'keyhole').length >= 6 ? 1.2 + Math.sin(time * 3) * 0.6 : 0; cabin.update(time, dt, env.cards, env.levers); atlas.update(time, dt, env.extra.u, env.map); garden.update(time, dt, env.grow, env.tools);
   const KM = byName['Kites up to the Rooftop'], kite = state.body < KM.s0 ? -1 : state.body > KM.s1 ? 2 : (state.body - KM.s0) / (KM.s1 - KM.s0);
   rides.update(time, dt, railAt.set(...pos), kite); // the car, the boat and the kites carry the walk, not the cursor's lean clock.update(time, dt, state.body / rail.total, env.dusk);
@@ -813,7 +820,7 @@ gsap.ticker.add((time, deltaMs) => {
   }
 }
 
-if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
+if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, renderer, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
 
 // Stop drawing when the tab is hidden.
 document.addEventListener('visibilitychange', () => (document.hidden && !pinned ? gsap.ticker.sleep() : gsap.ticker.wake())); // a headless capture counts as hidden

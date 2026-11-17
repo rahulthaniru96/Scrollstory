@@ -184,9 +184,9 @@ export function drafting({ scene, lowQuality }) {
   const N = lowQuality ? 4 : 9, sheetGeo = new THREE.PlaneGeometry(0.42, 0.3);
   for (let k = 0; k < N; k++) { const s = put(sheetGeo, new THREE.MeshStandardMaterial({ color: k % 3 ? 0xfbf6ea : 0xdfe9ff, side: THREE.DoubleSide, roughness: 0.9 }), -7.5 + ((k * 0.618) % 1) * 9.5, Y + 0.25 + (k % 3) * 0.12, -33.2 - ((k * 0.383) % 1) * 7.5); s.rotation.set(-Math.PI / 2 + 0.2, k, 0.1); hover(s, 0.08, 0.3 + k * 0.05, 0.15); }
 
-  // ---------- the wax-sealed blueprint (a secret), apart from the others by the west wall ----------
+  // ---------- the wax-sealed blueprint (a secret), low among the others over the west table ----------
   const sealTex = canvas(320, 240, (x, w, h) => { x.fillStyle = '#1f4f96'; x.fillRect(0, 0, w, h); x.strokeStyle = 'rgba(255,255,255,0.25)'; for (let k = 0; k < w; k += 16) { x.beginPath(); x.moveTo(k, 0); x.lineTo(k, h); x.stroke(); } x.fillStyle = '#eaf2ff'; x.font = '500 14px "Martian Mono", monospace'; x.fillText('NOT FOR CLIENTS', 20, 30); });
-  const sealed = put(new THREE.PlaneGeometry(0.8, 0.6), new THREE.MeshStandardMaterial({ map: sealTex, side: THREE.DoubleSide }), -8.4, Y + 1.9, -38.6); sealed.rotation.y = Math.PI / 2 - 0.3;
+  const sealed = put(new THREE.PlaneGeometry(0.8, 0.6), new THREE.MeshStandardMaterial({ map: sealTex, side: THREE.DoubleSide }), -6.2, Y + 1.2, -37.7); sealed.rotation.y = 0.63; // among the others over the west table, turned to the walk
   const wax = put(new THREE.CylinderGeometry(0.08, 0.085, 0.025, 18), new THREE.MeshStandardMaterial({ color: 0x9e1f1f, roughness: 0.35, emissive: 0x9e1f1f, emissiveIntensity: 0 }), 0, 0, 0.02, sealed); wax.rotation.x = Math.PI / 2;
   hover(sealed, 0.05, 0.35, 0.04);
 

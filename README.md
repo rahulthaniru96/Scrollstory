@@ -94,3 +94,19 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - The Sky Quarter is planned, not built: four layout drawings are in `D:/rahul-context/scrollstory/sky-quarter-layouts/` (sky map, side view, the four new rooms, the ground floor and the new order).
 - Not checked: motion feel and frame rate on a real GPU, a real phone, how the 3D cards read on a small laptop screen, and reduced motion for the new pieces.
 
+
+## Sky Quarter (18 Nov 2026)
+
+- Walk: now about 5834 vh and 47 stops, more than the brief's 4200 vh.
+- Heights: Rooftop raised to +38 m. Landing 26 m, HOME 28 m, Drafting 30.5 m, Extras 31.5 m (lowered), Signal 33 m, Greenhouse 35 m, Rooftop 38 m.
+- Renovation: a pavilion in the courtyard, between the Gallery and Worth it.
+- Files:
+  - `src/renovation.js`: the Renovation pavilion, the old and new versions of the demo café site, and its clock secret.
+  - `src/drafting.js`: the Drafting Room, its tables, blueprints and wax-sealed secret.
+  - `src/signal.js`: the Signal Cabin, its four levers and admin cards (all demo data).
+  - `src/maproom.js`: the map room table on Extras, with the Hyderabad relief map and the sample QR code.
+  - `src/greenhouse.js`: the Greenhouse and its care plan tools.
+  - `src/journeys.js`: the door frames, rope bridge, funicular, sky canal and kites between the rooms.
+  - `src/tower.js`: the clock tower in the middle of the Sky Quarter.
+- Secrets: three new ones, nine in all. The Renovation clock, the Drafting Room blueprint, and a keyhole on the clock tower that opens once six others are found.
+- Not checked: real GPU frame rate with all the new rooms; a real phone; reduced motion through the new rooms; how the new 3D pieces read on a small laptop screen; `scripts/board.mjs` still uses the old bridge format and was not updated.

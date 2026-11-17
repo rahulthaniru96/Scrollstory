@@ -209,7 +209,7 @@ export function tower({ scene, lowQuality, glowTexture }) {
 
   // ---------- keyhole: a brass plate under the south dial, a click target ----------
   const keyhole = new THREE.Mesh(box(0.06, 0.1, 0.02), std(0xc9a24a, { roughness: 0.4, metalness: 0.3, emissive: 0xffb347, emissiveIntensity: 0 }));
-  keyhole.position.set(ST + 0.02, face - 1.3, 0); keyhole.rotation.y = Math.PI / 2; keyhole.scale.setScalar(3); root.add(keyhole); // on the east face, which the map room looks at; big enough to find
+  keyhole.position.set(SH + 0.02, 34.2, 0); keyhole.rotation.y = Math.PI / 2; keyhole.scale.setScalar(4); root.add(keyhole); // low on the east face, level with the map room's view of it; big enough to find
   const slotMat = new THREE.MeshBasicMaterial({ color: 0x1e2a26 });
   const kc = new THREE.Mesh(new THREE.CircleGeometry(0.013, 10), slotMat); kc.position.set(0, 0.015, 0.0105); keyhole.add(kc);
   const ks = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.035), slotMat); ks.position.set(0, -0.012, 0.0105); keyhole.add(ks);

@@ -30,7 +30,7 @@ SECRETS.push(
   // and three in the new rooms
   { id: 'clock', egg: true, clue: 'In the Renovation, a clock on the wall can turn back time.', name: 'The time machine', text: 'The café goes back to its old site for a moment, then forward again.' },
   { id: 'seal', egg: true, clue: 'In the Drafting Room, one blueprint is sealed with red wax.', name: 'The sealed blueprint', text: 'Ideas that get dropped on the way to a good page, and why.' },
-  { id: 'keyhole', egg: true, clue: 'The clock tower has a keyhole on its east face. It opens once you have found six others.', name: "The watchmaker's keyhole", text: 'Every story has moving parts. Thanks for finding them all.' },
+  { id: 'keyhole', egg: true, clue: 'Low on the clock tower, seen from the map, there is a keyhole. It opens once you have found six others.', name: "The watchmaker's keyhole", text: 'Every story has moving parts. Thanks for finding them all.' },
 );
 export const SHELF = { x: -11, z: -1.68 }, PUDDLE = [-3.4, 0.03, 7.0], DOOR = { x: -11, z: 0.75 };
 
@@ -121,8 +121,8 @@ export function secrets({ scene, camera, lowQuality }) {
     { id: 'kite', at: KITE.clone(), geo: new THREE.BoxGeometry(1.0, 1.5, 0.3), near: 26 },
     { id: 'tank', at: new THREE.Vector3(20, R + 0.85, 9), geo: new THREE.CylinderGeometry(0.95, 0.95, 1.75, 20), near: 14 },
     { id: 'clock', at: new THREE.Vector3(0.05, 2.75, -13.06), geo: new THREE.BoxGeometry(0.6, 0.6, 0.15), near: 9 },
-    { id: 'seal', at: new THREE.Vector3(-8.4, H.drafting + 1.9, -38.6), geo: new THREE.BoxGeometry(0.4, 0.75, 0.95), near: 12 },
-    { id: 'keyhole', at: new THREE.Vector3(HUB.x + 1.5, HUB.face - 1.3, HUB.z), geo: new THREE.BoxGeometry(0.15, 0.5, 0.35), near: 18 },
+    { id: 'seal', at: new THREE.Vector3(-6.2, H.drafting + 1.2, -37.7), geo: new THREE.BoxGeometry(0.85, 0.7, 0.85), near: 12 },
+    { id: 'keyhole', at: new THREE.Vector3(HUB.x + 1.34, 34.2, HUB.z), geo: new THREE.BoxGeometry(0.2, 0.6, 0.45), near: 18 },
   ].map((w, k) => {
     const fade = { value: 0 }, edge = holoEdges(w.geo, { everywhere: true, fade }); edge.position.copy(w.at); scene.add(edge);
     const n = 4, pos = new Float32Array(n * 3), flies = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pos, 3)), new THREE.PointsMaterial({ size: 0.07, color: [0x9fe8ff, 0xd9b8ff, 0xffc9a0][k], transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));

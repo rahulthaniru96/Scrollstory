@@ -20,6 +20,7 @@ import { renovation } from './renovation.js';
 import { drafting } from './drafting.js';
 import { tower } from './tower.js';
 import { signalCabin } from './signal.js';
+import { journeys } from './journeys.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE, RENO } from './world.js';
 
@@ -178,7 +179,7 @@ const dressing = dress({ scene, camera, lowQuality });
 const expand = gallery({ scene, cards: demoCards, lowQuality, camera });
 const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
 const reno = renovation({ scene, lowQuality });
-const draft = drafting({ scene, lowQuality }), clock = tower({ scene, lowQuality }), cabin = signalCabin({ scene, lowQuality });
+const draft = drafting({ scene, lowQuality }), clock = tower({ scene, lowQuality }), cabin = signalCabin({ scene, lowQuality }), rides = journeys({ scene, lowQuality }), railAt = new THREE.Vector3();
 
 // ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------
 const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) => d.name !== 'gate').map((d) => {
@@ -750,7 +751,9 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
-  reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); cabin.update(time, dt, env.cards, env.levers); clock.update(time, dt, state.body / rail.total, env.dusk);
+  reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); cabin.update(time, dt, env.cards, env.levers);
+  const KM = byName['Kites up to the Rooftop'], kite = state.body < KM.s0 ? -1 : state.body > KM.s1 ? 2 : (state.body - KM.s0) / (KM.s1 - KM.s0);
+  rides.update(time, dt, railAt.set(...pos), kite); // the car, the boat and the kites carry the walk, not the cursor's lean clock.update(time, dt, state.body / rail.total, env.dusk);
   expand(env.site, env.air); hidden.update(time, dt, pointer); if (!free) nudge(time);
   if (env.tv.ch !== sfxWas.ch) { sfxWas.ch = env.tv.ch; if (env.tv.ch >= 0) sfx.blip(); }
   dressing.update(time, dt, env);

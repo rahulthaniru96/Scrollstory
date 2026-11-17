@@ -215,7 +215,7 @@ const blocked = (e) => state.secret || state.seat || document.body.classList.con
 // One wheel gesture is one stop. Lenis hands every wheel event here first; returning false keeps it from scrolling.
 const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
   if (free || !d.event.type.startsWith('wheel') || d.event.ctrlKey || blocked(d.event)) return true;
-  d.event.preventDefault(); if (Math.abs(d.deltaY) > 1) steps.wheel(Math.sign(d.deltaY), performance.now() / 1000, Math.abs(d.deltaY)); return false;
+  d.event.preventDefault(); if (Math.abs(d.deltaY) > 1) steps.wheel(Math.sign(d.deltaY), d.event.timeStamp / 1000, Math.abs(d.deltaY)); return false;
 } });
 gsap.ticker.lagSmoothing(0);
 

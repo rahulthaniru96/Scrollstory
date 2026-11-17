@@ -143,6 +143,22 @@ for (const [i, q] of FANS.entries()) C.push({ t: 'sph', name: `wing fan ${i}`, k
 export const INDOOR_CLOUD = [4.4, 6.6, 9.6];
 C.push({ t: 'sph', name: 'cloud indoors', kind: 'floating', x: INDOOR_CLOUD[0], y: INDOOR_CLOUD[1], z: INDOOR_CLOUD[2], r: 1.6, hidden: true });
 
+// Each room is a level with its own accent and a light tint, all close to the one palette. main.js blends between them.
+export const THEME = {
+  '00 Arrival': { accent: '#F2D98B', tint: 0xfff2dc },
+  '01 Lobby': { accent: '#F7C98A', tint: 0xfff4e4 },
+  '02 Gallery': { accent: '#CDBBFF', tint: 0xf0eaff },
+  '03 Worth it': { accent: '#F2C46A', tint: 0xffecc6 },
+  '04 Workshop': { accent: '#F3A592', tint: 0xffe6dc },
+  'The stairs': { accent: '#EE8E78', tint: 0xf6f1e6 },
+  Landing: { accent: '#FFD9A0', tint: 0xffe9c8 },
+  HOME: { accent: '#BFD4FF', tint: 0xe6ecff },
+  '05 Extras': { accent: '#A6E0D2', tint: 0xe4f6f0 },
+  '06 Rooftop': { accent: '#F6B8D0', tint: 0xf5def0 },
+};
+export const FOUNDER = { name: 'Rahul Thaniru', role: 'Founder, Scrollstory Studio', phone: '+91 99490 88659', at: [-2.2, 1.55, 8.0] }; // his brass plaque stands in the Lobby
+cyl('founder plaque', FOUNDER.at[0], FOUNDER.at[2], 0.3, 0, 2.1, 'furniture', HID);
+
 // The wall of milestones: framed pictures hung just outside the stair's outer rail, up the lobby part of the climb.
 // Facts only, from D:\\rahul-context\\projects. A milestone with no known fact has no line.
 export const MILESTONES = [

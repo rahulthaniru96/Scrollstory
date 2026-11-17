@@ -340,10 +340,10 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       }
       const g = x.createRadialGradient(200, 160, 20, 200, 160, 260); g.addColorStop(0, '#34424a'); g.addColorStop(1, '#161b1f');
       x.fillStyle = g; x.fillRect(0, 0, 400, 320);
-      x.font = '600 13px monospace'; x.fillStyle = BUTTER; x.textAlign = 'left'; x.fillText('SCROLLSTORY TV', 20, 32);
+      x.font = '600 13px "Martian Mono", monospace'; x.fillStyle = BUTTER; x.textAlign = 'left'; x.fillText('SCROLLSTORY TV', 20, 32);
       if (ch >= 0) { x.textAlign = 'right'; x.fillText(`CH 0${ch + 1} / 0${SCENES.length}`, 380, 32); SCENES[ch](t); }
       const words = ch < 0 ? 'Scrollstory TV' : ch < TV_BEATS.length ? TV_BEATS[ch].short : 'Your story?', big = ch < 0 || ch >= TV_BEATS.length;
-      x.font = `600 ${big ? 40 : 25}px Georgia, serif`; x.textAlign = 'center'; x.fillStyle = CREAM;
+      x.font = `600 ${big ? 40 : 25}px Fraunces, Georgia, serif`; x.textAlign = 'center'; x.fillStyle = CREAM;
       const lines = []; let line = '';
       for (const word of words.split(' ')) { if (x.measureText(line + word).width > 350) { lines.push(line.trim()); line = ''; } line += word + ' '; }
       lines.push(line.trim());
@@ -380,8 +380,8 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     // Each row is blank until the walk reaches it, flips while it arrives, and is lit while the walk rests on it (env.extra, from the scroll).
     const draw = (u, litRow) => {
       x.fillStyle = '#15181a'; x.fillRect(0, 0, W, Hh);
-      x.font = '600 20px monospace'; x.textAlign = 'left'; x.fillStyle = '#8c8a82'; x.fillText('NO.', 32, 44); x.fillText('ADD-ON', 214, 44);
-      x.font = '700 32px monospace'; x.textAlign = 'center';
+      x.font = '600 20px "Martian Mono", monospace'; x.textAlign = 'left'; x.fillStyle = '#8c8a82'; x.fillText('NO.', 32, 44); x.fillText('ADD-ON', 214, 44);
+      x.font = '700 32px "Martian Mono", monospace'; x.textAlign = 'center';
       for (const [r, e] of EXTRAS.entries()) {
         const text = (u[r] < 0 ? '' : `0${r + 1}  ${e.name}`).padEnd(COLS), ry = 66 + r * 64, flip = u[r] >= 0 && u[r] < 1, on = r === litRow;
         for (let k = 0; k < COLS; k++) {

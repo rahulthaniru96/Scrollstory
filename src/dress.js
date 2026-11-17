@@ -3,7 +3,7 @@
 // so the rail check covers them; everything here is drawing and ambient motion.
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
-import { WINDOWS, STAIR, PHI_END, stairPt, LAMP_ZONE, BIRD_PATH, INDOOR_CLOUD } from './world.js';
+import { WINDOWS, STAIR, PHI_END, stairPt, LAMP_ZONE, BIRD_PATH, INDOOR_CLOUD, FOUNDER } from './world.js';
 import { furnish } from './rooms.js';
 import { facade } from './facade.js';
 import { lake } from './lake.js';
@@ -242,10 +242,29 @@ export function dress({ scene, camera, lowQuality = false }) {
     // shortcut: the wordmark is a texture on the raised plaque, not extruded letters (three no longer ships a font). Upgrade when the logo is modelled in Blender.
     const c = document.createElement('canvas'); c.width = 1056; c.height = 240;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-    const word = () => { x.clearRect(0, 0, 1056, 240); x.font = '190px "Instrument Serif", Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#e08a52'; x.fillText('scrollstory', 528, 112); tex.needsUpdate = true; };
-    word(); document.fonts?.load('190px "Instrument Serif"').then(word, () => {});
+    const word = () => { x.clearRect(0, 0, 1056, 240); x.font = '400 176px Fraunces, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#e08a52'; x.fillText('scrollstory', 528, 112); tex.needsUpdate = true; };
+    word();
     mesh(new THREE.PlaneGeometry(4.4, 1.0), basic(0xffffff, { map: tex, transparent: true }), 0.75, 0, 0.17, g);
     glow(0xffb070, 8, 0, 0, 0.5, g, 0.22); // a soft glow, so it reads when the camera tilts up at the gate
+  }
+  // ---------- the founder's plaque: brass, on a slim stand just inside the front door, turned to whoever walks in ----------
+  {
+    const [px, py, pz] = FOUNDER.at, g = new THREE.Group(); g.position.set(px, 0, pz); g.rotation.y = Math.atan2(0 - px, 10.8 - pz); scene.add(g);
+    const brass = lit(0xb9935a, { metalness: 0.75, roughness: 0.38 });
+    mesh(new THREE.CylinderGeometry(0.035, 0.05, 1.15, 12), brass, 0, 0.575, 0, g); mesh(new THREE.CylinderGeometry(0.24, 0.27, 0.05, 24), brass, 0, 0.025, 0, g);
+    mesh(new THREE.BoxGeometry(1.42, 0.86, 0.05), brass, 0, py, 0, g);
+    const c = document.createElement('canvas'); c.width = 832; c.height = 496;
+    const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const grad = x.createLinearGradient(0, 0, 832, 496); grad.addColorStop(0, '#d8b77a'); grad.addColorStop(0.5, '#f0d9a4'); grad.addColorStop(1, '#c49a58');
+    x.fillStyle = grad; x.fillRect(0, 0, 832, 496); x.strokeStyle = '#6a4a1c'; x.lineWidth = 4; x.strokeRect(22, 22, 788, 452);
+    x.fillStyle = '#3a2810'; x.textAlign = 'center';
+    x.font = '500 26px "Martian Mono", monospace'; x.fillText('F O U N D E R', 416, 108);
+    x.font = '500 104px Fraunces, Georgia, serif'; x.fillText(FOUNDER.name, 416, 232);
+    x.fillRect(336, 276, 160, 3);
+    x.font = '400 38px Fraunces, Georgia, serif'; x.fillText('Scrollstory Studio · Secunderabad', 416, 346);
+    x.font = '500 30px "Martian Mono", monospace'; x.fillText(FOUNDER.phone, 416, 416);
+    mesh(new THREE.PlaneGeometry(1.34, 0.8), basic(0xffffff, { map: tex }), 0, py, 0.027, g);
+    glow(0xffd9a0, 3.2, 0, py + 0.2, 0.5, g, 0.3);
   }
 
   // ---------- lamps drifting over the courtyard water ----------

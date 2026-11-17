@@ -1,6 +1,6 @@
 // The camera rail: one position spline measured by length, plus a separate look track.
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
-import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD } from './world.js';
+import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER } from './world.js';
 
 export const TOTAL_VH = 3960; // whole walk, in screen-heights x 100. One constant scales everything.
 
@@ -76,7 +76,10 @@ export function buildRail() {
   move('Gate push in', 'room', 110, (a, d) => { look(a, 0, 1); key(a + d, line(0, 20)); look(a + d, 0, 4); });
   move('Tilt up to the plaque', 'room', 60, (a, d) => { key(a + d, g(0, 19.5)); look(a + d * 0.9, 0, 42); });
   // ---- 01 Lobby ----
-  move('Lobby push in', 'room', 140, (a, d) => { key(a + d, line(0, 9.2)); look(a + d * 0.35, 0, 2); look(a + d, 0, 0); });
+  move('Lobby push in', 'room', 140, (a, d) => { // just inside the door the eyes go to the founder's plaque, and the walk rests there
+    key(a + d, line(0, 9.2)); look(a + d * 0.35, 0, 2);
+    const [y] = aim([0, EYE, 10.8], FOUNDER.at, 0); look(a + d * 0.85, y * 0.7, 0); look(a + d, 0, 0);
+  });
   move('Tilt up the stairwell', 'room', 70, (a, d) => { key(a + d, last()); look(a + d * 0.9, 0, 55); });
   hold('Lobby hold', 50, '01 Lobby');
   move('Look, then turn left', 'room', 130, (a, d) => {
@@ -261,6 +264,7 @@ export function buildRail() {
     if (m.name === 'Arrival hold' || m.name === 'HOME hold') continue; // the walk opens on the first; the TV's channels cover the second
     if (m.name === 'HOME partial orbit') { const t1 = moves[moves.indexOf(m) + 1].s1; for (let c = 0; c < TV_CHANNELS; c++) stops.push(m.s0 + ((t1 - m.s0) * (c + 0.5)) / TV_CHANNELS); }
     else if (m.name === 'Gallery, walking backwards') { for (const c of CARDS) if (c.z > -7) stops.push(m.s0 + (d * (10 - c.z)) / 17); }
+    else if (m.name === 'Lobby push in') stops.push(m.s0 + d * 0.85);
     else if (m.hold) stops.push(m.s0 + d * 0.6);
     else if (END_STOPS.includes(m.name)) stops.push(m.s1 - 1);
   }

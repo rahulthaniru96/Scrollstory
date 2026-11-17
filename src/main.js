@@ -12,7 +12,7 @@ import { gallery, SITES } from './gallery.js';
 import { intro } from './intro.js';
 import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -25,6 +25,9 @@ const FEEL = {
   sway: { yaw: 0.22, pitch: 0.14, bob: 0.012 }, // slow breathing when nothing else moves
   fade: 0.3, // reduced motion only: cross-fade between hold frames
 };
+
+// The 3D scene draws its lettering on canvases, so the fonts come first (2 s at most, then the fallbacks do).
+await Promise.race([Promise.all(['500 30px "Martian Mono"', '500 100px Fraunces', '400 16px "Familjen Grotesk"'].map((f) => document.fonts.load(f))).catch(() => {}), new Promise((r) => setTimeout(r, 2000))]);
 
 const rail = buildRail();
 const canvas = document.getElementById('stage');
@@ -66,7 +69,7 @@ const cardTexture = (() => {
   x.fillStyle = '#1E2A26'; x.fillRect(0, 0, 320, 22);
   x.fillStyle = '#E8A89A'; x.fillRect(24, 44, 272, 78);
   x.fillStyle = '#8C8A82'; x.fillRect(24, 138, 150, 10); x.fillRect(24, 158, 96, 10);
-  x.fillStyle = '#9E3B2C'; x.font = '500 20px monospace'; x.fillText('DEMO', 232, 166);
+  x.fillStyle = '#9E3B2C'; x.font = '500 20px "Martian Mono", monospace'; x.fillText('DEMO', 232, 166);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 })();
 
@@ -176,16 +179,26 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const DAY = { hemi: new THREE.Color(0xfff4e4), sun: new THREE.Color(0xffe2b8) }, DUSK = { hemi: new THREE.Color(0xd9cdf0), sun: new THREE.Color(0xf6c66a) };
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 } };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
   env.fogDensity = lerp(lerp(0.004, 0.33, sstep(11, 15, h)), 0.006, sstep(20.5, 23, h));
-  env.h = h;
+  env.h = h; env.fogColor.lerp(env.tint, 0.14);
   scene.fog.color.copy(env.fogColor); scene.background.copy(env.fogColor); scene.fog.density = env.fogDensity;
   env.dusk = sstep(29.5, 34, h); // 0 below the Extras platform, 1 at the rooftop desk
   hemi.intensity = (2.5 - 0.5 * env.dusk) * env.dark; sun.intensity = 2.2 * env.dark;
-  hemi.color.lerpColors(DAY.hemi, DUSK.hemi, env.dusk); sun.color.lerpColors(DAY.sun, DUSK.sun, env.dusk);
+  hemi.color.lerpColors(DAY.hemi, DUSK.hemi, env.dusk).multiply(env.tint); sun.color.lerpColors(DAY.sun, DUSK.sun, env.dusk);
+}
+// Each room is a level: the light takes its tint, and the page's accent colour and the level chip follow.
+const LEVELS = rail.rooms.map((r) => ({ ...r, tint: new THREE.Color(THEME[r.name].tint), accent: THEME[r.name].accent })), levelChip = document.getElementById('level');
+let levelNow = -1;
+function theme(p) {
+  let i = 0; while (i < LEVELS.length - 1 && p >= LEVELS[i + 1].s) i++;
+  const a = LEVELS[i], b = LEVELS[Math.min(i + 1, LEVELS.length - 1)], t = b === a ? 0 : sstep(0.3, 0.7, (p - a.s) / (b.s - a.s));
+  env.tint.lerpColors(a.tint, b.tint, t);
+  const k = t < 0.5 ? i : i + 1;
+  if (k !== levelNow) { levelNow = k; document.documentElement.style.setProperty('--accent', LEVELS[k].accent); levelChip.textContent = `Level ${String(k + 1).padStart(2, '0')} / ${LEVELS.length} · ${LEVELS[k].name.replace(/^\d+ /, '')}`; }
 }
 
 // ---------- scroll, springs and caps ----------
@@ -269,6 +282,7 @@ function speedLimit(p, zone, lag) {
 // ---------- captions (words from the design board; rooms without written copy show their label only) ----------
 const COPY = {
   'Arrival hold': ['Scrollstory Studio · Secunderabad', 'Every business has a story.', "Come in, we'll show you ours."],
+  'Lobby push in': ['The founder', 'Rahul Thaniru', 'Founder, Scrollstory Studio.'],
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
   'Gallery hold': ['Room 02 · The gallery', 'Every door, a site we built.', 'Step into any one.'],
   'Worth it hold': ['Room 03 · Worth it', 'Custom. Secure. Legal.', 'Built to bring you income.'],
@@ -279,7 +293,8 @@ const COPY = {
   'Extras hold': ['Room 05 · Extras', 'Everything else', 'it takes to go digital.'],
   'Settle on the desk': ['Room 06 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
 };
-const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta');
+const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta'), capNum = cap.querySelector('.num');
+let capWords = [];
 const lastMove = rail.moves[rail.moves.length - 1];
 let capFor = null;
 function caption(p) {
@@ -290,13 +305,19 @@ function caption(p) {
   const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < TV_BEATS.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, TV_BEATS[env.tv.ch].full, ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', "Let's put it on the screen."]) : COPY[name];
   if (!c) { cap.style.opacity = 0; cap.classList.remove('on'); return; }
   if (capFor !== name) {
-    capFor = name; capLabel.textContent = c[0]; capH.textContent = c[1];
-    if (c[2]) { const em = document.createElement('em'); em.textContent = c[2]; capH.append(em); }
+    capFor = name; capLabel.textContent = c[0]; capH.replaceChildren(); capWords = [];
+    const put = (text, into) => { for (const w of text.split(' ')) { const s = el('span', w, 'w'); capWords.push(s); into.append(s, ' '); } }; // one span a word: they arrive one after another
+    put(c[1], capH);
+    if (c[2]) { const em = document.createElement('em'); capH.append(em); put(c[2], em); }
+    capNum.textContent = (c[0].match(/(?:Room|CH|Milestone) (\d+)/) || [])[1] || ''; // the big outlined numeral behind the words
     capH.classList.toggle('small', mi >= 0 || (tv && env.tv.ch < TV_BEATS.length)); capCta.hidden = !(tv && env.tv.ch === TV_BEATS.length);
   }
   const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.52) / 1.04 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
-  const o = (m === rail.moves[0] ? 1 : sstep(0.1, tv ? 0.25 : 0.4, u)) * (m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u)); // scroll-driven, so it reverses exactly. The first caption is there when the intro ends.
-  cap.style.opacity = o; cap.style.transform = `translateY(${(1 - o) * 16}px)`; cap.classList.toggle('on', o > 0.5);
+  // Scroll-driven, so it reverses exactly: the words come in one by one, then the whole caption leaves. The first caption is there when the intro ends.
+  const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
+  for (const [k, w] of capWords.entries()) { const wo = sstep((k / n) * 0.6, (k / n) * 0.6 + 0.4, arrive); w.style.opacity = wo; w.style.transform = `translateY(${(1 - wo) * 0.4}em)`; }
+  const o = sstep(0, 0.2, arrive) * out;
+  cap.style.opacity = o; cap.style.transform = `translateY(${(1 - out) * 16}px)`; cap.classList.toggle('on', arrive > 0.6 && out > 0.5);
 }
 
 // ---------- what the scroll is pointing at: one shop, one counter, one TV channel ----------
@@ -349,7 +370,7 @@ function cards(p) {
   info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
   const oc = m.name === 'Choose one' ? sstep(0.05, 0.25, u) * (1 - sstep(0.85, 1, u)) : 0;
   chooser.style.opacity = oc; chooser.classList.toggle('on', oc > 0.5);
-  startBtn.classList.toggle('on', m === lastMove && u > 0.45);
+  startBtn.classList.toggle('on', m === lastMove && u > 0.45); who.classList.toggle('on', m === lastMove && u > 0.45);
 }
 for (const pl of PLANS) {
   const card = el('article'), ul = el('ul'), b = el('button', `Choose ${pl.name}`, 'pill solid');
@@ -359,7 +380,7 @@ for (const pl of PLANS) {
 }
 
 // ---------- the front desk's application form. Nothing is stored: submit only opens WhatsApp with the answers filled in. ----------
-const formBox = document.getElementById('form'), form = formBox.querySelector('form'), startBtn = document.getElementById('startBtn');
+const formBox = document.getElementById('form'), form = formBox.querySelector('form'), startBtn = document.getElementById('startBtn'), who = document.getElementById('who');
 function openForm(plan) {
   formBox.classList.remove('sent'); form.reset();
   if (plan) form.elements.need.value = plan;
@@ -370,7 +391,7 @@ form.addEventListener('change', syncEmail);
 form.addEventListener('submit', (e) => {
   e.preventDefault(); // the browser has already checked the required fields
   const f = form.elements, row = (k, v) => (v.trim() ? `${k}: ${v.trim()}\n` : '');
-  const text = 'Hi Scrollstory, I would like to start a project.\n' + row('Name', f.name.value) + row('Business', f.business.value) + row('I need', f.need.value) + row('Budget', f.budget.value) +
+  const text = 'Hi Rahul, I would like to start a project with Scrollstory.\n' + row('Name', f.name.value) + row('Business', f.business.value) + row('I need', f.need.value) + row('Budget', f.budget.value) +
     row('Reach me by', f.contact.value) + row('Email', f.contact.value === 'Email' ? f.email.value : '') + row('Message', f.message.value);
   formBox.classList.add('sent');
   window.open(`https://wa.me/919949088659?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
@@ -450,7 +471,7 @@ gsap.ticker.add((time, deltaMs) => {
   camera.rotation.set(THREE.MathUtils.degToRad(pitch), yr, 0); // no roll: the horizon stays level
   camera.updateMatrixWorld();
 
-  atmosphere(pos[1]);
+  theme(state.body); atmosphere(pos[1]);
   focus(state.body);
   for (const c of demoCards) { // each card arrives as the backward walk brings it into the frame, and leaves the same way on the way back
     const from = GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (8 - c.z)) / 17 - 4; // the walk runs from z = 7 to z = -10; a card shows once the camera is 1 m past it

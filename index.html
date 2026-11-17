@@ -3,19 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scrollstory world v2 · walkthrough draft</title>
+<title>Scrollstory Studio · by Rahul Thaniru</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Martian+Mono:wght@300..600&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #1E2A26; --cream: #F7EFE2; --butter: #F2D98B; --oxide: #9E3B2C; --ease: cubic-bezier(0.16, 1, 0.3, 1); }
+  :root { --ink: #1E2A26; --cream: #F7EFE2; --butter: #F2D98B; --oxide: #9E3B2C; --accent: #F2D98B; --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --display: Fraunces, Georgia, serif; --text: 'Familjen Grotesk', system-ui, sans-serif; --label: 'Martian Mono', ui-monospace, monospace; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: #F3CFA4; color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  html, body { margin: 0; background: #F3CFA4; color: var(--ink); font-family: var(--text); font-size: 16px; }
   #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
   #track { position: relative; width: 1px; pointer-events: none; }
-  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+  .mono { font-family: var(--label); font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; font-size: 10.5px; }
   header { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; z-index: 5; }
-  .brand { font-family: 'Instrument Serif', serif; font-size: 26px; }
-  .brand small { margin-left: 8px; font-size: 10px; }
+  .brand { font-family: var(--display); font-weight: 500; font-size: 25px; letter-spacing: -0.02em; font-variation-settings: 'SOFT' 100, 'WONK' 1; }
+  .brand small { margin-left: 8px; font-size: 10px; letter-spacing: 0.1em; font-variation-settings: normal; }
+  .brand small b { font-weight: 600; }
   .pill { font: inherit; border: 1px solid var(--ink); background: rgba(247, 239, 226, 0.7); color: var(--ink); border-radius: 999px; padding: 10px 16px; cursor: pointer; text-decoration: none; transition: background-color 0.35s, color 0.35s; }
   .pill:hover, .pill:focus-visible { background: var(--ink); color: var(--cream); }
   .pill.solid { background: var(--ink); color: var(--cream); }
@@ -25,22 +28,24 @@
   #plan button:hover, #plan button:focus-visible, #plan button.here { background: var(--butter); }
   #caption { position: fixed; left: 5vw; bottom: 12vh; z-index: 4; max-width: 80vw; color: var(--cream); text-shadow: 0 2px 24px rgba(20, 32, 29, 0.55); opacity: 0; transform: translateY(16px); pointer-events: none; }
   #caption .label { margin-bottom: 10px; }
-  #caption h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(34px, 5.2vw, 72px); line-height: 1; margin: 0; }
-  #caption h1 em { display: block; color: #F7C98A; }
-  #caption h1.small { font-size: clamp(22px, 3vw, 40px); line-height: 1.12; max-width: 22em; }
+  #caption h1 { font-family: var(--display); font-weight: 380; font-size: clamp(34px, 5vw, 70px); line-height: 1.02; letter-spacing: -0.025em; margin: 0; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
+  #caption h1 em { display: block; color: var(--accent); font-weight: 340; transition: color 0.8s; }
+  #caption h1.small { font-size: clamp(21px, 2.7vw, 36px); line-height: 1.16; letter-spacing: -0.015em; max-width: 24em; }
+  #caption h1 .w { display: inline-block; }
+  #caption .num { position: absolute; left: -0.05em; bottom: -0.2em; z-index: -1; font: 300 clamp(150px, 25vw, 340px)/0.8 var(--display); letter-spacing: -0.05em; color: transparent; -webkit-text-stroke: 2px var(--accent); opacity: 0.7; text-shadow: none; font-variation-settings: 'SOFT' 100, 'WONK' 1; }
   #caption .cta { display: flex; gap: 10px; margin-top: 18px; text-shadow: none; }
   #caption .cta[hidden] { display: none; }
   #caption.on .cta { pointer-events: auto; }
   #info, #chooser, #startBtn { position: fixed; z-index: 4; opacity: 0; pointer-events: none; }
   #info.on, #chooser.on, #startBtn.on { pointer-events: auto; }
-  #info { right: 5vw; bottom: 16vh; width: min(340px, 90vw); padding: 18px 20px; background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; }
-  #info h2, #chooser h3, #form h2 { font-family: 'Instrument Serif', serif; font-weight: 400; margin: 6px 0 8px; line-height: 1.05; }
+  #info { right: 5vw; bottom: 16vh; width: min(340px, 90vw); padding: 18px 20px; background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; box-shadow: inset 0 4px 0 var(--accent); }
+  #info h2, #chooser h3, #form h2 { font-family: var(--display); font-weight: 420; letter-spacing: -0.02em; margin: 6px 0 8px; line-height: 1.05; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
   #info h2 { font-size: 34px; }
   #info p { margin: 0; line-height: 1.45; }
   #info button { margin-top: 14px; }
   #chooser { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(900px, 92vw); max-height: 78vh; overflow: auto; }
   #chooser > h2, #chooser > .note { color: var(--cream); text-shadow: 0 2px 18px rgba(20, 32, 29, 0.8); text-align: center; margin: 0 0 12px; }
-  #chooser > h2 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(30px, 4vw, 48px); line-height: 1; }
+  #chooser > h2 { font-family: var(--display); font-weight: 380; letter-spacing: -0.02em; font-size: clamp(30px, 4vw, 48px); line-height: 1; }
   #chooser > .note { margin: 10px 0 0; }
   #chooser .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   #chooser article { background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; align-items: flex-start; }
@@ -54,7 +59,7 @@
   #form h2 { font-size: 34px; margin-top: 0; }
   #form label, #form fieldset { display: block; margin: 0 0 12px; font-size: 13px; font-weight: 500; border: 0; padding: 0; }
   #form label[hidden] { display: none; }
-  #form input:not([type=radio]), #form select, #form textarea { display: block; width: 100%; margin-top: 4px; padding: 9px 10px; font: 400 15px Inter, system-ui, sans-serif; color: var(--ink); background: #fff; border: 1px solid var(--ink); border-radius: 8px; }
+  #form input:not([type=radio]), #form select, #form textarea { display: block; width: 100%; margin-top: 4px; padding: 9px 10px; font: 400 15px var(--text); color: var(--ink); background: #fff; border: 1px solid var(--ink); border-radius: 8px; }
   #form fieldset label { display: inline-flex; gap: 6px; align-items: center; margin: 6px 14px 0 0; font-weight: 400; }
   #form .row { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 16px; }
   #form small { display: block; line-height: 1.45; }
@@ -62,14 +67,14 @@
   #form.sent form { display: none; }
   #form.sent .done { display: block; }
   #contact { position: fixed; right: 28px; bottom: 24px; z-index: 5; display: flex; gap: 10px; align-items: center; }
-  #hud { position: fixed; left: 16px; top: 76px; z-index: 5; background: rgba(30, 42, 38, 0.82); color: var(--cream); padding: 10px 12px; border-radius: 10px; font: 12px/1.55 'IBM Plex Mono', ui-monospace, monospace; white-space: pre; pointer-events: none; }
+  #hud { position: fixed; left: 16px; top: 76px; z-index: 5; background: rgba(30, 42, 38, 0.82); color: var(--cream); padding: 10px 12px; border-radius: 10px; font: 300 11px/1.6 var(--label); white-space: pre; pointer-events: none; }
   #hud.off { display: none; }
   #hud b { color: var(--butter); font-weight: 500; }
   #hud .bad { color: #ff9c8a; }
   #mist { position: fixed; inset: 0; z-index: 3; background: #F6E7D2; opacity: 0; pointer-events: none; }
   #dusk { position: fixed; inset: 0; z-index: 1; background: #1a2030; mix-blend-mode: multiply; opacity: 0; pointer-events: none; } /* the intro starts on dark water */
-  header, #hint, #caption, #contact, #hud, #pips { transition: opacity 0.8s; }
-  body.intro header, body.intro #hint, body.intro #contact, body.intro #hud, body.intro #pips { opacity: 0; }
+  header, #hint, #caption, #contact, #hud, #pips, #level { transition: opacity 0.8s; }
+  body.intro header, body.intro #hint, body.intro #contact, body.intro #hud, body.intro #pips, body.intro #level { opacity: 0; }
   body.intro #caption { opacity: 0 !important; }
   /* film: grain and a soft vignette over the 3D, under the page text */
   #film { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, rgba(42, 26, 14, 0) 55%, rgba(42, 26, 14, 0.34) 100%); }
@@ -78,12 +83,17 @@
   #pips[hidden] { display: none; }
   #pips button { width: 16px; height: 11px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
   #pips button::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--cream); opacity: 0.55; box-shadow: 0 0 4px rgba(20, 32, 29, 0.6); transition: transform 0.3s var(--ease), opacity 0.3s; }
-  #pips button.here::before { opacity: 1; transform: scale(2.2); background: var(--butter); }
+  #pips button.here::before { opacity: 1; transform: scale(2.2); background: var(--accent); }
+  #level { position: fixed; top: 27px; left: 50%; transform: translateX(-50%); z-index: 5; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.7); white-space: nowrap; }
+  #level::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; background: var(--accent); transform: rotate(45deg); transition: background-color 0.8s; }
+  #who { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 4; margin: 0; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.7); opacity: 0; transition: opacity 0.4s; white-space: nowrap; }
+  #who.on { opacity: 1; }
+  #who.on ~ #hint, body:has(#who.on) #hint { opacity: 0; }
   #pips button:hover::before, #pips button:focus-visible::before { opacity: 1; transform: scale(1.8); }
   #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 4; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.6); }
   #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
   @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 84px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 8px; } #chooser article { padding: 10px 14px; } #chooser h3 { font-size: 22px; margin-bottom: 2px; } #chooser ul { margin: 6px 0 10px; font-size: 13px; }
-    header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 10px; top: 64px; } .brand small { display: none; } }
+    header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 9px; top: 64px; } .brand { font-size: 21px; } .brand small { display: block; margin: 2px 0 0; font-size: 9px; } #level { top: auto; bottom: 62px; font-size: 9px; } #who { font-size: 9px; } #caption .num { opacity: 0.3; } }
 </style>
 </head>
 <body>
@@ -91,14 +101,15 @@
 <div id="track"></div>
 
 <header>
-  <div class="brand">scrollstory <small class="mono">studio · world v2 · draft</small></div>
+  <div class="brand">scrollstory <small class="mono">studio · by <b>Rahul Thaniru</b></small></div>
   <nav>
     <button class="pill mono" id="planBtn" aria-expanded="false" aria-controls="plan">Floor plan</button>
   </nav>
 </header>
 <div id="plan" role="menu" aria-label="Floor plan"></div>
 
-<div id="caption" aria-live="polite"><div class="label mono"></div><h1></h1>
+<div id="level" class="mono" aria-live="polite"></div>
+<div id="caption" aria-live="polite"><div class="num" aria-hidden="true"></div><div class="label mono"></div><h1></h1>
   <div class="cta" hidden><a class="pill" href="tel:+919949088659">Call</a><a class="pill solid" href="https://wa.me/919949088659" target="_blank" rel="noopener">WhatsApp</a></div>
 </div>
 <aside id="info" aria-live="polite"></aside>
@@ -108,6 +119,7 @@
   <p class="note mono">Launch prices, for the first 5 clients</p>
 </section>
 <button id="startBtn" class="pill solid mono">Start your project</button>
+<p id="who" class="mono">Rahul Thaniru · Founder · <a href="tel:+919949088659" style="color:inherit">+91 99490 88659</a></p>
 <dialog id="form" aria-labelledby="formTitle" data-lenis-prevent>
   <form>
     <h2 id="formTitle">Start your project</h2>
@@ -130,12 +142,12 @@
     </fieldset>
     <label hidden>Your email <input name="email" type="email" maxlength="120" autocomplete="email"></label>
     <label>Message <textarea name="message" rows="3" maxlength="500"></textarea></label>
-    <small>We only use this to reply to you. Sending opens WhatsApp to +91 99490 88659 with your answers filled in.</small>
+    <small>We only use this to reply to you. Sending opens WhatsApp to Rahul Thaniru (+91 99490 88659) with your answers filled in.</small>
     <div class="row"><button type="button" class="pill close">Close</button><button class="pill solid">Send on WhatsApp</button></div>
   </form>
   <div class="done" role="status">
     <h2>Opening WhatsApp…</h2>
-    <p>If nothing happens, call +91 99490 88659.</p>
+    <p>Your message goes straight to Rahul Thaniru, the founder. If nothing happens, call him on +91 99490 88659.</p>
     <button type="button" class="pill solid close">Back to the walk</button>
   </div>
 </dialog>
@@ -149,7 +161,7 @@
 <div id="film"></div>
 <div id="mist"></div>
 <div id="dusk"></div>
-<div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp +91 99490 88659.</p></div>
+<div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp Rahul Thaniru, Scrollstory Studio: +91 99490 88659.</p></div>
 
 <script type="module" src="/src/main.js"></script>
 </body>

@@ -58,7 +58,7 @@ export function stairs({ scene, camera, tick, mesh, basic, lit, glow, lowQuality
     mesh(new THREE.TorusGeometry(0.11, 0.022, 8, 20), brass, 0, 0.84, 0, watch);
     const dial = basic(0xffffff, { map: canvasTex(256, 256, (x) => {
       x.fillStyle = css(CREAM); x.beginPath(); x.arc(128, 128, 126, 0, 6.3); x.fill();
-      x.fillStyle = css(INK); x.font = '500 30px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillStyle = css(INK); x.font = '500 30px Fraunces, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
       for (let i = 1; i <= 12; i++) { const a = (-i / 12) * 6.2832 - Math.PI / 2; x.fillText(String(i), 128 + Math.cos(a) * 98, 128 + Math.sin(a) * 98); } // the hours run the wrong way round
     }) });
     const hands = [];
@@ -100,10 +100,10 @@ export function stairs({ scene, camera, tick, mesh, basic, lit, glow, lowQuality
       const picture = basic(0xffffff, { map: canvasTex(320, 432, (x, w, h) => {
         x.fillStyle = css(CREAM); x.beginPath(); x.roundRect(0, 0, w, h, 26); x.fill();
         x.fillStyle = css(red ? OXIDE : INK); x.textAlign = 'center'; x.textBaseline = 'middle';
-        for (const [cx, cy, flip] of [[40, 48, 0], [w - 40, h - 48, 1]]) { x.save(); x.translate(cx, cy); if (flip) x.rotate(Math.PI); x.font = '500 40px Georgia, serif'; x.fillText(RANKS[i], 0, -12); x.font = '30px Georgia, serif'; x.fillText(suit, 0, 24); x.restore(); }
+        for (const [cx, cy, flip] of [[40, 48, 0], [w - 40, h - 48, 1]]) { x.save(); x.translate(cx, cy); if (flip) x.rotate(Math.PI); x.font = '500 40px Fraunces, Georgia, serif'; x.fillText(RANKS[i], 0, -12); x.font = '30px Fraunces, Georgia, serif'; x.fillText(suit, 0, 24); x.restore(); }
         x.fillStyle = css(tints[i]); x.fillRect(64, 104, w - 128, 150);
         x.fillStyle = 'rgba(247,239,226,0.85)'; x.fillRect(82, 124, 90, 10); x.fillRect(82, 144, 140, 7); x.fillRect(82, 158, 110, 7);
-        x.fillStyle = css(INK); x.font = '500 30px Georgia, serif';
+        x.fillStyle = css(INK); x.font = '500 30px Fraunces, Georgia, serif';
         const words = m.title.split(' '), lines = words.length > 2 ? [words.slice(0, 2).join(' '), words.slice(2).join(' ')] : [m.title];
         for (const [k, l] of lines.entries()) x.fillText(l, w / 2, 306 + k * 36 - (lines.length - 1) * 14);
       }) });

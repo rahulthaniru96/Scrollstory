@@ -425,7 +425,30 @@ const foundBox = document.getElementById('found');
 function showFound() {
   foundBox.replaceChildren(el('div', foundIds.size === SECRETS.length ? 'You found every secret' : `${foundIds.size} of ${SECRETS.length} secrets found`, 'mono'));
   for (const s of SECRETS) if (foundIds.has(s.id)) { const b = el('button', '✦ ' + s.name, 'mono'); b.onclick = () => { togglePlan(false); enterSecret(s.id); }; foundBox.append(b); }
+  for (const s of SECRETS) if (!foundIds.has(s.id)) { // a clue for each one still hidden, and a way to get close
+    const row = el('div', null, 'clue'), b = el('button', 'Take me near', 'mono'); row.append(el('p', '? ' + s.clue));
+    b.onclick = () => { togglePlan(false); const w = hidden.ways.find((q) => q.id === s.id); jump(nearStop(w.at)); hidden.beckon(s.id, now + 9); };
+    row.append(b); foundBox.append(row);
+  }
   for (const id of foundIds) hidden.found(id);
+}
+// the closest stop that has a point in front of the camera (within 38 degrees of its view), for the floor plan's hints
+const nearStop = (at) => rail.stops.reduce((b, s, i) => {
+  const p = rail.pos(s), y = THREE.MathUtils.degToRad(rail.yaw(s)), q = THREE.MathUtils.degToRad(rail.pitch(s));
+  const v = [at.x - p[0], at.y - p[1], at.z - p[2]], d = Math.hypot(...v), f = [-Math.sin(y) * Math.cos(q), Math.sin(q), -Math.cos(y) * Math.cos(q)];
+  const facing = (v[0] * f[0] + v[1] * f[1] + v[2] * f[2]) / d > Math.cos(THREE.MathUtils.degToRad(38)); // shortcut: no wall test, so a stop behind a wall could win; fine for the three ways in today
+  return facing && d < b[1] ? [i, d] : b;
+}, [0, 1e9])[0];
+// A nudge: resting at a stop with a way in on screen that is still hidden, a line says so, once per secret per visit.
+const nudgeBox = document.getElementById('nudge'), nudged = new Set(), scrN = new THREE.Vector3();
+let nudgeSince = 0;
+function nudge(t) {
+  const w = !steps.travelling && !state.secret && !state.seat && hidden.ways.find((q) => !q.found && !nudged.has(q.id) && q.at.distanceTo(camera.position) < q.near && (scrN.copy(q.at).project(camera), scrN.z < 1 && Math.abs(scrN.x) < 0.9 && Math.abs(scrN.y) < 0.9));
+  if (!w) { nudgeSince = 0; return; }
+  if (!nudgeSince) nudgeSince = t;
+  if (t - nudgeSince < 2.5) return;
+  nudged.add(w.id); hidden.beckon(w.id, t + 6); nudgeBox.textContent = 'Psst. Something here opens. Look for the fireflies.';
+  gsap.fromTo(nudgeBox, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5 }); gsap.to(nudgeBox, { opacity: 0, duration: 0.6, delay: 5 });
 }
 function through(change) { // a short fade covers every jump in or out
   if (state.fading) return;
@@ -575,7 +598,7 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
-  expand(env.site, env.air); hidden.update(time, dt, pointer);
+  expand(env.site, env.air); hidden.update(time, dt, pointer); if (!free) nudge(time);
   if (env.tv.ch !== sfxWas.ch) { sfxWas.ch = env.tv.ch; if (env.tv.ch >= 0) sfx.blip(); }
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;

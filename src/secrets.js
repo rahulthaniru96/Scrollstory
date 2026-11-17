@@ -18,9 +18,9 @@ export const BOOKS = [
 const DEEP = -60; // the floor of the secret rooms
 // pose: where the camera stands inside. flip: no room, the walk's own view turned upside down.
 export const SECRETS = [
-  { id: 'lab', name: 'The Lab', text: "Experiments, Blender renders, and a kids' game prototype. Move the cursor over the tablet to brush it clean.", pose: { pos: [60, DEEP + 1.6, 1.9], yaw: 0, pitch: -3 } },
-  { id: 'mirror', name: 'The mirror', text: 'An upside-down copy of the room, where the sky is underwater.', flip: true },
-  { id: '201', name: 'Door 201 · The sketch room', text: 'Where a site starts. Click a colour, a typeface and a layout on the desk, and the screen sketches a first homepage.', pose: { pos: [80.6, DEEP + 1.55, 1.5], yaw: 0, pitch: -6 } },
+  { id: 'lab', clue: 'Five volumes on the Landing. The last one is more than a book.', name: 'The Lab', text: "Experiments, Blender renders, and a kids' game prototype. Move the cursor over the tablet to brush it clean.", pose: { pos: [60, DEEP + 1.6, 1.9], yaw: 0, pitch: -3 } },
+  { id: 'mirror', clue: 'In the Lobby, a ring of light sits on the water. Step into it.', name: 'The mirror', text: 'An upside-down copy of the room, where the sky is underwater.', flip: true },
+  { id: '201', clue: 'A teal door on the Landing has a number on it. Knock.', name: 'Door 201 · The sketch room', text: 'Where a site starts. Click a colour, a typeface and a layout on the desk, and the screen sketches a first homepage.', pose: { pos: [80.6, DEEP + 1.55, 1.5], yaw: 0, pitch: -6 } },
 ];
 export const SHELF = { x: -11, z: -1.68 }, PUDDLE = [-3.4, 0.03, 7.0], DOOR = { x: -11, z: 0.75 };
 
@@ -187,6 +187,7 @@ export function secrets({ scene, camera, lowQuality }) {
   return {
     books, ways, openBook: open, get reading() { return openK; },
     found(id) { const w = ways.find((q) => q.id === id); w.found = true; w.flies.visible = false; },
+    beckon(id, until) { ways.find((q) => q.id === id).beckon = until; }, // a hint asked for: the outline glows on its own for a while
     hover(i) { for (const [k, b] of books.entries()) b.want = k === i ? 1 : 0; },
     open(i) { want = i; },
     get opened() { return want; },
@@ -235,7 +236,8 @@ export function secrets({ scene, camera, lowQuality }) {
         w.flies.visible = close && !w.found; w.edge.visible = close;
         if (!close) continue;
         scr.copy(w.at).project(camera); // the outline shows only when the cursor is near it on the screen
-        w.fade.value += ((scr.z < 1 ? sstep(0.45, 0.12, Math.hypot(scr.x - pointer.x, (scr.y + pointer.y) * 0.6)) : 0) - w.fade.value) * Math.min(1, dt * 6);
+        const want = Math.max(scr.z < 1 ? sstep(0.45, 0.12, Math.hypot(scr.x - pointer.x, (scr.y + pointer.y) * 0.6)) : 0, (w.beckon || 0) > t ? 0.6 + 0.4 * Math.sin(t * 4) : 0, w.found ? 0 : 0.12); // unfound ways always show a faint edge
+        w.fade.value += (want - w.fade.value) * Math.min(1, dt * 6);
         for (let i = 0; i < 4; i++) { const a = t * (0.5 + i * 0.13) + i * 1.9 + k; v.set(Math.cos(a) * 0.45, Math.sin(a * 1.3) * 0.35 + 0.2, Math.sin(a) * 0.45); w.pos.set([v.x, v.y, v.z], i * 3); }
         w.flies.geometry.attributes.position.needsUpdate = true;
       }

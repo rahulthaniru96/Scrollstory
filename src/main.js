@@ -57,7 +57,7 @@ sun.position.set(-30, 18, 10); // low in the west
 scene.add(hemi, sun);
 
 // ---------- solid geometry, built from the same colliders the rail check uses ----------
-const tone = { wall: 0xefe3c8, facade: 0xe8a89a, stone: 0x8c8a82, ceiling: 0xf4ecdd, floor: 0xd8cdb8, pillar: 0xc9b08a, furniture: 0x9b7a55, glass: 0xbfd8d2, rail: 0x3f6e68, sign: 0x1c2124 };
+const tone = { wall: 0xefe3c8, facade: 0xe3dccf, stone: 0x8c8a82, ceiling: 0xf4ecdd, floor: 0xd8cdb8, pillar: 0xc9b08a, furniture: 0x9b7a55, glass: 0xbfd8d2, rail: 0x3f6e68, sign: 0x1c2124 };
 const mats = Object.fromEntries(Object.entries(tone).map(([k, c]) => [k, new THREE.MeshStandardMaterial({ color: c, roughness: 0.9 })]));
 Object.assign(mats.glass, { transparent: true, opacity: 0.18, roughness: 0.1 });
 const tinted = {};

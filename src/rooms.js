@@ -176,8 +176,13 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
   {
     const D = LONE_DOOR;
     const door = prop('old_door', D.x, 0, D.z, { ry: -0.5, then: (m) => swing(part(m, 'leaf'), Y, (env) => Math.sin(env.air * 0.3) * 0.18) });
-    mesh(new THREE.PlaneGeometry(1.1, 2.3), basic(0xfff0c4, both), 0, 1.15, 0, door); // what is behind the door
-    glow(0xffd58a, 4.2, 0, 1.3, 0.2, door, 0.6);
+    // what is behind the door: not a blaze of white but a night sky, with stars and a thin moon, and only a soft blue light spilling out
+    mesh(new THREE.PlaneGeometry(1.1, 2.3), basic(0xffffff, { ...both, map: canvasTex(220, 460, (x, w, h) => {
+      const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#141a3a'); g.addColorStop(0.7, '#2b3170'); g.addColorStop(1, '#6a5a9a'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+      for (let k = 0; k < 70; k++) { x.fillStyle = `rgba(255,248,230,${0.3 + ((k * 37) % 10) / 14})`; x.fillRect((k * 53) % w, (k * 97) % (h * 0.8), 2, 2); }
+      x.fillStyle = '#fff3d6'; x.beginPath(); x.arc(150, 90, 22, 0, 7); x.fill(); x.fillStyle = '#141a3a'; x.beginPath(); x.arc(160, 84, 20, 0, 7); x.fill(); // a crescent
+    }) }), 0, 1.15, 0, door);
+    glow(0x8fa8ff, 2.2, 0, 1.3, 0.25, door, 0.22);
     fan(-2.2, 3.5, -5.5, 1.3);
     for (const [x, y, z] of [[-2.6, 0.8, -11.2], [1.3, 1.3, -3.6], [-0.4, 0.55, -13.3]]) hover(prop('newspaper', x, y, z, { s: 1.5, then: (m) => { m.rotation.set(0.5, 0, 0.3); } }), 0.1, 0.35, 0.12, 1.2);
     for (const [x, y, z] of FANS) fan(x, y, z);

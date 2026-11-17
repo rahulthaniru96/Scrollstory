@@ -40,7 +40,7 @@ export function stairs({ scene, camera, tick, mesh, basic, lit, glow, lowQuality
   {
     const N = lowQuality ? 3 : 6, TRAIL = lowQuality ? 2 : 4, beads = [];
     for (const [k, r] of [STAIR.rIn, STAIR.rOut].entries()) for (let b = 0; b < N; b++) for (let j = 0; j <= TRAIL; j++)
-      beads.push([glow(0xffd27a, j ? 0.17 - j * 0.025 : 0.3, 0, 0, 0, scene, j ? 0.55 - j * 0.1 : 1), r, (b + k * 0.5) / N, j]);
+      beads.push([glow(0xffc27a, j ? 0.1 - j * 0.015 : 0.16, 0, 0, 0, scene, j ? 0.4 - j * 0.08 : 0.7), r, (b + k * 0.5) / N, j]); // small: brass sparks, not lamps
     tick.push((t, dt, env) => {
       for (const [s, r, off, j] of beads) {
         const phi = STAIR.phi0 + ((env.air * 0.03 + off) % 1) * span - j * 0.07;

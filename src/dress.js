@@ -267,18 +267,23 @@ export function dress({ scene, camera, lowQuality = false }) {
     glow(0xffd9a0, 3.2, 0, py + 0.2, 0.5, g, 0.3);
   }
 
-  // ---------- lamps drifting over the courtyard water ----------
-  const bulb = basic(0xffe9b8);
+  // ---------- paper lanterns drifting over the courtyard water: a soft amber inside each, not a bare bright bulb ----------
   const lamps = [];
   {
-    const rnd = rng(23), Z = LAMP_ZONE;
-    for (let i = 0; i < 11; i++) {
+    const rnd = rng(23), Z = LAMP_ZONE, brass = lit(0x8a6a3a, { roughness: 0.4, metalness: 0.5 });
+    const papers = [0xffb36b, 0xf2c26b, 0xe8907a].map((c) => new THREE.MeshStandardMaterial({ color: 0xfff1dc, emissive: c, emissiveIntensity: 0.85, roughness: 0.9, transparent: true, opacity: 0.94 }));
+    const body = new THREE.CylinderGeometry(0.16, 0.16, 0.36, 16, 1, true), rib = new THREE.TorusGeometry(0.162, 0.008, 4, 20).rotateX(Math.PI / 2), cap = new THREE.CylinderGeometry(0.1, 0.13, 0.04, 12);
+    for (let i = 0; i < 9; i++) {
       const g = new THREE.Group(), home = new V3(lerp(Z.x0 + 0.7, Z.x1 - 0.7, rnd()), lerp(Z.y0, Z.y1 - 0.3, rnd()), lerp(Z.z0 + 0.7, Z.z1 - 0.7, rnd()));
-      mesh(new THREE.SphereGeometry(0.1, 12, 8), bulb, 0, 0, 0, g); glow(0xffc978, 1.7, 0, 0, 0, g);
-      g.position.copy(home); scene.add(g); lamps.push([g, home, rnd() * 6.28]);
+      const m = new THREE.Mesh(body, papers[i % 3]); m.material.side = THREE.DoubleSide; g.add(m);
+      for (const y of [-0.12, 0, 0.12]) mesh(rib, brass, 0, y, 0, g);
+      mesh(cap, brass, 0, 0.2, 0, g); mesh(cap, brass, 0, -0.2, 0, g).rotation.x = Math.PI;
+      mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.18, 4), brass, 0, -0.31, 0, g); // the tassel cord
+      glow(0xffa75a, 0.95, 0, 0, 0, g, 0.35);
+      g.scale.setScalar(0.9 + rnd() * 0.5); g.position.copy(home); scene.add(g); lamps.push([g, home, rnd() * 6.28]);
     }
   }
-  tick.push((t, dt, env) => { for (const [g, home, ph] of lamps) g.position.set(home.x + Math.sin(env.air * 0.13 + ph) * 0.3, home.y + Math.sin(t * 0.4 + ph * 2) * 0.12, home.z + Math.cos(env.air * 0.11 + ph) * 0.3); });
+  tick.push((t, dt, env) => { for (const [g, home, ph] of lamps) { g.position.set(home.x + Math.sin(env.air * 0.13 + ph) * 0.3, home.y + Math.sin(t * 0.4 + ph * 2) * 0.12, home.z + Math.cos(env.air * 0.11 + ph) * 0.3); g.rotation.y = env.air * 0.2 + ph; g.rotation.z = Math.sin(t * 0.6 + ph) * 0.06; } });
 
   // ---------- 04 Worth it: the ledger's pages leave as paper birds ----------
   {

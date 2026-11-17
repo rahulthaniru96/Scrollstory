@@ -18,9 +18,9 @@ export const BOOKS = [
 const DEEP = -60; // the floor of the secret rooms
 // pose: where the camera stands inside. flip: no room, the walk's own view turned upside down.
 export const SECRETS = [
-  { id: 'lab', name: 'The Lab', text: "Experiments, Blender renders, and a kids' game prototype: brush it clean.", pose: { pos: [60, DEEP + 1.6, 1.9], yaw: 0, pitch: -3 } },
+  { id: 'lab', name: 'The Lab', text: "Experiments, Blender renders, and a kids' game prototype. Move the cursor over the tablet to brush it clean.", pose: { pos: [60, DEEP + 1.6, 1.9], yaw: 0, pitch: -3 } },
   { id: 'mirror', name: 'The mirror', text: 'An upside-down copy of the room, where the sky is underwater.', flip: true },
-  { id: '201', name: 'Door 201', text: 'A tiny 2012 bedroom, and the desk where it started.', pose: { pos: [80, DEEP + 1.5, 1.4], yaw: 0, pitch: -4 } },
+  { id: '201', name: 'Door 201 · The sketch room', text: 'Where a site starts. Click a colour, a typeface and a layout on the desk, and the screen sketches a first homepage.', pose: { pos: [80.6, DEEP + 1.55, 1.5], yaw: 0, pitch: -6 } },
 ];
 export const SHELF = { x: -11, z: -1.68 }, PUDDLE = [-3.4, 0.03, 7.0], DOOR = { x: -11, z: 0.75 };
 
@@ -102,6 +102,7 @@ export function secrets({ scene, camera, lowQuality }) {
   });
 
   // ---------- The Lab ----------
+  const lab = {};
   {
     const g = new THREE.Group(); g.position.set(60, DEEP, 0); scene.add(g);
     mesh(new THREE.BoxGeometry(6.4, 3.3, 6.4), lit(0x25302e, { side: THREE.BackSide }), 0, 1.65, 0, g);
@@ -109,39 +110,79 @@ export function secrets({ scene, camera, lowQuality }) {
     box(3.4, 0.07, 0.9, lit(0x9b7a55), 0, 0.82, -2.5, g); for (const s of [-1.5, 1.5]) box(0.07, 0.8, 0.8, lit(0x6b4a32), s, 0.4, -2.5, g);
     const tex = new THREE.TextureLoader().load(renders); tex.colorSpace = THREE.SRGBColorSpace;
     box(3.3, 1.9, 0.05, lit(0x1c2124), 0, 2.05, -3.14, g); mesh(new THREE.PlaneGeometry(3.14, 1.76), basic(0xffffff, { map: tex }), 0, 2.05, -3.1, g); // the real Blender render of every prop in the building
+    // "brush it clean": the kids' game prototype, playable. Dust covers a little picture; the cursor brushes it away.
     const tablet = canvasTex(512, 320, (x) => {
-      x.fillStyle = '#f7efe2'; x.fillRect(0, 0, 512, 320); x.fillStyle = '#bfe3f2'; x.fillRect(0, 0, 512, 70);
-      x.fillStyle = '#1e2a26'; x.textAlign = 'center'; x.font = '500 58px Fraunces, Georgia, serif'; x.fillText('brush it clean', 256, 170);
-      x.font = '400 22px "Martian Mono", monospace'; x.fillText("KIDS' GAME · PROTOTYPE", 256, 226);
-      x.fillStyle = '#3f6e68'; x.fillRect(206, 262, 100, 10); x.fillRect(306, 250, 46, 34);
+      x.fillStyle = '#bfe3f2'; x.fillRect(0, 0, 512, 320); x.fillStyle = '#f2d98b'; x.beginPath(); x.arc(420, 70, 40, 0, 7); x.fill(); // sky and sun
+      x.fillStyle = '#7fae7a'; x.fillRect(0, 250, 512, 70); // grass
+      x.fillStyle = '#e8a89a'; x.fillRect(150, 130, 210, 120); x.fillStyle = '#9e3b2c'; x.beginPath(); x.moveTo(130, 135); x.lineTo(255, 60); x.lineTo(380, 135); x.fill(); // a little house
+      x.fillStyle = '#3f6e68'; x.fillRect(235, 185, 40, 65); x.fillStyle = '#f7efe2'; x.fillRect(170, 160, 44, 36); x.fillRect(296, 160, 44, 36);
+      x.fillStyle = '#1e2a26'; x.textAlign = 'center'; x.font = '600 34px Fraunces, Georgia, serif'; x.fillText('Sparkling!', 256, 300);
     });
-    const slate = box(0.8, 0.5, 0.03, lit(0x1c2124), -0.9, 1.16, -2.45, g); slate.rotation.x = -0.35; mesh(new THREE.PlaneGeometry(0.74, 0.46), basic(0xffffff, { map: tablet }), 0, 0, 0.017, slate);
+    const dustC = document.createElement('canvas'); dustC.width = 256; dustC.height = 160; const dx = dustC.getContext('2d'), dust = new THREE.CanvasTexture(dustC); dust.colorSpace = THREE.SRGBColorSpace;
+    const fillDust = () => {
+      dx.globalCompositeOperation = 'source-over'; dx.fillStyle = '#8a7356'; dx.fillRect(0, 0, 256, 160);
+      for (let k = 0; k < 900; k++) { dx.fillStyle = `rgba(${90 + Math.random() * 60},${70 + Math.random() * 40},${50 + Math.random() * 30},0.6)`; dx.fillRect(Math.random() * 256, Math.random() * 160, 3, 3); }
+      dx.fillStyle = '#f7efe2'; dx.font = '600 22px "Martian Mono", monospace'; dx.textAlign = 'center'; dx.fillText('BRUSH IT CLEAN', 128, 86); dust.needsUpdate = true;
+    };
+    fillDust();
+    const slate = new THREE.Group(); slate.position.set(-1.2, 1.35, -1.3); slate.rotation.set(-0.12, 0.35, 0); g.add(slate);
+    box(1.32, 0.86, 0.04, lit(0x1c2124), 0, 0, 0, slate); mesh(new THREE.PlaneGeometry(1.24, 0.78), basic(0xffffff, { map: tablet }), 0, 0, 0.021, slate);
+    const dustPlane = mesh(new THREE.PlaneGeometry(1.24, 0.78), basic(0xffffff, { map: dust, transparent: true }), 0, 0, 0.024, slate);
+    box(0.05, 1.0, 0.05, lit(0x6b4a32), 0, -0.9, -0.05, slate); // its stand
+    lab.brush = (ray) => {
+      const hit = ray.intersectObject(dustPlane)[0]; if (!hit) return false;
+      dx.globalCompositeOperation = 'destination-out'; dx.beginPath(); dx.arc(hit.uv.x * 256, (1 - hit.uv.y) * 160, 16, 0, 7); dx.fill(); dust.needsUpdate = true;
+      return true;
+    };
+    lab.left = () => { const d = dx.getImageData(0, 0, 256, 160).data; let n = 0; for (let k = 3; k < d.length; k += 16) n += d[k] > 40; return n / (d.length / 16); }; // how much dust is left, 0 to 1
+    lab.reset = fillDust;
     // experiments: wireframe shapes turning in the air
-    const shapes = [[new THREE.IcosahedronGeometry(0.36, 0), 1.7, 1.5, -1.6], [new THREE.TorusKnotGeometry(0.24, 0.07, 48, 8), -2.1, 1.9, -0.9], [new THREE.OctahedronGeometry(0.3, 0), 0.9, 1.2, -2.3]].map(([geo, x, y, z]) => {
+    const shapes = [[new THREE.IcosahedronGeometry(0.36, 0), 1.7, 1.5, -1.6], [new THREE.TorusKnotGeometry(0.24, 0.07, 48, 8), 2.0, 1.9, -0.9], [new THREE.OctahedronGeometry(0.3, 0), 0.9, 1.2, -2.3]].map(([geo, x, y, z]) => {
       const m = mesh(geo, holoFill({ opacity: 0.2 }), x, y, z, g); m.add(holoEdges(geo, { angle: 1, everywhere: true })); return m;
     });
     tick.push((t) => { if (camera.position.y > DEEP + 10) return; for (const [k, m] of shapes.entries()) { m.rotation.set(t * 0.3 + k, t * 0.4 + k * 2, 0); m.position.y += Math.sin(t * 0.8 + k) * 0.0008; } });
   }
-  // ---------- Door 201's room: a tiny 2012 bedroom ----------
+  // ---------- Door 201: the sketch room. A desk of choices; the screen draws a homepage from what is picked. ----------
+  const sketch = { pal: 0, font: 0, layout: 0, name: '', items: [] };
   {
     const g = new THREE.Group(); g.position.set(80, DEEP, 0); scene.add(g);
-    mesh(new THREE.BoxGeometry(4.2, 2.8, 4.2), lit(0xe6d6b4, { side: THREE.BackSide }), 0, 1.4, 0, g);
-    mesh(new THREE.PlaneGeometry(4.2, 4.2).rotateX(-Math.PI / 2), lit(0x9b7a55), 0, 0.01, 0, g);
-    box(1.0, 0.3, 2.0, lit(0x6b4a32), -1.5, 0.25, -0.9, g); box(0.96, 0.14, 1.96, lit(0x2f5fa8), -1.5, 0.47, -0.9, g); box(0.7, 0.12, 0.4, lit(0xf7efe2), -1.5, 0.6, -1.65, g); // the bed
-    box(1.5, 0.06, 0.7, lit(0x9b7a55), 0.7, 0.76, -1.7, g); for (const s of [0.05, 1.35]) box(0.06, 0.76, 0.6, lit(0x6b4a32), s, 0.38, -1.7, g); // the desk
-    box(0.56, 0.46, 0.5, lit(0xd8cdb8), 0.7, 1.05, -1.75, g); // a CRT monitor
-    const screen = canvasTex(256, 200, (x) => {
-      x.fillStyle = '#10161a'; x.fillRect(0, 0, 256, 200); x.font = '500 17px "Martian Mono", monospace'; x.fillStyle = '#9fe8a8';
-      ['<html>', ' <body>', '  <h1>my first', '  website</h1>', ' </body>', '</html>'].forEach((l, k) => x.fillText(l, 18, 40 + k * 26));
-    });
-    mesh(new THREE.PlaneGeometry(0.44, 0.34), basic(0xffffff, { map: screen }), 0.7, 1.07, -1.495, g);
-    box(0.5, 0.03, 0.18, lit(0xc9bfae), 0.7, 0.81, -1.42, g); mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.05, 16), lit(0x6b4a32), 0.7, 0.48, -1.0, g); // keyboard, stool
-    for (const s of [-0.12, 0.12]) mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.46, 8), lit(0x2c3834), 0.7 + s, 0.23, -1.0, g);
-    mesh(new THREE.PlaneGeometry(0.5, 0.6), basic(0xffffff, { map: canvasTex(200, 240, (x) => { x.fillStyle = '#f7efe2'; x.fillRect(0, 0, 200, 240); x.fillStyle = '#9e3b2c'; x.fillRect(0, 0, 200, 62); x.fillStyle = '#f7efe2'; x.textAlign = 'center'; x.font = '600 40px "Martian Mono", monospace'; x.fillText('2012', 100, 46); x.fillStyle = '#8c8a82'; for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) x.fillRect(22 + c * 28, 86 + r * 36, 16, 16); }) }), -0.6, 1.7, -2.09, g);
-    mesh(new THREE.PlaneGeometry(0.9, 1.0), basic(0x2a2f5a), 1.5, 1.75, -2.09, g); // the window: night
-    mesh(new THREE.SphereGeometry(0.07, 12, 10), basic(0xfff0c4), 0.2, 2.35, -0.6, g);
+    mesh(new THREE.BoxGeometry(4.6, 3.0, 4.6), lit(0xece3d2, { side: THREE.BackSide }), 0, 1.5, 0, g);
+    mesh(new THREE.PlaneGeometry(4.6, 4.6).rotateX(-Math.PI / 2), lit(0xb8a07c), 0, 0.01, 0, g);
+    box(3.4, 0.06, 0.9, lit(0xd9c7a8), 0, 0.78, -1.75, g); for (const s of [-1.6, 1.6]) box(0.06, 0.78, 0.8, lit(0x6b4a32), s, 0.39, -1.75, g); // the desk
+    mesh(new THREE.PlaneGeometry(1.5, 0.4), basic(0xffffff, { map: canvasTex(600, 160, (x) => { x.fillStyle = '#ece3d2'; x.fillRect(0, 0, 600, 160); x.fillStyle = '#1e2a26'; x.font = '500 30px "Martian Mono", monospace'; x.fillText('ROOM 201', 20, 50); x.font = 'italic 400 64px Fraunces, Georgia, serif'; x.fillText('The sketch room', 20, 128); }) }), -1.3, 2.55, -2.29, g);
+    box(1.34, 0.84, 0.05, lit(0x1c2124), 0, 1.36, -1.95, g); box(0.08, 0.3, 0.08, lit(0x1c2124), 0, 0.95, -1.97, g); // the screen and its neck
+    const c = document.createElement('canvas'); c.width = 640; c.height = 400; const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    mesh(new THREE.PlaneGeometry(1.26, 0.78), basic(0xffffff, { map: tex }), 0, 1.36, -1.92, g);
+    const PALS = [['#f6e7d2', '#3a2416', '#c2562f'], ['#eef5f3', '#1e3a36', '#3f8f86'], ['#16161d', '#f5f0e6', '#f2c94c'], ['#fbeef0', '#4a2030', '#d4587a']];
+    const FONTS = [['Fraunces, Georgia, serif', 'Aa', 'Serif'], ['"Familjen Grotesk", Arial, sans-serif', 'Aa', 'Sans'], ['"Martian Mono", monospace', 'Aa', 'Mono']];
+    const draw = () => {
+      const [bg, ink, acc] = PALS[sketch.pal], f = FONTS[sketch.font][0], name = sketch.name.trim() || 'Your business', L = sketch.layout;
+      x.fillStyle = bg; x.fillRect(0, 0, 640, 400);
+      x.fillStyle = ink; x.font = `600 20px ${f}`; x.textAlign = 'left'; x.fillText(name, 28, 40); x.font = `400 14px ${f}`; ['Menu', 'About', 'Visit'].forEach((t, k) => x.fillText(t, 420 + k * 64, 40));
+      x.fillStyle = acc; x.globalAlpha = 0.9;
+      const title = (px, py, size, align) => { x.fillStyle = ink; x.textAlign = align; let s = size; x.font = `600 ${s}px ${f}`; while (x.measureText(name).width > 520 && s > 22) { s -= 4; x.font = `600 ${s}px ${f}`; } x.fillText(name, px, py); x.font = `400 18px ${f}`; x.fillText('A line about what you do, and for whom.', px, py + 34); };
+      const btn = (px, py) => { x.fillStyle = acc; x.fillRect(px, py, 150, 40); x.fillStyle = bg; x.font = `600 15px ${f}`; x.textAlign = 'center'; x.fillText('WhatsApp us', px + 75, py + 26); };
+      x.globalAlpha = 1;
+      if (L === 0) { title(28, 170, 44, 'left'); btn(28, 230); x.fillStyle = acc; x.globalAlpha = 0.35; x.fillRect(380, 80, 232, 220); x.globalAlpha = 1; x.strokeStyle = ink; x.lineWidth = 2; x.beginPath(); x.moveTo(380, 300); x.lineTo(460, 200); x.lineTo(520, 260); x.lineTo(612, 160); x.stroke(); }
+      else if (L === 1) { title(320, 180, 54, 'center'); btn(245, 240); x.fillStyle = acc; x.fillRect(300, 90, 40, 6); }
+      else { title(28, 130, 40, 'left'); for (let k = 0; k < 3; k++) { x.fillStyle = acc; x.globalAlpha = 0.25 + k * 0.2; x.fillRect(28 + k * 200, 200, 184, 150); x.globalAlpha = 1; x.fillStyle = ink; x.font = `600 16px ${f}`; x.textAlign = 'left'; x.fillText(['Our work', 'Prices', 'Find us'][k], 44 + k * 200, 335); } }
+      x.fillStyle = ink; x.globalAlpha = 0.4; x.font = '400 11px "Martian Mono", monospace'; x.textAlign = 'right'; x.fillText('SKETCH · NOT A REAL SITE', 620, 390); x.globalAlpha = 1;
+      tex.needsUpdate = true;
+    };
+    sketch.draw = draw;
+    const item = (kind, i, geo, mat, px, py, pz, rx = 0) => { const m = mesh(geo, mat, px, py, pz, g); m.rotation.x = rx; m.userData = { kind, i, y: py }; sketch.items.push(m); return m; };
+    // colour chips, standing on the left of the desk
+    PALS.forEach((p, i) => item('pal', i, new THREE.BoxGeometry(0.2, 0.3, 0.02), basic(0xffffff, { map: canvasTex(80, 120, (q) => { q.fillStyle = p[0]; q.fillRect(0, 0, 80, 120); q.fillStyle = p[2]; q.fillRect(0, 0, 80, 56); q.fillStyle = p[1]; q.fillRect(0, 96, 80, 24); }) }), -1.45 + i * 0.24, 0.98, -1.55, -0.2));
+    // typeface cards, on the right
+    FONTS.forEach((fo, i) => item('font', i, new THREE.BoxGeometry(0.24, 0.3, 0.02), basic(0xffffff, { map: canvasTex(96, 120, (q) => { q.fillStyle = '#fffaf0'; q.fillRect(0, 0, 96, 120); q.fillStyle = '#1e2a26'; q.textAlign = 'center'; q.font = `600 52px ${fo[0]}`; q.fillText(fo[1], 48, 70); q.font = '400 14px "Martian Mono", monospace'; q.fillText(fo[2].toUpperCase(), 48, 104); }) }), 0.85 + i * 0.28, 0.98, -1.55, -0.2));
+    // layout blueprints, pinned to the wall above the screen
+    ['Picture right', 'Centred', 'Three cards'].forEach((t, i) => item('layout', i, new THREE.PlaneGeometry(0.42, 0.3), basic(0xffffff, { map: canvasTex(168, 120, (q) => {
+      q.fillStyle = '#2f5fa8'; q.fillRect(0, 0, 168, 120); q.strokeStyle = '#dfe9ff'; q.lineWidth = 2; q.strokeRect(6, 6, 156, 108); q.fillStyle = '#dfe9ff';
+      if (i === 0) { q.fillRect(16, 40, 60, 8); q.fillRect(16, 54, 44, 6); q.strokeRect(96, 28, 56, 52); } else if (i === 1) { q.fillRect(44, 44, 80, 10); q.fillRect(60, 60, 48, 6); } else { q.fillRect(16, 26, 60, 8); for (let k = 0; k < 3; k++) q.strokeRect(16 + k * 48, 50, 40, 36); }
+      q.font = '400 11px "Martian Mono", monospace'; q.fillText(t.toUpperCase(), 14, 108);
+    }) }), -0.5 + i * 0.5, 2.15, -2.28));
+    draw();
   }
-
   const v = new THREE.Vector3(), scr = new THREE.Vector3();
   return {
     books, ways, openBook: open, get reading() { return openK; },
@@ -149,6 +190,15 @@ export function secrets({ scene, camera, lowQuality }) {
     hover(i) { for (const [k, b] of books.entries()) b.want = k === i ? 1 : 0; },
     open(i) { want = i; },
     get opened() { return want; },
+    // inside a secret: a click on one of its things. Returns true when something answered.
+    press(ray, id) {
+      if (id !== '201') return false;
+      const hit = ray.intersectObjects(sketch.items)[0]; if (!hit) return false;
+      const { kind, i } = hit.object.userData; sketch[kind] = i; sketch.draw(); return true;
+    },
+    over(ray, id) { return id === '201' ? ray.intersectObjects(sketch.items).length > 0 : id === 'lab' ? lab.brush(ray) : false; }, // the cursor over something live; in the Lab, brushing
+    sketchName(t) { sketch.name = t; sketch.draw(); },
+    dustLeft: () => lab.left(),
     // What a ray from the cursor is on: a book, a secret's way in, or nothing. Only things within reach of the camera count.
     pick(ray) {
       if (want >= 0 && open.visible && ray.intersectObject(open, true).length) return { book: want }; // a click on the open book closes it
@@ -189,6 +239,7 @@ export function secrets({ scene, camera, lowQuality }) {
         for (let i = 0; i < 4; i++) { const a = t * (0.5 + i * 0.13) + i * 1.9 + k; v.set(Math.cos(a) * 0.45, Math.sin(a * 1.3) * 0.35 + 0.2, Math.sin(a) * 0.45); w.pos.set([v.x, v.y, v.z], i * 3); }
         w.flies.geometry.attributes.position.needsUpdate = true;
       }
+      for (const m of sketch.items) { const on = sketch[m.userData.kind] === m.userData.i; m.position.y += ((m.userData.y + (on ? 0.06 : 0)) - m.position.y) * Math.min(1, dt * 8); }
       for (const f of tick) f(t);
     },
   };

@@ -380,7 +380,7 @@ function cards(p) {
     info.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
     if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
     if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; info.append(b); }
-    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); }; info.append(i); }
+    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; info.append(i); }
   }
   const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (m === lastMove ? 1 : 1 - sstep(0.8, 1, u)) : 0;
   info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
@@ -455,14 +455,16 @@ remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
 remoteBar.querySelector('.up').onclick = () => sit(false);
 remoteBar.querySelector('.tell').onclick = () => { sit(false); openForm(); };
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
-addEventListener('pointermove', (e) => { // a book under the cursor slides half out
+addEventListener('pointermove', (e) => { // a book under the cursor slides half out; inside a secret, its live things
+  if (state.secret && !state.secret.flip) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = hidden.over(ray, state.secret.id) ? (state.secret.id === 'lab' ? 'grab' : 'pointer') : ''; return; }
   if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
   const hit = hidden.pick(ray); hidden.hover(hit?.book ?? -1); canvas.style.cursor = hit ? 'pointer' : '';
 });
 addEventListener('click', (e) => {
-  if (e.target.closest('button, a, dialog, #info, #chooser, #plan, header, #pips') || state.secret || document.body.classList.contains('intro')) return;
+  if (e.target.closest('button, a, dialog, #info, #chooser, #plan, header, #pips') || document.body.classList.contains('intro')) return;
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
+  if (state.secret) { if (hidden.press(ray, state.secret.id)) sfx.blip(); return; }
   const hit = hidden.pick(ray);
   if (hit?.secret) return enterSecret(hit.secret);
   if (hit && rail.moveAt(state.body) === SHELF_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }

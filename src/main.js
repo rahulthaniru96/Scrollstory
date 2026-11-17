@@ -162,12 +162,11 @@ for (const c of COLLIDERS) {
 }
 
 // Bridges as stepping slabs.
-for (const b of BRIDGES) {
-  const n = 9;
+for (const b of BRIDGES.filter((q) => q.ride === 'doors')) { // the rides draw themselves (journeys.js)
+  const dx = b.b[0] - b.a[0], dz = b.b[1] - b.a[1], n = Math.max(3, Math.round(Math.hypot(dx, dz) / 0.9)), geo = new THREE.BoxGeometry(b.width, 0.2, 0.72);
   for (let i = 0; i < n; i++) {
-    const u = (i + 0.5) / n, along = b.a + (b.b - b.a) * u, y = b.ya + (b.yb - b.ya) * u - 0.1;
-    const geo = b.axis === 'z' ? new THREE.BoxGeometry(b.width, 0.2, 0.72) : new THREE.BoxGeometry(0.72, 0.2, b.width);
-    add(geo, mats.floor, b.axis === 'z' ? b.c : along, y, b.axis === 'z' ? along : b.c);
+    const u = (i + 0.5) / n;
+    add(geo, mats.floor, b.a[0] + dx * u, b.ya + (b.yb - b.ya) * u - 0.1, b.a[1] + dz * u).rotation.y = Math.atan2(dx, dz);
   }
 }
 
@@ -222,7 +221,7 @@ function atmosphere(h) {
   env.fogDensity = lerp(lerp(0.004, 0.33, sstep(11, 15, h)), 0.006, sstep(20.5, 23, h));
   env.h = h; env.fogColor.lerp(env.tint, 0.14);
   scene.fog.color.copy(env.fogColor); scene.background.copy(env.fogColor); scene.fog.density = env.fogDensity;
-  env.dusk = sstep(29.5, 34, h); // 0 below the Extras platform, 1 at the rooftop desk
+  env.dusk = sstep(30.5, 38.5, h); // 0 at the Drafting Room, rising through the Sky Quarter, 1 at the rooftop desk
   hemi.intensity = (2.5 - 0.5 * env.dusk) * env.dark; sun.intensity = 2.2 * env.dark;
   hemi.color.lerpColors(DAY.hemi, DUSK.hemi, env.dusk).multiply(env.tint); sun.color.lerpColors(DAY.sun, DUSK.sun, env.dusk);
 }
@@ -233,7 +232,7 @@ function theme(p) {
   let i = 0; while (i < LEVELS.length - 1 && p >= LEVELS[i + 1].s) i++;
   const a = LEVELS[i], b = LEVELS[Math.min(i + 1, LEVELS.length - 1)], t = b === a ? 0 : sstep(0.3, 0.7, (p - a.s) / (b.s - a.s));
   env.tint.lerpColors(a.tint, b.tint, t);
-  const k = t < 0.5 ? i : i + 1;
+  const k = b !== a && p >= b.s - 45 ? i + 1 : i; // the chip changes as the next room comes into view, not halfway down a long one
   if (k !== levelNow) { levelNow = k; sfx.level(k); document.documentElement.style.setProperty('--accent', LEVELS[k].accent); levelChip.textContent = `Level ${String(k + 1).padStart(2, '0')} / ${LEVELS.length} · ${LEVELS[k].name.replace(/^\d+ /, '')}`; }
 }
 
@@ -321,15 +320,25 @@ const COPY = {
   'Lobby push in': ['The founder', 'Rahul Thaniru', 'Founder, Scrollstory Studio.'],
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
   'Gallery hold': ['Room 02 · The gallery', 'Every door, a site we built.', 'Step into any one.'],
-  'Worth it hold': ['Room 03 · Worth it', 'Custom. Secure. Legal.', 'Built to bring you income.'],
-  'Workshop hold': ['Room 04 · The workshop', 'Three shops.', 'One for where you are now.'],
+  'Renovation hold': ['Room 03 · The renovation', "Your old site isn't the end of your story.", 'Walk through the line.'],
+  'Renovated': ['Room 03 · The renovation', 'Same café, a new site.', 'A demo: the café is made up.'],
+  'Worth it hold': ['Room 04 · Worth it', 'Custom. Secure. Legal.', 'Built to bring you income.'],
+  'Workshop hold': ['Room 05 · The workshop', 'Three shops.', 'One for where you are now.'],
   'Look up': ['The stairs', 'Keep climbing.', 'The best view is upstairs.'],
   'Landing hold': ['The landing · core memory', '', ''],
   'Bookshelf hold': ['The landing · How we work', 'Five volumes.', 'Pull one out.'],
   'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
-  'Extras hold': ['Room 05 · Extras', 'Everything else it takes to go digital.', 'Click a carriage to see what it carries.'],
-  'Bridge up to the Rooftop': ['Room 06 · The rooftop', 'Up on the roof.', 'The desk is one step away.'],
-  'Settle on the desk': ['Room 06 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
+  'Drafting hold': ['Room 06 · The drafting room', 'You see every screen', 'before a line of code.'],
+  'The page, painted': ['Room 06 · The drafting room', 'Wireframe first, then colour.', 'Then it moves.'],
+  'Signal Cabin hold': ['Room 07 · The signal cabin', 'Bookings, enquiries and staff,', 'all in one panel.'],
+  'Admin panel': ['Room 07 · Pull a lever', 'New becomes booked.', 'Demo data: nothing on this panel is real.'],
+  'Out of the cabin': ['Room 07 · The edge', 'One small step down.', ''],
+  'Extras hold': ['Room 08 · Extras', 'Everything else it takes to go digital.', 'Click a carriage to see what it carries.'],
+  'Map hold': ['Room 08 · Being found', 'On the map, and on your Google Business Profile.', 'Set up in every plan.'],
+  'Greenhouse hold': ['Room 09 · The greenhouse', "We don't launch and leave.", 'We look after it.'],
+  'Care tools': ['Room 09 · A care plan', 'Hosting, backups, uptime, security updates,', 'and a few small changes a month.'],
+  'Kites up to the Rooftop': ['Room 10 · The rooftop', 'Up on the roof.', 'The desk is one step away.'],
+  'Settle on the desk': ['Room 10 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
 };
 const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta'), capNum = cap.querySelector('.num');
 let capWords = [];
@@ -352,7 +361,7 @@ function caption(p) {
   }
   const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.52) / 1.04 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
   // Scroll-driven, so it reverses exactly: the words come in one by one, then the whole caption leaves. The first caption is there when the intro ends.
-  const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove || m.name === 'Bridge up to the Rooftop' ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
+  const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove || m.name === 'Kites up to the Rooftop' ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
   for (const [k, w] of capWords.entries()) { const wo = sstep((k / n) * 0.6, (k / n) * 0.6 + 0.4, arrive); w.style.opacity = wo; w.style.transform = `translateY(${(1 - wo) * 0.4}em)`; }
   const o = sstep(0, 0.2, arrive) * out;
   cap.style.opacity = o; cap.style.transform = `translateY(${(1 - out) * 16}px)`; cap.classList.toggle('on', arrive > 0.6 && out > 0.5);
@@ -364,11 +373,11 @@ const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 
 const GALLERY = byName['Gallery, walking backwards'], HAT = byName['Through the hat'];
 const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = TV_CHANNELS; // the last channel is "Your story?"
 const SITE_STOPS = demoCards.map((c, i) => (i < 4 ? GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (10 - c.z)) / 17 : lerp(byName['Gallery hold'].s0, byName['Gallery hold'].s1, 0.6))); // where the walk rests in front of each demo site
-const EX = EXTRAS.map((e) => byName[`Extra: ${e.name}`]), EX0 = byName['Extras hold'], ROOF = byName['Bridge up to the Rooftop'];
+const EX = EXTRAS.map((e) => byName[`Extra: ${e.name}`]), EX0 = byName['Extras hold'], EX_END = byName['To the map'], CANAL = byName['Sky canal to the Greenhouse']; // the train stays while the board is read, and leaves with the boat
 function focus(p) {
   EX.forEach((m, i) => { env.extra.u[i] = (p - (m.s0 - 8)) / 26; }); // below 0 the row is blank, 0 to 1 it flips, then it has landed
   env.extra.lit = EX.findIndex((m) => p >= m.s0 - 2 && p < m.s1 - 2);
-  env.extra.train = sstep(EX0.s0 - 50, EX0.s0 + 20, p); env.extra.leave = sstep(ROOF.s0 + 5, ROOF.s0 + 70, p);
+  env.extra.train = sstep(EX0.s0 - 50, EX0.s0 + 20, p); env.extra.leave = sstep(CANAL.s0 + 5, CANAL.s0 + 70, p);
   SITE_STOPS.forEach((s, i) => { env.site[i] = sstep(s - 26, s - 5, p) * (1 - sstep(s + 6, s + 26, p)); });
   SHOPS.forEach((s, i) => { env.shop[i] = beat(`Shop: ${s.name}`, p); });
   COUNTERS.forEach((c, i) => { env.counter[i] = beat(`Counter: ${c.name}`, p); });
@@ -396,7 +405,7 @@ COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['The shelf moves. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
-INFO['Settle on the desk'] = { label: 'Room 06 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };
+INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };
 let signText = '';
 SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} of 0${SECRETS.length}`, h: s.name, lines: [s.text], act: ['Back to the walk', () => leaveSecret()] }; });
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
@@ -590,11 +599,11 @@ remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
 remoteBar.querySelector('.up').onclick = () => sit(false);
 remoteBar.querySelector('.tell').onclick = () => { sit(false); openForm(); };
 const carBoxes = EXTRAS.map((e, k) => new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(15 + (k - 1.5) * 1.45, H.extras + 0.7, -21.7), new THREE.Vector3(1.32, 1.0, 0.8)));
-const carAt = (r) => (state.body > EX0.s0 - 5 && state.body < ROOF.s0 + 5 ? carBoxes.findIndex((b) => r.ray.intersectsBox(b)) : -1);
+const carAt = (r) => (state.body > EX0.s0 - 5 && state.body < EX_END.s0 + 5 ? carBoxes.findIndex((b) => r.ray.intersectsBox(b)) : -1);
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
 addEventListener('pointermove', (e) => { // a book under the cursor slides half out; inside a secret, its live things
   if (state.secret && !state.secret.flip) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = hidden.over(ray, state.secret.id) ? 'pointer' : ''; return; }
-  if (!state.secret && state.body > EX0.s0 - 5 && state.body < ROOF.s0 + 5) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = carAt(ray) >= 0 ? 'pointer' : ''; return; }
+  if (!state.secret && state.body > EX0.s0 - 5 && state.body < EX_END.s0 + 5) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = carAt(ray) >= 0 ? 'pointer' : ''; return; }
   if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
   const hit = hidden.pick(ray); hidden.hover(hit?.book ?? -1); canvas.style.cursor = hit ? 'pointer' : '';

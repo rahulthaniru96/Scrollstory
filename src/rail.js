@@ -1,8 +1,8 @@
 // The camera rail: one position spline measured by length, plus a separate look track.
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
-import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER } from './world.js';
+import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER, RENO, PAGE, BRIDGES, MAP, CABIN } from './world.js';
 
-export const TOTAL_VH = 4090; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 5834; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -102,15 +102,25 @@ export function buildRail() {
     const [y, p] = cardAim(CARDS[CARDS.length - 1]); look(a + d, y, p); // the last one opens on the Gallery hold
   });
   hold('Gallery hold', 50, '02 Gallery');
-  // ---- 03 Worth it: the why. Four counters on the south room's back wall, one beat at each ----
-  move('Corner into Worth it', 'room', 110, (a, d) => {
+  // ---- 03 Renovation: out through the courtyard arcade into a glass pavilion on the water. A line sweeps across the café's old site as the walk crosses it ----
+  move('Into the Renovation', 'room', 120, (a, d) => {
     look(a, LAST_CARD, -2);
-    g(-9.3, -13.5); key(a + d, g(-10.2, -17.4));
-    look(a + d * 0.45, 250, 0); look(a + d * 0.85, 293, 0); look(a + d, 293, 0);
+    g(-8.3, -9.7); key(a + d * 0.5, g(-6.6, RENO.walk));
+    look(a + d * 0.45, 270, 0);
+    g(-5.15, RENO.walk); key(a + d, g(-3.9, RENO.walk));
+    look(a + d * 0.85, 360, 3); look(a + d, 360, 3);
   });
-  hold('Worth it hold', 50, '03 Worth it');
+  hold('Renovation hold', 50, '03 Renovation');
+  move('Through the line', 'room', 100, (a, d) => { key(a + d, line(0.1, RENO.walk)); look(a + d * 0.5, 362, 3); look(a + d, 360, 3); });
+  hold('Renovated', 50);
+  // ---- 04 Worth it: the why. Into the south room through the arcade, then along the four counters ----
+  move('Out to Worth it', 'room', 120, (a, d) => {
+    g(1.2, -11.2); g(1.5, -13.6); key(a + d * 0.75, g(1.5, -16)); key(a + d, g(1.5, -17.6));
+    look(a + d * 0.35, 345, 0); look(a + d * 0.7, 360, 0); look(a + d, 440, 0);
+  });
+  hold('Worth it hold', 50, '04 Worth it');
   for (const [i, c] of COUNTERS.entries()) {
-    move(`To ${c.name}`, 'room', i ? 45 : 70, (a, d) => { key(a + d, line(c.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
+    move(`To ${c.name}`, 'room', i ? 45 : 95, (a, d) => { key(a + d, line(c.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
     hold(`Counter: ${c.name}`, 55);
   }
   // ---- 04 Workshop: the price. Round the corner, down the row from its end, a beat at each shop, then step back to choose ----
@@ -120,7 +130,7 @@ export function buildRail() {
     look(a + d * 0.45, 300, 0);
     const [y, p] = aim(here(), [11.35, EYE, -5], 200); look(a + d * 0.9, y, p); look(a + d, y, p);
   });
-  hold('Workshop hold', 40, '04 Workshop');
+  hold('Workshop hold', 40, '05 Workshop');
   for (const [i, sh] of SHOPS.entries()) {
     move(`To ${sh.name}`, 'room', i ? 55 : 50, (a, d) => { key(a + d, line(LANE, sh.z)); look(a + d * 0.8, 270, 0); look(a + d, 270, 0); });
     hold(`Shop: ${sh.name}`, 60);
@@ -195,15 +205,56 @@ export function buildRail() {
     }
   });
   hold('HOME hold', 120, 'HOME'); // the TV's four channels share this and the orbit
-  // ---- 05 Extras ----
-  // Close enough that the board fills the frame. The eyes then go down it, one row to a stop.
-  move('Bridge to Extras', 'room', 150, (a, d) => {
-    g(0, -16, H.home); P(2, H.home + 0.5 + EYE, -16); P(6, H.home + 1.5 + EYE, -16); g(8, -16, H.extras);
-    key(a + d, g(15, -18.2, H.extras));
-    look(a + d * 0.5, NORTH - 90, 5); look(a + d * 0.65, NORTH - 90, 5);
-    const [, p] = aim(here(), [BOARD.x, BOARD.y, BOARD.z], NORTH); look(a + d, NORTH, p * 0.3); // low, so the train on the yellow line stays in the frame under the board
+  // ---- 06 Drafting Room: off HOME's east end and up a rope bridge. A giant wireframe page stands across the room; the walk goes through it ----
+  const ramp = (br, u) => g(br.a[0] + (br.b[0] - br.a[0]) * u, br.a[1] + (br.b[1] - br.a[1]) * u, br.ya + (br.yb - br.ya) * u);
+  const [ROPE, CAR, CANAL] = ['rope bridge', 'funicular', 'sky canal'].map((n) => BRIDGES.find((b) => b.name === n));
+  move('Rope bridge to the Drafting Room', 'room', 150, (a, d) => {
+    g(-1.25, -19, H.home); g(-1.2, -22.2, H.home); ramp(ROPE, 0);
+    for (const u of [0.15, 0.5, 0.85]) ramp(ROPE, u);
+    key(a + d, ramp(ROPE, 0.99));
+    look(a + d * 0.35, NORTH + 10, 0); look(a + d * 0.75, NORTH, 4);
+    const [y, p] = aim(here(), [PAGE.x, PAGE.y + PAGE.h * 0.45, PAGE.z], NORTH); look(a + d, y, p);
   });
-  hold('Extras hold', 40, '05 Extras');
+  hold('Drafting hold', 50, '06 Drafting Room');
+  move('Through the page', 'room', 150, (a, d) => {
+    g(-1.2, -33, H.drafting); g(-1.2, PAGE.z, H.drafting); key(a + d * 0.6, g(-1.2, -38.4, H.drafting)); key(a + d, g(-1.4, -40, H.drafting));
+    look(a + d * 0.3, NORTH, 2); look(a + d, NORTH + 180, 6);
+  });
+  hold('The page, painted', 50);
+  move('Back through to the funicular', 'room', 100, (a, d) => {
+    g(0.2, -38.2, H.drafting); g(0.6, PAGE.z, H.drafting); g(0.9, -34.1, H.drafting); g(1.1, -33.6, H.drafting); g(1.9, -33, H.drafting); ramp(CAR, 0); key(a + d, ramp(CAR, 0.01));
+    look(a + d * 0.5, NORTH + 255, 0); look(a + d, NORTH + 180, -2);
+  });
+  // ---- 07 Signal Cabin: a funicular car across the gap, then into an old railway signal box ----
+  move('Funicular to the Signal Cabin', 'cloud', 150, (a, d) => {
+    for (const u of [0.25, 0.5, 0.75]) ramp(CAR, u);
+    key(a + d, ramp(CAR, 0.99));
+    look(a + d * 0.2, NORTH + 180, -4); look(a + d * 0.8, NORTH + 175, -4); look(a + d, NORTH + 150, -2); // sideways, out over the whole archipelago
+  });
+  move('Into the cabin', 'room', 80, (a, d) => {
+    g(25.3, -33, H.signal); g(25.5, -31.3, H.signal); key(a + d, g(27.8, -28, H.signal));
+    look(a + d * 0.6, NORTH + 100, 0); look(a + d, NORTH + 90, -4);
+  });
+  hold('Signal Cabin hold', 50, '07 Signal Cabin');
+  move('To the admin panel', 'room', 70, (a, d) => {
+    key(a + d, g(28.3, -28.6, H.signal));
+    const [y, p] = aim(here(), [29.6, H.signal + 2.0, CABIN.z0], NORTH + 60); look(a + d * 0.9, y, p); look(a + d, y, p);
+  });
+  hold('Admin panel', 50);
+  move('Out of the cabin', 'room', 110, (a, d) => {
+    g(26.6, -26, H.signal); key(a + d, g(25.3, -21.3, H.signal));
+    look(a + d * 0.6, NORTH + 110, -4); look(a + d, NORTH + 92, -14); // at the edge, looking down at Extras
+  });
+  // ---- 08 Extras: a short fall through a membrane onto the platform, then the board and the map ----
+  move('A short fall', 'cloud', 70, (a, d) => {
+    P(24.4, H.signal + EYE + 0.15, -20.9); P(22.9, H.signal + EYE - 0.4, -20.3); key(a + d, g(21.4, -19.8, H.extras));
+    look(a + d, NORTH + 75, -2);
+  });
+  move('To the board', 'room', 80, (a, d) => {
+    g(19.5, -19.1, H.extras); key(a + d, g(15, -18.2, H.extras));
+    const [, p] = aim(here(), [BOARD.x, BOARD.y, BOARD.z], NORTH); look(a + d * 0.7, NORTH + 15, p * 0.3); look(a + d, NORTH, p * 0.3); // low, so the train on the yellow line stays in the frame under the board
+  });
+  hold('Extras hold', 40, '08 Extras');
   for (const [r, e] of EXTRAS.entries()) {
     move(`Extra: ${e.name}`, 'room', 50, (a, d) => {
       key(a + d, last());
@@ -211,20 +262,38 @@ export function buildRail() {
     });
     moves[moves.length - 1].hold = true;
   }
-  // ---- 06 Rooftop ----
-  move('Bridge up to the Rooftop', 'room', 180, (a, d) => {
-    line(15, -10, H.extras);
-    P(15, H.extras + 1 + EYE, -7); P(15, H.extras + 2 + EYE, -4); g(15, -1, H.rooftop);
+  move('To the map', 'room', 70, (a, d) => {
+    g(15.2, -16.4, H.extras); key(a + d, g(14.5, -14.4, H.extras));
+    const [y, p] = aim(here(), [MAP.x, H.extras + 1.0, MAP.z], NORTH + 90); look(a + d * 0.85, y, p); look(a + d, y, p);
+  });
+  hold('Map hold', 50);
+  // ---- 09 Greenhouse: a paper boat up a canal that runs uphill out of the lake ----
+  move('Sky canal to the Greenhouse', 'cloud', 160, (a, d) => {
+    g(13.14, -10.92, H.extras); ramp(CANAL, 0);
+    for (const u of [0.1, 0.4, 0.7, 0.92]) ramp(CANAL, u);
+    key(a + d, ramp(CANAL, 0.99));
+    look(a + d * 0.35, NORTH + 245, 2); look(a + d * 0.8, NORTH + 250, 4); look(a + d, NORTH + 265, 0);
+  });
+  move('Into the Greenhouse', 'room', 60, (a, d) => { key(a + d, g(28.6, -0.6, H.greenhouse)); look(a + d, NORTH + 270, 2); });
+  hold('Greenhouse hold', 50, '09 Greenhouse');
+  move('To the care tools', 'room', 50, (a, d) => {
+    key(a + d, g(29.3, 0.8, H.greenhouse));
+    const [y, p] = aim(here(), [31.4, H.greenhouse + 1.3, -2.6], NORTH + 300); look(a + d * 0.85, y, p); look(a + d, y, p);
+  });
+  hold('Care tools', 50);
+  // ---- 10 Rooftop: kites lift the walk up over the parapet, then the desk ----
+  move('Kites up to the Rooftop', 'cloud', 160, (a, d) => {
+    g(27.6, 2.2, H.greenhouse); P(26, H.greenhouse + EYE + 1.2, 2.4); P(24.2, H.rooftop + EYE + 0.9, 2.5); P(22.1, H.rooftop + EYE + 0.95, 2.4); P(19.6, H.rooftop + EYE + 0.3, 2);
     key(a + d, g(15, 1.2, H.rooftop));
-    look(a + d * 0.6, NORTH - 180, 5); look(a + d, NORTH - 180, 2);
+    look(a + d * 0.2, NORTH + 390, 8); look(a + d * 0.55, NORTH + 435, 4); look(a + d, NORTH + 540, 2);
   });
   // one straight, level glide to the desk: no look up at the sky first, so the last step does not lurch
   move('Settle on the desk', 'room', 120, (a, d) => {
-    key(a + d, g(15, 3.6, H.rooftop)); const [y, p] = aim(here(), DESK, NORTH - 180); look(a + d, y, p);
+    key(a + d, g(15, 3.6, H.rooftop)); const [y, p] = aim(here(), DESK, NORTH + 540); look(a + d, y, p);
   });
-  rooms.push({ name: '06 Rooftop', s: s - 1 });
+  rooms.push({ name: '10 Rooftop', s: s - 1 });
 
-  for (const m of moves) if (m.name === 'Arrival hold' || m.name === 'Gate push in' || m.portal) m.free = true; // crane: above eye height on purpose
+  for (const m of moves) if (m.name === 'Arrival hold' || m.name === 'Gate push in' || m.portal || m.name === 'A short fall' || m.name === 'Kites up to the Rooftop') m.free = true; // crane: above eye height on purpose
 
   // ---- scale to the total, then build the lookups ----
   const k = TOTAL_VH / s;
@@ -261,7 +330,7 @@ export function buildRail() {
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
   // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
-  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Bridge up to the Rooftop'];
+  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Back through to the funicular', 'Funicular to the Signal Cabin', 'Out of the cabin', 'Kites up to the Rooftop'];
   const stops = [0, TOTAL_VH];
   for (const m of moves) {
     const d = m.s1 - m.s0;

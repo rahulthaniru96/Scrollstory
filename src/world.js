@@ -17,10 +17,10 @@ export const stairPt = (phi, r = STAIR.rWalk, dy = 0) => [
 ];
 
 // Heights (floor level of each piece).
-export const H = { roof: 9, wing: 4.5, cloud0: 13, cloud1: 22, landing: 26, home: 28, extras: 30, rooftop: 33 };
+export const H = { roof: 9, wing: 4.5, cloud0: 13, cloud1: 22, landing: 26, home: 28, drafting: 30.5, extras: 31.5, signal: 33, greenhouse: 35, rooftop: 38 }; // the Sky Quarter keeps rising to the end
 
 // Sky and fog colour by camera height (motion spec, section 7). The cloud sea sits between 13 and 22 m.
-export const SKY_BY_HEIGHT = [[0, 0xf3cfa4], [9, 0xf2c08e], [13, 0xf6d9b8], [15, 0xf3eee6], [17.5, 0xf7d9d3], [20, 0xfbe0a8], [23, 0xf2a766], [29, 0xee9f7c], [33, 0xc79bb5], [37, 0xb58db8]]; // the top is the rooftop's purple twilight
+export const SKY_BY_HEIGHT = [[0, 0xf3cfa4], [9, 0xf2c08e], [13, 0xf6d9b8], [15, 0xf3eee6], [17.5, 0xf7d9d3], [20, 0xfbe0a8], [23, 0xf2a766], [31, 0xee9f7c], [36, 0xc79bb5], [40, 0xb58db8]]; // the top is the rooftop's purple twilight
 
 // ---------- colliders ----------
 const C = [];
@@ -137,10 +137,10 @@ export const WINDOWS = [
   { x: -13, y: H.home + 0.9, z: -20, n: '+x', w: 1.4, h: 2.1, sky: 'dawn', shaft: 40, floor: H.home },
 ];
 // A door standing alone in the courtyard water, ajar, with light behind it.
-export const LONE_DOOR = { x: 2.6, z: -9.5, w: 1.1, h: 2.3 };
+export const LONE_DOOR = { x: 4.0, z: -9.5, w: 1.1, h: 2.3 }; // east of the Renovation pavilion
 box('door in the water', LONE_DOOR.x - 0.7, LONE_DOOR.x + 0.7, 0, 2.5, LONE_DOOR.z - 0.2, LONE_DOOR.z + 0.2, 'furniture', { hidden: true });
 // Lamps drift over the courtyard water. The whole court is theirs; no camera lane crosses it.
-export const LAMP_ZONE = { x0: -4.6, x1: 4.6, z0: -14.6, z1: -1.4, y0: 0.5, y1: 3.0 };
+export const LAMP_ZONE = { x0: 2.9, x1: 4.8, z0: -14.6, z1: -1.4, y0: 0.5, y1: 3.0 }; // the east strip: the pavilion has the rest
 box('courtyard lamps', LAMP_ZONE.x0, LAMP_ZONE.x1, 0, 5, LAMP_ZONE.z0, LAMP_ZONE.z1, 'floating', { hidden: true });
 // Ledger pages leave the Income counter as paper birds, out through the arcade and up into the sky.
 export const BIRD_PATH = [[6, 1.5, -21.2], [5.4, 2.6, -19.6], [4.6, 3.0, -17.6], [4.5, 3.0, -15.4], [3.5, 3.4, -12], [0, 5.5, -8], [-3, 8.5, -6], [-2, 12, 0]];
@@ -156,13 +156,17 @@ export const THEME = {
   '00 Arrival': { accent: '#F2D98B', tint: 0xfff2dc },
   '01 Lobby': { accent: '#F7C98A', tint: 0xfff4e4 },
   '02 Gallery': { accent: '#CDBBFF', tint: 0xf0eaff },
-  '03 Worth it': { accent: '#F2C46A', tint: 0xffecc6 },
-  '04 Workshop': { accent: '#F3A592', tint: 0xffe6dc },
+  '03 Renovation': { accent: '#B9A8F0', tint: 0xf1ecff },
+  '04 Worth it': { accent: '#F2C46A', tint: 0xffecc6 },
+  '05 Workshop': { accent: '#F3A592', tint: 0xffe6dc },
   'The stairs': { accent: '#EE8E78', tint: 0xf6f1e6 },
   Landing: { accent: '#FFD9A0', tint: 0xffe9c8 },
   HOME: { accent: '#BFD4FF', tint: 0xe6ecff },
-  '05 Extras': { accent: '#A6E0D2', tint: 0xe4f6f0 },
-  '06 Rooftop': { accent: '#F6B8D0', tint: 0xf5def0 },
+  '06 Drafting Room': { accent: '#9FB8F2', tint: 0xeaf0ff },
+  '07 Signal Cabin': { accent: '#8FCB9B', tint: 0xe8f4ea },
+  '08 Extras': { accent: '#A6E0D2', tint: 0xe4f6f0 },
+  '09 Greenhouse': { accent: '#B5D98A', tint: 0xeff8e2 },
+  '10 Rooftop': { accent: '#F6B8D0', tint: 0xf5def0 },
 };
 export const FOUNDER = { name: 'Rahul Thaniru', role: 'Founder, Scrollstory Studio', phone: '+91 99490 88659', at: [-2.2, 1.55, 8.0] }; // his brass plaque stands in the Lobby
 cyl('founder plaque', FOUNDER.at[0], FOUNDER.at[2], 0.3, 0, 2.1, 'furniture', HID);
@@ -197,7 +201,7 @@ air('landing stool and newspaper', -8, H.landing + 0.8, 9.1, 0.6);
 
 // HOME fragment.
 box('home slab', -13, 0, H.home - 1.5, H.home, -23, -11, 'floor');
-box('home back wall', -13, 0, H.home, H.home + 3.5, -23 - W, -23);
+box('home back wall', -13, -2.4, H.home, H.home + 3.5, -23 - W, -23); // open at its east end, where the rope bridge leaves
 box('home west wall', -13 - W, -13, H.home, H.home + 3.5, -23, -17);
 box('sofa', -7.7, -5.3, H.home, H.home + 1.4, -16.5, -15.5, 'furniture', HID); // it hovers a little
 box('box TV', -7.7, -5.3, H.home, H.home + 3, -20.5, -18.6, 'furniture', HID);
@@ -247,13 +251,60 @@ sph('ceiling fan', -6, H.landing + 4.4, 3, 1.0, 'fan');
 sph('floating box TV', 2, 30, -8, 1.2, 'tv');
 sph('phone and battery', -10, 30.5, -6, 1.0, 'phone');
 sph('petals', 12, 33, -5, 1.0, 'petals');
-sph('kite 2', 20, 37, 4, 1.4, 'kite');
+sph('kite 2', 25, 42.5, 10, 1.4, 'kite');
 
-// Bridges (ramps). The blockout draws them as stepping slabs.
+// ---------- The Sky Quarter: four new rooms on the upper floor, round a floating clock tower (sky-quarter-layouts, plans 01 to 03) ----------
+// Each fragment is a slab of stone in the sky. The walk goes HOME, Drafting Room, Signal Cabin, Extras + Map, Greenhouse, Rooftop, and keeps rising.
+export const DRAFT = { x0: -9, x1: 3, z0: -42, z1: -31, y: H.drafting };
+export const SIGNAL = { x0: 24.5, x1: 33, z0: -36, z1: -18, y: H.signal };
+export const GREEN = { x0: 26, x1: 35, z0: -4, z1: 6, y: H.greenhouse };
+export const HUB = { x: 5, z: -10, r: 1.8, y0: 22, y1: 47, face: 41.5 }; // the clock tower: its hands are how far the walk has come
+cyl('clock tower', HUB.x, HUB.z, HUB.r + 0.4, HUB.y0, HUB.y1, 'wall', HID);
+// Drafting Room: a giant wireframe page stands across the room, and the walk goes through it.
+export const PAGE = { x: -1.2, z: -36.2, w: 7.2, h: 4.2, y: H.drafting + 0.25 };
+box('drafting back wall', DRAFT.x0, DRAFT.x1, H.drafting, H.drafting + 3.4, DRAFT.z0 - W, DRAFT.z0, 'wall', HID);
+box('drafting west wall', DRAFT.x0 - W, DRAFT.x0, H.drafting, H.drafting + 3.4, DRAFT.z0, -36.5, 'wall', HID);
+for (const sx of [-1, 1]) box(`page frame post ${sx < 0 ? 'W' : 'E'}`, PAGE.x + sx * (PAGE.w / 2 + 0.05) - 0.15, PAGE.x + sx * (PAGE.w / 2 + 0.05) + 0.15, H.drafting, PAGE.y + PAGE.h + 0.2, PAGE.z - 0.15, PAGE.z + 0.15, 'furniture', HID);
+box('page frame top', PAGE.x - PAGE.w / 2 - 0.2, PAGE.x + PAGE.w / 2 + 0.2, PAGE.y + PAGE.h, PAGE.y + PAGE.h + 0.2, PAGE.z - 0.15, PAGE.z + 0.15, 'sign', HID);
+export const DRAFT_TABLES = [{ x: -6.6, z: -38.4, ry: 0.35 }, { x: 1.0, z: -40.6, ry: -0.3 }];
+for (const [i, t] of DRAFT_TABLES.entries()) { box(`drafting table ${i + 1}`, t.x - 0.85, t.x + 0.85, H.drafting, H.drafting + 1.05, t.z - 0.6, t.z + 0.6, 'furniture', HID); air(`blueprints over table ${i + 1}`, t.x, H.drafting + 2.1, t.z, 0.8); }
+// Signal Cabin: an old railway signal box. Levers on the east wall, the admin panel on the north wall, open to the west.
+export const CABIN = { x0: 26.5, x1: 32.5, z0: -31.5, z1: -24.5, h: 3.6 };
+box('cabin north wall', CABIN.x0, CABIN.x1 + W, H.signal, H.signal + CABIN.h, CABIN.z0 - W, CABIN.z0, 'wall', HID);
+box('cabin east wall', CABIN.x1, CABIN.x1 + W, H.signal, H.signal + CABIN.h, CABIN.z0, CABIN.z1 + W, 'wall', HID);
+box('cabin south wall', CABIN.x0 + 1, CABIN.x1, H.signal, H.signal + CABIN.h, CABIN.z1, CABIN.z1 + W, 'wall', HID);
+box('cabin roof', CABIN.x0 - 0.4, CABIN.x1 + 0.6, H.signal + CABIN.h, H.signal + CABIN.h + 0.25, CABIN.z0 - 0.6, CABIN.z1 + 0.6, 'ceiling', HID);
+box('cabin corner post', CABIN.x0 - 0.12, CABIN.x0 + 0.12, H.signal, H.signal + CABIN.h, CABIN.z0 - 0.12, CABIN.z0 + 0.12, 'pillar', HID);
+export const LEVERS = ['ENQUIRY', 'BOOKING', 'STOCK', 'BILLING'].map((name, i) => ({ name, z: -29.6 + i * 1.05 }));
+box('lever frame', CABIN.x1 - 1.05, CABIN.x1, H.signal, H.signal + 1.15, -30.4, -25.6, 'furniture', HID);
+box('cabin desk', 28.2, 30.6, H.signal, H.signal + 0.9, CABIN.z1 - 0.75, CABIN.z1, 'furniture', HID);
+// Extras grows a map room: a brass relief map on a table, south of the board.
+export const MAP = { x: 11.1, z: -13.6, w: 3.0, d: 2.4 };
+box('map table', MAP.x - MAP.w / 2, MAP.x + MAP.w / 2, H.extras, H.extras + 0.95, MAP.z - MAP.d / 2, MAP.z + MAP.d / 2, 'furniture', HID);
+air('pins and QR over the map', MAP.x, H.extras + 2.0, MAP.z, 0.9);
+// Greenhouse: a deco glasshouse. Five potted plants, one per demo site, and the gardener's tools of a care plan.
+box('greenhouse north glass', GREEN.x0, GREEN.x1, H.greenhouse, H.greenhouse + 4.4, GREEN.z0 - 0.15, GREEN.z0, 'glass', HID);
+box('greenhouse east glass', GREEN.x1, GREEN.x1 + 0.15, H.greenhouse, H.greenhouse + 4.4, GREEN.z0, GREEN.z1, 'glass', HID);
+box('greenhouse south glass', GREEN.x0, GREEN.x1, H.greenhouse, H.greenhouse + 4.4, GREEN.z1, GREEN.z1 + 0.15, 'glass', HID);
+box('plant staging', 33.1, 34.9, H.greenhouse, H.greenhouse + 1.3, -3.2, 5.2, 'furniture', HID);
+air('plants on the staging', 34, H.greenhouse + 2.3, 1, 1.1);
+box('seed vault', 29.3, 31.1, H.greenhouse, H.greenhouse + 2.0, GREEN.z0, GREEN.z0 + 0.7, 'furniture', HID);
+cyl('ledger lectern', 31.2, 5.0, 0.4, H.greenhouse, H.greenhouse + 1.2, 'furniture', HID);
+air('watering can', 32.2, H.greenhouse + 2.4, -1.6, 0.5);
+// Ground floor: the Renovation, a glass pavilion in the water courtyard. The fictional demo cafe's old site and its new one, split by a line that sweeps as you walk.
+export const RENO = { x0: -5.2, x1: 1.2, z0: -13.4, z1: -6, h: 3.6, walk: -9.3 };
+box('renovation mural wall', -4.9, 0.4, 0, RENO.h - 0.2, RENO.z0, RENO.z0 + 0.3, 'wall', HID);
+box('renovation glass W1', RENO.x0, RENO.x0 + 0.1, 0, RENO.h, RENO.z0, -10.6, 'glass', HID);
+box('renovation glass W2', RENO.x0, RENO.x0 + 0.1, 0, RENO.h, -7.9, RENO.z1, 'glass', HID);
+box('renovation glass S', RENO.x0, RENO.x1, 0, RENO.h, RENO.z1 - 0.1, RENO.z1, 'glass', HID);
+box('renovation roof', RENO.x0 - 0.2, RENO.x1 + 0.2, RENO.h, RENO.h + 0.15, RENO.z0 - 0.2, RENO.z1 + 0.2, 'ceiling', HID);
+
+// Bridges and rides: ramps from `a` to `b` ([x, z]), with the floor rising from `ya` to `yb`. Each journey between rooms is a different one.
 export const BRIDGES = [
-  { name: 'bridge to HOME', axis: 'z', c: -6.5, a: -3, b: -11, ya: H.landing, yb: H.home, width: 1.6 },
-  { name: 'bridge to Extras', axis: 'x', c: -16, a: 0, b: 8, ya: H.home, yb: H.extras, width: 1.6 },
-  { name: 'bridge to Rooftop', axis: 'z', c: 15, a: -10, b: -1, ya: H.extras, yb: H.rooftop, width: 1.6 },
+  { name: 'bridge to HOME', a: [-6.5, -3], b: [-6.5, -11], ya: H.landing, yb: H.home, width: 1.6, ride: 'doors' }, // floating door frames
+  { name: 'rope bridge', a: [-1.2, -23], b: [-1.2, -31], ya: H.home, yb: H.drafting, width: 1.6, ride: 'rope' },
+  { name: 'funicular', a: [3, -33], b: [24.5, -33], ya: H.drafting, yb: H.signal, width: 1.6, ride: 'car' },
+  { name: 'sky canal', a: [14, -10.4], b: [26.0, -2.6], ya: H.extras, yb: H.greenhouse, width: 1.6, ride: 'boat' },
 ];
 
 // Doorways the camera passes: [x, z] of each jamb.
@@ -262,6 +313,7 @@ export const DOORS = [
   { name: 'lobby front door', a: [-1.2, 12.15], b: [1.2, 12.15] },
   { name: 'lobby west door', a: [-6.15, 8], b: [-6.15, 10.4] },
   { name: 'lobby east door', a: [6.15, 8], b: [6.15, 10.4] },
+  { name: 'renovation door', a: [RENO.x0 + 0.05, -10.6], b: [RENO.x0 + 0.05, -7.9] },
 ];
 
 // Stair as point clouds: both rails (0 to 0.9 m above the treads) and the tread slab.
@@ -328,6 +380,7 @@ const RECT_FLOORS = [
   { y: H.home, x0: -13, x1: 0, z0: -23, z1: -11 },
   { y: H.extras, x0: 8, x1: 22, z0: -24, z1: -10 },
   { y: H.rooftop, x0: 8, x1: 22, z0: -1, z1: 11 },
+  ...[DRAFT, SIGNAL, GREEN].map((f) => ({ y: f.y, x0: f.x0, x1: f.x1, z0: f.z0, z1: f.z1 })),
 ];
 
 // Each fragment above the Landing hangs from a rough cone of rock, and loose stone drifts off every broken edge.
@@ -344,9 +397,18 @@ export const DEBRIS = [];
     const z = side === 0 ? f.z0 - out : side === 1 ? f.z1 + out : f.z0 + (f.z1 - f.z0) * u;
     const y = f.y - 0.7 - r - rnd() * 3, ph = rnd() * 6.28;
     if (Math.hypot(x - STAIR.cx, z - STAIR.cz) < 7) continue;
+    if (Math.hypot(x - HUB.x, z - HUB.z) < HUB.r + 1.6 + r) continue; // clear of the clock tower
+    if (RECT_FLOORS.some((g) => g !== f && x > g.x0 - r - 1 && x < g.x1 + r + 1 && z > g.z0 - r - 1 && z < g.z1 + r + 1 && Math.abs(y - g.y) < 2.5 + r)) continue; // and of the other fragments
+    if (BRIDGES.some((b) => { const [u, off] = onBridge(b, x, z); return u > -0.2 && u < 1.2 && Math.abs(off) < 3.5; })) continue; // and off every ride
     DEBRIS.push({ x, y, z, r, ph });
     air(`loose stone ${DEBRIS.length}`, x, y, z, r + 0.2);
   }
+}
+
+// Where (x, z) sits on a bridge: u is 0 at `a` and 1 at `b`, off is the signed distance from its middle line.
+export function onBridge(b, x, z) {
+  const dx = b.b[0] - b.a[0], dz = b.b[1] - b.a[1], L2 = dx * dx + dz * dz, L = Math.sqrt(L2);
+  return [((x - b.a[0]) * dx + (z - b.a[1]) * dz) / L2, ((x - b.a[0]) * dz - (z - b.a[1]) * dx) / L];
 }
 
 // Height of the floor under an eye at (x, y, z): the highest surface at least 1 m below the eye.
@@ -360,14 +422,13 @@ export function floorAt(x, y, z) {
     // Inside the stair shaft the Landing floor exists only as the wedge where the stair steps off.
     if (f.y === H.landing && rho < 3.2) {
       const past = (((base - PHI_END) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-      if (past > STAIR_EXIT_WEDGE) continue;
+      if (past > STAIR_EXIT_WEDGE && past < 2 * Math.PI - 0.05) continue; // the step-off line itself counts, even when rounding puts it a hair before
     }
     take(f.y);
   }
   for (const b of BRIDGES) {
-    const along = b.axis === 'z' ? z : x, across = b.axis === 'z' ? x : z;
-    const u = (along - b.a) / (b.b - b.a);
-    if (u >= 0 && u <= 1 && Math.abs(across - b.c) <= b.width / 2) take(b.ya + (b.yb - b.ya) * u);
+    const [u, off] = onBridge(b, x, z);
+    if (u >= 0 && u <= 1 && Math.abs(off) <= b.width / 2) take(b.ya + (b.yb - b.ya) * u);
   }
   if (rho >= STAIR.rIn - 0.1 && rho <= STAIR.rOut + 0.1) {
     for (let k = -1; k <= 7; k++) {

@@ -2,7 +2,7 @@
 import { buildRail } from '../src/rail.js';
 import { smoothDamp } from '../src/spring.js';
 import { stepper } from '../src/stepper.js';
-import { clearanceAt, floorAt, EYE, DOORS, BRIDGES, COLLIDERS, distTo } from '../src/world.js';
+import { clearanceAt, floorAt, EYE, DOORS, BRIDGES, COLLIDERS, distTo, onBridge } from '../src/world.js';
 
 const rail = buildRail();
 const fails = [];
@@ -38,11 +38,8 @@ for (const d of DOORS) {
 }
 for (const b of BRIDGES) {
   if (b.width < 1.2) fail(`"${b.name}" is ${b.width} m wide`);
-  const on = samples.filter((q) => {
-    const along = b.axis === 'z' ? q[2] : q[0];
-    return along > Math.min(b.a, b.b) && along < Math.max(b.a, b.b) && Math.abs(q[1] - (b.ya + b.yb) / 2 - EYE) < 2.5;
-  });
-  const off = Math.max(...on.map((q) => Math.abs((b.axis === 'z' ? q[0] : q[2]) - b.c)));
+  const on = samples.filter((q) => { const [u, o] = onBridge(b, q[0], q[2]); return u > 0.02 && u < 0.98 && Math.abs(o) < 1.5 && Math.abs(q[1] - (b.ya + (b.yb - b.ya) * u) - EYE) < 0.5; });
+  const off = Math.max(...on.map((q) => Math.abs(onBridge(b, q[0], q[2])[1])));
   if (!on.length) fail(`"${b.name}": the camera never crosses it`);
   else if (off > 0.15) fail(`"${b.name}": the camera strays ${off.toFixed(2)} m from the middle`);
 }

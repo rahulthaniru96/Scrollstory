@@ -85,10 +85,10 @@ export function dress({ scene, camera, lowQuality = false }) {
     }
     // god rays: long thin sheets fanning out of the sun
     const rayMat = basic(0xf6c66a, { transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, map: glowTexture });
-    const sunAt = new V3(15, 33, 5).addScaledVector(SUN, 420);
+    const sunAt = new V3(15, 38, 5).addScaledVector(SUN, 420);
     for (const [roll, len] of lowQuality ? [[0.25, 300]] : [[-0.5, 260], [0.2, 330], [0.75, 240]]) {
       const m = mesh(new THREE.PlaneGeometry(len, 34).translate(len / 2, 0, 0), rayMat, sunAt.x, sunAt.y, sunAt.z);
-      m.lookAt(15, 33, 5); m.rotateZ(Math.PI + roll); m.rotateY(0.25);
+      m.lookAt(15, 38, 5); m.rotateZ(Math.PI + roll); m.rotateY(0.25);
     }
     fade.push([rayMat, 0.16]);
     for (let i = 0; i < 9; i++) { const an = rnd() * 6.28, dist = 60 + rnd() * 120; fade.push([glow(0xffc978, 5 + rnd() * 4, 15 + Math.sin(an) * dist, 22 + rnd() * 4, 5 + Math.cos(an) * dist).material, 0.8]); } // warm lamps below the clouds

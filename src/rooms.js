@@ -218,8 +218,8 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       x.fillStyle = '#fff3d6'; x.beginPath(); x.arc(150, 90, 22, 0, 7); x.fill(); x.fillStyle = '#141a3a'; x.beginPath(); x.arc(160, 84, 20, 0, 7); x.fill(); // a crescent
     }) }), 0, 1.15, 0, door);
     glow(0x8fa8ff, 2.2, 0, 1.3, 0.25, door, 0.22);
-    fan(-2.2, 3.5, -5.5, 1.3);
-    for (const [x, y, z] of [[-2.6, 0.8, -11.2], [1.3, 1.3, -3.6], [-0.4, 0.55, -13.3]]) hover(prop('newspaper', x, y, z, { s: 1.5, then: (m) => { m.rotation.set(0.5, 0, 0.3); } }), 0.1, 0.35, 0.12, 1.2);
+    fan(-2.2, 3.5, -3.0, 1.3); // south of the Renovation pavilion's roof
+    for (const [x, y, z] of [[3.7, 0.8, -12.4], [1.3, 1.3, -3.6], [-2.2, 0.6, -3.4]]) hover(prop('newspaper', x, y, z, { s: 1.5, then: (m) => { m.rotation.set(0.5, 0, 0.3); } }), 0.1, 0.35, 0.12, 1.2);
     for (const [x, y, z] of FANS) fan(x, y, z);
   }
 

@@ -297,6 +297,9 @@ box('renovation mural wall', -4.9, 0.4, 0, RENO.h - 0.2, RENO.z0, RENO.z0 + 0.3,
 box('renovation glass W1', RENO.x0, RENO.x0 + 0.1, 0, RENO.h, RENO.z0, -10.6, 'glass', HID);
 box('renovation glass W2', RENO.x0, RENO.x0 + 0.1, 0, RENO.h, -7.9, RENO.z1, 'glass', HID);
 box('renovation glass S', RENO.x0, RENO.x1, 0, RENO.h, RENO.z1 - 0.1, RENO.z1, 'glass', HID);
+box('renovation counter', -3.45, -1.35, 0, 1.1, -12.15, -11.45, 'furniture', HID);
+cyl('renovation plant', -4.35, -12.2, 0.4, 0, 1.6, 'furniture', HID);
+air('renovation menu', -0.25, 2.0, -12.65, 0.55);
 box('renovation roof', RENO.x0 - 0.2, RENO.x1 + 0.2, RENO.h, RENO.h + 0.15, RENO.z0 - 0.2, RENO.z1 + 0.2, 'ceiling', HID);
 
 // Bridges and rides: ramps from `a` to `b` ([x, z]), with the floor rising from `ya` to `yb`. Each journey between rooms is a different one.

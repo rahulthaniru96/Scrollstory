@@ -16,8 +16,9 @@ import { intro } from './intro.js';
 import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
 import { portalRide } from './portal.js';
+import { renovation } from './renovation.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE, RENO } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -173,6 +174,7 @@ for (const b of BRIDGES.filter((q) => q.ride === 'doors')) { // the rides draw t
 const dressing = dress({ scene, camera, lowQuality });
 const expand = gallery({ scene, cards: demoCards, lowQuality, camera });
 const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
+const reno = renovation({ scene, lowQuality });
 
 // ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------
 const gel = membranes({ scene, camera, lowQuality, crossings: DOORS.filter((d) => d.name !== 'gate').map((d) => {
@@ -214,7 +216,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const DAY = { hemi: new THREE.Color(0xfff4e4), sun: new THREE.Color(0xffe2b8) }, DUSK = { hemi: new THREE.Color(0xd9cdf0), sun: new THREE.Color(0xf6c66a) };
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, seated: 0, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, wipe: -99, seated: 0, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -321,7 +323,7 @@ const COPY = {
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
   'Gallery hold': ['Room 02 · The gallery', 'Every door, a site we built.', 'Step into any one.'],
   'Renovation hold': ['Room 03 · The renovation', "Your old site isn't the end of your story.", 'Walk through the line.'],
-  'Renovated': ['Room 03 · The renovation', 'Same café, a new site.', 'A demo: the café is made up.'],
+  'Renovated': ['Room 03 · The renovation', 'Same café, a new site.', 'Move the cursor to compare. The café is made up.'],
   'Worth it hold': ['Room 04 · Worth it', 'Custom. Secure. Legal.', 'Built to bring you income.'],
   'Workshop hold': ['Room 05 · The workshop', 'Three shops.', 'One for where you are now.'],
   'Look up': ['The stairs', 'Keep climbing.', 'The best view is upstairs.'],
@@ -374,7 +376,11 @@ const GALLERY = byName['Gallery, walking backwards'], HAT = byName['Through the 
 const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = TV_CHANNELS; // the last channel is "Your story?"
 const SITE_STOPS = demoCards.map((c, i) => (i < 4 ? GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (10 - c.z)) / 17 : lerp(byName['Gallery hold'].s0, byName['Gallery hold'].s1, 0.6))); // where the walk rests in front of each demo site
 const EX = EXTRAS.map((e) => byName[`Extra: ${e.name}`]), EX0 = byName['Extras hold'], EX_END = byName['To the map'], CANAL = byName['Sky canal to the Greenhouse']; // the train stays while the board is read, and leaves with the boat
+const LINE = byName['Through the line'], RENO_SPAN = [byName['Renovation hold'].s0 - 30, byName['Renovated'].s1 + 30];
 function focus(p) {
+  // The Renovation's line follows the walk across the room. Resting at either end, the cursor slides it back and forth to compare.
+  const lu = Math.min(1, Math.max(0, (p - LINE.s0) / (LINE.s1 - LINE.s0))), still = p > RENO_SPAN[0] && p < RENO_SPAN[1] && (lu === 0 || lu === 1) ? 1 : 0;
+  env.wipe = Math.min(RENO.x1 + 0.4, Math.max(RENO.x0 - 0.4, lerp(RENO.x0 - 0.4, RENO.x1 + 0.4, lu) + still * pointer.sx * 2.6));
   EX.forEach((m, i) => { env.extra.u[i] = (p - (m.s0 - 8)) / 26; }); // below 0 the row is blank, 0 to 1 it flips, then it has landed
   env.extra.lit = EX.findIndex((m) => p >= m.s0 - 2 && p < m.s1 - 2);
   env.extra.train = sstep(EX0.s0 - 50, EX0.s0 + 20, p); env.extra.leave = sstep(CANAL.s0 + 5, CANAL.s0 + 70, p);
@@ -728,6 +734,7 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
+  reno.update(time, dt, env.wipe);
   expand(env.site, env.air); hidden.update(time, dt, pointer); if (!free) nudge(time);
   if (env.tv.ch !== sfxWas.ch) { sfxWas.ch = env.tv.ch; if (env.tv.ch >= 0) sfx.blip(); }
   dressing.update(time, dt, env);

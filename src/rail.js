@@ -107,11 +107,11 @@ export function buildRail() {
     look(a, LAST_CARD, -2);
     g(-8.3, -9.7); key(a + d * 0.5, g(-6.6, RENO.walk));
     look(a + d * 0.45, 270, 0);
-    g(-5.15, RENO.walk); key(a + d, g(-3.9, RENO.walk));
-    look(a + d * 0.85, 360, 3); look(a + d, 360, 3);
+    g(-5.15, RENO.walk); key(a + d, g(-4.0, RENO.walk));
+    look(a + d * 0.85, 338, 4); look(a + d, 338, 4); // the old site, from just inside the door
   });
   hold('Renovation hold', 50, '03 Renovation');
-  move('Through the line', 'room', 100, (a, d) => { key(a + d, line(0.1, RENO.walk)); look(a + d * 0.5, 362, 3); look(a + d, 360, 3); });
+  move('Through the line', 'room', 100, (a, d) => { key(a + d, line(0.1, RENO.walk)); look(a + d * 0.5, 360, 4); look(a + d, 384, 4); }); // the eyes stay on the wall as the line crosses it
   hold('Renovated', 50);
   // ---- 04 Worth it: the why. Into the south room through the arcade, then along the four counters ----
   move('Out to Worth it', 'room', 120, (a, d) => {

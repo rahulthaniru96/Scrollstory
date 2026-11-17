@@ -15,6 +15,7 @@ import { sound } from './sound.js';
 import { intro } from './intro.js';
 import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
+import { portalRide } from './portal.js';
 import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
@@ -515,6 +516,7 @@ addEventListener('resize', resize); resize();
 
 let frames = 0, propsReady = false;
 const sfxWas = { ch: -1, k: 0, hat: false };
+const ride = portalRide({ lowQuality });
 dressing.ready.then(() => { propsReady = true; });
 const prev = { pos: null, yaw: 0, t: 0 };
 const shown = { speed: 0, turn: 0, fps: 0 };
@@ -581,7 +583,8 @@ gsap.ticker.add((time, deltaMs) => {
   const k = state.reduce ? 0 : gel(state.body, time); if (k > 0.5 && sfxWas.k <= 0.5) sfx.gloop(); sfxWas.k = k;
   const hat = (state.body - HAT.s0) / (HAT.s1 - HAT.s0), inHat = hat > 0 && hat < 1;
   if (inHat !== sfxWas.hat) { sfxWas.hat = inHat; if (inHat) sfx.whoosh(); }
-  if ((k > 0.002 || inHat) && !state.secret) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera); }
+  if ((k > 0.002 || inHat) && !state.secret) { const U = gelPass.mat.uniforms; U.hat.value = inHat ? hat : -1; U.time.value = env.air; U.aspect.value = camera.aspect; U.k.value = k; renderer.setRenderTarget(gelPass.target); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(gelPass.scene, gelPass.camera);
+    if (inHat && !state.reduce) { ride.update(hat, env.air, camera.aspect); renderer.autoClear = false; renderer.clearDepth(); renderer.render(ride.scene, ride.camera); renderer.autoClear = true; } } // things tumbling past in the hat
   else renderer.render(scene, camera);
 
   if (pinned > 0 && propsReady && ++frames === 3) { const t = document.createElement('textarea'); t.id = 'shot'; t.textContent = canvas.toDataURL('image/jpeg', 0.85); t.hidden = true; document.body.append(t); }

@@ -310,7 +310,7 @@ function caption(p) {
   const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.52) : -1;
   const name = tv ? 'tv' + env.tv.ch : mi >= 0 ? 'ms' + mi : m.name;
   const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < TV_BEATS.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, TV_BEATS[env.tv.ch].full, ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', "Let's put it on the screen."]) : COPY[name];
-  if (!c || state.secret) { cap.style.opacity = 0; cap.classList.remove('on'); return; } // inside a secret, its own card does the talking
+  if (!c || state.secret || hidden.opened >= 0) { cap.style.opacity = 0; cap.classList.remove('on'); return; } // inside a secret, its own card does the talking
   if (capFor !== name) {
     capFor = name; capLabel.textContent = c[0]; capH.replaceChildren(); capWords = [];
     const put = (text, into) => { for (const w of text.split(' ')) { const s = el('span', w, 'w'); capWords.push(s); into.append(s, ' '); } }; // one span a word: they arrive one after another
@@ -364,7 +364,7 @@ PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} o
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
-BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['The shelf moves. Step in', () => enterSecret('lab')] : null }; });
+BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['The shelf moves. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 06 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };
 let signText = '';
 SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} of 0${SECRETS.length}`, h: s.name, lines: [s.text], act: ['Back to the walk', () => leaveSecret()] }; });
@@ -503,7 +503,7 @@ soundBtn.onclick = () => { const on = sfx.toggle(); soundBtn.textContent = on ? 
 showFound();
 addEventListener('keydown', (e) => {
   if (e.target.closest?.('input, textarea, select')) return; // typing in the form
-  if (e.key === 'Escape') { togglePlan(false); if (state.secret) leaveSecret(); sit(false); }
+  if (e.key === 'Escape') { togglePlan(false); if (state.secret) leaveSecret(); sit(false); hidden.open(-1); }
   if (state.seat && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) remote(state.seat.ch + (e.key === 'ArrowLeft' ? -1 : 1));
   if (e.key === 'm' || e.key === 'M') soundBtn.click();
   if (e.key === 'h' || e.key === 'H') hud.classList.toggle('off');

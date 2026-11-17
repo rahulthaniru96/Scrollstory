@@ -190,15 +190,26 @@ export function drafting({ scene, lowQuality }) {
   const wax = put(new THREE.CylinderGeometry(0.08, 0.085, 0.025, 18), new THREE.MeshStandardMaterial({ color: 0x9e1f1f, roughness: 0.35, emissive: 0x9e1f1f, emissiveIntensity: 0 }), 0, 0, 0.02, sealed); wax.rotation.x = Math.PI / 2;
   hover(sealed, 0.05, 0.35, 0.04);
 
-  let screen = 0, repaint = 1, live = 0, hot = -1;
+  // the secret: the seal cracks, and the blueprint shows three ideas that get dropped on the way to a good page
+  const dropped = canvas(320, 240, (x, w, h) => {
+    x.fillStyle = '#1f4f96'; x.fillRect(0, 0, w, h); x.fillStyle = '#eaf2ff'; x.font = '500 13px "Martian Mono", monospace'; x.fillText('IDEAS WE DROP, AND WHY', 14, 24);
+    ['Too loud for the story', 'Looked like a template', 'No one found the phone'].forEach((t, k) => {
+      const bx = 14 + k * 102; x.strokeStyle = '#eaf2ff'; x.lineWidth = 2; x.strokeRect(bx, 40, 90, 120); for (let l = 0; l < 4; l++) x.fillRect(bx + 10, 52 + l * 24, 70 - (l % 2) * 25, 10);
+      x.strokeStyle = '#ff8a7a'; x.lineWidth = 4; x.beginPath(); x.moveTo(bx, 40); x.lineTo(bx + 90, 160); x.moveTo(bx + 90, 40); x.lineTo(bx, 160); x.stroke();
+      x.fillStyle = '#eaf2ff'; x.font = 'italic 15px Fraunces, Georgia, serif'; const ws = t.split(' '); x.fillText(ws.slice(0, 2).join(' '), bx, 182); x.fillText(ws.slice(2).join(' '), bx, 200);
+    });
+    x.font = '500 11px "Martian Mono", monospace'; x.fillText('EXAMPLES, NOT CLIENT WORK', 14, h - 12);
+  });
+  let screen = 0, repaint = 1, live = 0, hot = -1, opened = -1;
   const show = (i) => { if (i === screen) return; screen = i; U.wire.value = shots[i].wire; U.done.value = shots[i].done; repaint = 0; };
   return {
-    seal: wax,
+    openSeal(t) { if (opened < 0) { opened = t; sealed.material.map = dropped; sealed.material.needsUpdate = true; } },
     over(ray) { const h = ray.intersectObjects(bps)[0]; hot = h ? h.object.userData.i : -1; return hot >= 0; },
     pick(ray) { const h = ray.intersectObjects(bps)[0]; if (!h) return false; show(h.object.userData.i); return true; },
     // paint: 0 wireframe, 1 finished (from the scroll). The page scrolls itself once it is finished.
     update(t, dt, paint) {
       repaint = Math.min(1, repaint + dt / 1.6);
+      if (opened >= 0) { const u = Math.min(1, (t - opened) / 0.8); wax.scale.setScalar(1 - u); wax.visible = u < 1; sealed.scale.setScalar(1 + 0.6 * Math.min(1, (t - opened) / 1.2)); }
       const p = Math.min(paint, repaint);
       live = p > 0.98 ? live + dt : 0; // the page starts scrolling from its top once it is finished, down and back up
       U.paint.value = p; U.t.value = t; U.scroll.value = ((1 - Math.cos(live * 0.16)) / 2) * (1 - 448 / PH);

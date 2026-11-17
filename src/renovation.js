@@ -212,10 +212,20 @@ export function renovation({ scene, lowQuality }) {
   const SP = lowQuality ? 18 : 40, spPos = new Float32Array(SP * 3), spark = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: 0xd9ccff, size: 0.05, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
   spark.geometry.setAttribute('position', new THREE.BufferAttribute(spPos, 3)); root.add(spark);
 
+  // ---------- the clock on the wall (a secret): dusty and stopped on the old side, brass and ticking on the new. Click it and time runs back ----------
+  const CLK = [0.05, 2.75, R.z0 + 0.34];
+  both(new THREE.CylinderGeometry(0.24, 0.24, 0.05, 28), pair(std(0x9a9488), std(0xc9a24a, { metalness: 0.3, roughness: 0.35 })), ...CLK).forEach((m) => { m.rotation.x = Math.PI / 2; });
+  const clockFace = canvas(128, 128, (x, w) => { x.fillStyle = '#fbf6ea'; x.beginPath(); x.arc(64, 64, 62, 0, 7); x.fill(); x.fillStyle = INK; for (let k = 0; k < 12; k++) { const an = (k / 12) * Math.PI * 2; x.fillRect(64 + Math.cos(an) * 50 - 2, 64 + Math.sin(an) * 50 - 2, 4, 4); } });
+  put(new THREE.CircleGeometry(0.2, 28), new THREE.MeshBasicMaterial({ map: clockFace }), CLK[0], CLK[1], CLK[2] + 0.03);
+  const hands = [0.13, 0.18].map((len, k) => { const g = new THREE.Group(); g.position.set(CLK[0], CLK[1], CLK[2] + 0.04); root.add(g); put(new THREE.BoxGeometry(0.014, len, 0.005), std(0x1e2a26), 0, len / 2, 0, g); return g; });
+  let back = -9;
+  tick.push((t) => { const u = t - back, spin = u > 0 && u < 3.5 ? -Math.sin((u / 3.5) * Math.PI) * 40 : 0; hands[0].rotation.z = -t * 0.01 + spin * 0.08; hands[1].rotation.z = -t * 0.12 + spin; });
   // The wall reads as one surface: the line on it is the seam the shader draws. Nothing to pick on the wall itself.
   oldWall.userData.k = newWall.userData.k = 0;
 
   return {
+    clock: CLK,
+    turnBack(t) { back = t; },
     update(t, dt, wipe) {
       WIPE.value = wipe;
       const inside = wipe > R.x0 - 0.2 && wipe < R.x1 + 0.2;

@@ -396,6 +396,7 @@ function focus(p) {
   // The Renovation's line follows the walk across the room. Resting at either end, the cursor slides it back and forth to compare.
   const lu = Math.min(1, Math.max(0, (p - LINE.s0) / (LINE.s1 - LINE.s0))), still = p > RENO_SPAN[0] && p < RENO_SPAN[1] && (lu === 0 || lu === 1) ? 1 : 0;
   env.wipe = Math.min(RENO.x1 + 0.4, Math.max(RENO.x0 - 0.4, lerp(RENO.x0 - 0.4, RENO.x1 + 0.4, lu) + still * pointer.sx * 2.6));
+  const back = now - clockAt; env.lineU = lu; if (back > 0 && back < 3.5) env.wipe = lerp(env.wipe, lu < 0.5 ? RENO.x1 + 0.4 : RENO.x0 - 0.4, Math.sin((back / 3.5) * Math.PI)); // the time machine: the other version sweeps over the room, then away
   EX.forEach((m, i) => { env.extra.u[i] = (p - (m.s0 - 8)) / 26; }); // below 0 the row is blank, 0 to 1 it flips, then it has landed
   env.extra.lit = EX.findIndex((m) => p >= m.s0 - 2 && p < m.s1 - 2);
   env.extra.train = sstep(EX0.s0 - 50, EX0.s0 + 20, p); env.extra.leave = sstep(CANAL.s0 + 5, CANAL.s0 + 70, p);
@@ -586,13 +587,18 @@ function firework() {
   toast('You found every secret. Thank you for looking so closely.', 6);
 }
 // The v1.1 ones happen where they are, with no room to step into.
+let clockAt = -9; // when the Renovation's clock was last turned back
 const EGGS = {
   tile() { setTimeout(() => jump(steps.first(LEVELS.find((r) => r.name === 'The stairs').s)), 900); toast('A shortcut, under the water.', 3); },
   kite() { toast('The golden kite.', 3); },
   tank() { toast('The VIP desk. This form goes straight to Rahul.', 4); setTimeout(() => openForm(), 1200); },
+  clock() { clockAt = now; reno.turnBack(now); toast(env.lineU < 0.5 ? 'Forward to the new site, for a moment.' : 'Back to the old site, for a moment.', 3); },
+  seal() { draft.openSeal(now); toast('Ideas we drop on the way to a good page.', 4); },
+  keyhole() { toast('Every story has moving parts. Thanks for finding them all.', 6); },
 };
 function enterSecret(id) {
   const s = SECRETS.find((q) => q.id === id);
+  if (id === 'keyhole' && [...foundIds].filter((q) => q !== 'keyhole').length < 6) { toast('The keyhole is cold. It opens once you have found six other secrets.', 4); return; }
   if (s.egg) { hidden.egg(id, now); markFound(id); EGGS[id](); sfx.page(); return; }
   through(() => {
     state.secret = s; document.body.classList.toggle('under', !!s.flip); hidden.open(-1); markFound(id);
@@ -754,7 +760,7 @@ gsap.ticker.add((time, deltaMs) => {
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
     c.m.scale.setScalar(1 + 0.07 * Math.sin(Math.PI * u) * (1 - u)); // a soft settle
   }
-  reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); cabin.update(time, dt, env.cards, env.levers); atlas.update(time, dt, env.extra.u, env.map); garden.update(time, dt, env.grow, env.tools);
+  reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); clock.keyhole.material.emissiveIntensity = [...foundIds].filter((q) => q !== 'keyhole').length >= 6 ? 1.2 + Math.sin(time * 3) * 0.6 : 0; cabin.update(time, dt, env.cards, env.levers); atlas.update(time, dt, env.extra.u, env.map); garden.update(time, dt, env.grow, env.tools);
   const KM = byName['Kites up to the Rooftop'], kite = state.body < KM.s0 ? -1 : state.body > KM.s1 ? 2 : (state.body - KM.s0) / (KM.s1 - KM.s0);
   rides.update(time, dt, railAt.set(...pos), kite); // the car, the boat and the kites carry the walk, not the cursor's lean clock.update(time, dt, state.body / rail.total, env.dusk);
   expand(env.site, env.air); hidden.update(time, dt, pointer); if (!free) nudge(time);

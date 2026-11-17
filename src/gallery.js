@@ -5,13 +5,32 @@ import * as THREE from 'three';
 import { holoEdges, holoFill } from './holo.js';
 
 // The five demo sites (all fictional businesses; see the wall of milestones).
+// `page` is what the little phone in the dome shows: plain sample wording, no prices or claims. `ask` is a sample enquiry.
 export const SITES = [
-  { name: 'A café', accent: 0xc98b5a, floor: 0x6b4a3a },
-  { name: 'A gym', accent: 0x2f5fa8, floor: 0x2c3834 },
-  { name: 'A preschool', accent: 0xf2d98b, floor: 0xe8a89a },
-  { name: 'A coaching centre', accent: 0x3f6e68, floor: 0xd8cdb8 },
-  { name: 'A real estate project', accent: 0xe8a89a, floor: 0x8c8a82 },
+  { name: 'A café', accent: 0xc98b5a, floor: 0x6b4a3a, page: ['Café', 'Fresh filter coffee', ['Filter coffee', 'Bun maska', 'Cold coffee'], 'WhatsApp to order'], ask: 'Open today?' },
+  { name: 'A gym', accent: 0x2f5fa8, floor: 0x2c3834, page: ['Gym', 'Train with us', ['Strength', 'Cardio', 'Personal training'], 'Book a trial'], ask: 'Trial this week?' },
+  { name: 'A preschool', accent: 0xf2d98b, floor: 0xe8a89a, page: ['Preschool', 'Play. Learn. Grow.', ['Playgroup', 'Nursery', 'Day care'], 'Visit us'], ask: 'Can we visit?' },
+  { name: 'A coaching centre', accent: 0x3f6e68, floor: 0xd8cdb8, page: ['Coaching centre', 'New exam batches', ['Maths', 'Science', 'English'], 'Enquire'], ask: 'Batch timings?' },
+  { name: 'A real estate project', accent: 0xe8a89a, floor: 0x8c8a82, page: ['Homes', '2 and 3 BHK homes', ['Floor plans', 'Location', 'Site visit'], 'Book a site visit'], ask: 'Site visit Sunday?' },
 ];
+const hex = (c) => '#' + c.toString(16).padStart(6, '0');
+const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+// A tall strip of the demo site; the phone shows a window of it that scrolls on its own.
+function pageStrip(site) {
+  const [name, hero, items, cta] = site.page, acc = hex(site.accent);
+  const t = tex(256, 1024, (x, w) => {
+    x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, 1024);
+    x.fillStyle = '#1e2a26'; x.fillRect(0, 0, w, 44); x.fillStyle = '#f7efe2'; x.font = '600 18px Fraunces, Georgia, serif'; x.fillText(name, 14, 29);
+    x.fillStyle = acc; x.fillRect(0, 44, w, 210); x.fillStyle = '#1e2a26'; x.font = '600 28px Fraunces, Georgia, serif';
+    const words = hero.split(' '); let line = '', y = 120; for (const wd of words) { if (x.measureText(line + wd).width > 220) { x.fillText(line, 14, y); y += 34; line = ''; } line += wd + ' '; } x.fillText(line, 14, y);
+    x.fillStyle = '#25d366'; x.fillRect(14, 196, 170, 38); x.fillStyle = '#fff'; x.font = '600 14px Arial, sans-serif'; x.fillText(cta, 24, 220);
+    items.forEach((it, k) => { const yy = 290 + k * 150; x.fillStyle = k % 2 ? '#efe6d6' : '#f6eee0'; x.fillRect(14, yy, w - 28, 130); x.fillStyle = acc; x.fillRect(26, yy + 14, 80, 80); x.fillStyle = '#1e2a26'; x.font = '600 17px Fraunces, Georgia, serif'; x.fillText(it, 118, yy + 46); x.fillStyle = '#b9ad98'; x.fillRect(118, yy + 60, 100, 6); x.fillRect(118, yy + 74, 70, 6); });
+    x.fillStyle = '#1e2a26'; x.fillRect(0, 760, w, 264); x.fillStyle = '#f7efe2'; x.font = '600 20px Fraunces, Georgia, serif'; x.fillText('Find us', 14, 800);
+    x.fillStyle = '#3f6e68'; x.fillRect(14, 816, w - 28, 120); x.fillStyle = '#f2d98b'; x.beginPath(); x.arc(128, 870, 12, 0, 7); x.fill();
+    x.fillStyle = '#8c8a82'; x.font = '400 11px "Martian Mono", monospace'; x.fillText('DEMO · FICTIONAL BUSINESS', 14, 980);
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 0.4); return t;
+}
 
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const R = 1.8, MID = -9; // the dome's radius, and the middle of the Gallery: each dome sits a metre toward it, so it clears the wall behind its card
@@ -46,7 +65,7 @@ function props(i, lit) {
 }
 
 // cards: [{ m, z }] from main.js, in walk order. Returns update(focus[]).
-export function gallery({ scene, cards, lowQuality }) {
+export function gallery({ scene, cards, lowQuality, camera }) {
   const lit = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.8 });
   const flat = (color) => new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
   const domeGeo = new THREE.SphereGeometry(R, 12, 5, 0, Math.PI * 2, 0, Math.PI / 2), discGeo = new THREE.CircleGeometry(R, 40).rotateX(-Math.PI / 2);
@@ -61,8 +80,23 @@ export function gallery({ scene, cards, lowQuality }) {
     const layers = [[1.6, 0.11, 0, 0.445, 0x1e2a26, 0.5], [1.36, 0.39, 0, 0.085, site.accent, 0.32], [0.75, 0.05, -0.305, -0.215, 0x8c8a82, 0.16], [0.48, 0.05, -0.44, -0.315, 0x8c8a82, 0.16], [0.4, 0.13, 0.5, -0.29, 0x9e3b2c, 0.7]]
       .map(([w, h, x, y, color, out]) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), flat(color)); m.position.set(x, y, 0.004); card.m.add(m); return { m, x, y, out }; });
     const things = lowQuality ? [] : props(i, lit).map(([m, x, z]) => { m.position.x = x; m.position.z = -z; g.add(m); return m; }); // -z: toward the camera, which has just backed past
+    // The site itself, live on a phone in the middle of the dome, scrolling on its own; a sample enquiry pops up over it.
+    const phone = new THREE.Group(); phone.position.y = 1.3; g.add(phone);
+    const strip = pageStrip(site);
+    phone.add(new THREE.Mesh(new THREE.BoxGeometry(0.58, 1.06, 0.04), new THREE.MeshStandardMaterial({ color: 0x1e2a26, roughness: 0.4 })));
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.98), new THREE.MeshBasicMaterial({ map: strip })); screen.position.z = 0.021; phone.add(screen);
+    const bubble = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.2), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, map: tex(310, 100, (x) => {
+      x.fillStyle = '#dcf8c6'; x.beginPath(); x.roundRect(4, 4, 302, 74, 18); x.fill(); x.beginPath(); x.moveTo(40, 76); x.lineTo(30, 96); x.lineTo(64, 76); x.fill();
+      x.fillStyle = '#1e2a26'; x.font = '500 26px "Familjen Grotesk", Arial, sans-serif'; x.fillText(site.ask, 22, 50); x.fillStyle = '#34b7f1'; x.font = '600 18px Arial'; x.fillText('✓✓', 262, 66);
+    }) }));
+    bubble.position.set(0.25, 0.68, 0.06); phone.add(bubble);
+    // Three people wander round the floor disc: a site is for the people who walk in.
+    const walkers = lowQuality ? [] : [0xf2d98b, 0x3f6e68, 0x9e3b2c].map((col, k) => {
+      const p = new THREE.Group(), body = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.22, 4, 8), lit(col)), head = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 10), lit(0xd9a77c));
+      body.position.y = 0.18; head.position.y = 0.4; p.add(body, head); g.add(p); return { p, k };
+    });
     g.visible = false;
-    return { g, fade, reveal, disc, layers, things, size };
+    return { g, fade, reveal, disc, layers, things, size, phone, strip, bubble, walkers };
   });
   return function update(focus, air) {
     worlds.forEach((w, i) => {
@@ -73,6 +107,11 @@ export function gallery({ scene, cards, lowQuality }) {
       w.fade.value = 0.8 * grow; w.reveal.value = sstep(0.2, 1, f);
       w.g.scale.setScalar(w.size * (0.05 + 0.95 * grow)); w.disc.material.opacity = 0.85 * grow;
       for (const [k, l] of w.layers.entries()) { const u = sstep(0.25 + k * 0.05, 0.85 + k * 0.03, f); l.m.position.set(l.x * (1 + 0.12 * u), l.y * (1 + 0.18 * u), 0.004 + l.out * u); }
+      const live = sstep(0.55, 0.95, f);
+      w.phone.scale.setScalar(Math.max(0.001, live * 1.4)); w.strip.offset.y = 0.6 - ((air * 0.05) % 0.6); // the page scrolls down and starts again
+      if (camera) w.phone.rotation.y = Math.atan2(camera.position.x - w.g.position.x, camera.position.z - w.g.position.z);
+      const b = (air * 0.35 + i * 0.3) % 1; w.bubble.material.opacity = live * sstep(0, 0.1, b) * (1 - sstep(0.6, 0.75, b)); w.bubble.position.y = 0.66 + 0.08 * sstep(0, 0.2, b);
+      for (const { p, k } of w.walkers) { const a = air * 0.3 + (k * Math.PI * 2) / 3, r = 1.2 + 0.15 * Math.sin(air * 0.7 + k); p.position.set(Math.cos(a) * r, Math.abs(Math.sin(air * 5 + k)) * 0.03, Math.sin(a) * r); p.rotation.y = -a; p.scale.setScalar(Math.max(0.001, live)); }
       for (const [k, m] of w.things.entries()) { const u = sstep(0.4 + k * 0.15, 0.85 + k * 0.15, f); m.scale.setScalar(Math.max(0.001, u * (1 + 0.12 * Math.sin(Math.PI * u)))); m.rotation.y = air * 0.25 + k; }
     });
   };

@@ -147,7 +147,7 @@ for (const b of BRIDGES) {
 }
 
 const dressing = dress({ scene, camera, lowQuality });
-const expand = gallery({ scene, cards: demoCards, lowQuality });
+const expand = gallery({ scene, cards: demoCards, lowQuality, camera });
 const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
 
 // ---------- entrance membranes: where the rail crosses each doorway, and the full-screen wobble of passing through ----------

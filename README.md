@@ -80,3 +80,17 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Phase 5, part: three small secrets on the walk (a loose Lobby tile that is a shortcut to the stairs, a golden kite with a banner over the roof, a hatch in a rooftop water tank that opens the form as the "VIP desk"), so there are six in all; a burst of diamonds when all six are found; phone portrait framing (a wider view in portrait, bottom buttons no longer overlap).
 - Not built from Phase 5: the Sky Quarter, the Renovation, Drafting Room, Signal Cabin and Greenhouse rooms, their secrets, the travel set-pieces, and the clock-tower hub.
 - Not checked: motion feel and frame rate on a real GPU, a real phone and touch, how sounds sound, reduced motion for the new pieces. On a phone in portrait the founder plaque is still cut off at its stop.
+
+## Third round of feedback (17 Nov 2026, evening)
+
+- Gallery: the five demo worlds have different shapes and are spread through the room: domes on the floor, spheres in the air, a portal in the west wall. The page sits at the heart of each, a small phone inside it, and the others dim while one is open. Where the Lobby turn ends, the west wall carries the Gallery's sign with five small live screens.
+- 3D cards: on a desktop each room's card stands in the room beside what it explains (counters, shops, demo worlds, add-ons) and folds away as the walk moves on (`CSS3DRenderer` in `src/main.js`). The three plans hang on cords in the Workshop. Phones keep the flat cards.
+- TV: "Sit & watch" is a control hovering over the set, turned to the viewer. The corner button stays on phones.
+- Extras: a click on a carriage goes to that add-on, and its card steps out of the carriage.
+- The Lab: a page builder replaces the brushing game. Tap blocks to stack a page on a phone, change its colours, undo, launch. Nothing is sent or kept.
+- The mirror: the room sways with slow crossing waves and caustic light, as if under water.
+- Lobby lights: small paper lanterns over the courtyard instead of bright glowing bulbs, smaller rail sparks, and the lone door opens on a night sky.
+- Paint and furniture: each ground room has its own wall colour with a darker dado and a brass line; Worth it has terrazzo plinths with lit glass tops and number plates; the Workshop has fluted timber counters with stone tops and brass rails.
+- The Sky Quarter is planned, not built: four layout drawings are in `D:ahul-context\scrollstory\sky-quarter-layouts\` (sky map, side view, the four new rooms, the ground floor and the new order).
+- Not checked: motion feel and frame rate on a real GPU, a real phone, how the 3D cards read on a small laptop screen, and reduced motion for the new pieces.
+

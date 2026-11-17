@@ -213,7 +213,7 @@ const blocked = (e) => state.secret || document.body.classList.contains('intro')
 // One wheel gesture is one stop. Lenis hands every wheel event here first; returning false keeps it from scrolling.
 const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
   if (free || !d.event.type.startsWith('wheel') || d.event.ctrlKey || blocked(d.event)) return true;
-  d.event.preventDefault(); if (Math.abs(d.deltaY) > 1) steps.wheel(Math.sign(d.deltaY), performance.now() / 1000); return false;
+  d.event.preventDefault(); if (Math.abs(d.deltaY) > 1) steps.wheel(Math.sign(d.deltaY), performance.now() / 1000, Math.abs(d.deltaY)); return false;
 } });
 gsap.ticker.lagSmoothing(0);
 
@@ -242,7 +242,7 @@ const steps = stepper(rail.stops, (i) => {
 });
 const pips = document.getElementById('pips');
 rail.stops.forEach((s, i) => {
-  const b = document.createElement('button'); b.setAttribute('aria-label', `Stop ${i + 1} of ${rail.stops.length}`); b.onclick = () => steps.goto(i); pips.append(b);
+  const b = document.createElement('button'); b.setAttribute('aria-label', `Stop ${i + 1} of ${rail.stops.length}`); b.onclick = () => (Math.abs(i - steps.dest) > 2 ? jump(i) : steps.goto(i)); pips.append(b);
 });
 if (free) pips.hidden = true;
 else {
@@ -454,8 +454,23 @@ addEventListener('click', (e) => {
 const plan = document.getElementById('plan'), planBtn = document.getElementById('planBtn');
 for (const r of rail.rooms) {
   const b = document.createElement('button'); b.className = 'mono'; b.textContent = r.name; b.setAttribute('role', 'menuitem');
-  b.onclick = () => { if (free) lenis.scrollTo((r.s / rail.total) * lenis.limit, { immediate: true, force: true }); else steps.goto(steps.nearest(r.s)); togglePlan(false); };
+  b.onclick = () => { if (free) lenis.scrollTo((r.s / rail.total) * lenis.limit, { immediate: true, force: true }); else jump(steps.first(r.s)); togglePlan(false); };
   plan.insertBefore(b, foundBox); r.btn = b;
+}
+// A far jump (floor plan, a distant pip) does not fly through the building: a card for the room comes up, the walk lands on the stop underneath, the card lifts.
+const jumpCard = document.getElementById('jump');
+function jump(i) {
+  if (state.fading) return;
+  state.fading = true;
+  const p = rail.stops[i], k = LEVELS.reduce((b, r, j) => (r.s <= p + 1 ? j : b), 0), L = LEVELS[k];
+  jumpCard.querySelector('b').textContent = String(k + 1).padStart(2, '0');
+  jumpCard.querySelector('span').textContent = L.name.replace(/^\d+ /, '');
+  jumpCard.style.setProperty('--card', L.accent);
+  const land = () => { lenis.scrollTo(stopPx(i), { immediate: true, force: true }); steps.land(i); state.body = state.look = p; state.vBody = state.vLook = 0; };
+  const [inn, out] = state.reduce ? [{ opacity: 1, duration: 0.4 }, { opacity: 0, duration: 0.4 }] : [{ yPercent: 0, rotate: 0, opacity: 1, duration: 0.55, ease: 'power3.out' }, { yPercent: -110, rotate: -3, duration: 0.6, ease: 'power3.in' }];
+  gsap.timeline({ onComplete() { state.fading = false; } })
+    .fromTo(jumpCard, state.reduce ? { opacity: 0, yPercent: 0, rotate: 0 } : { yPercent: 110, rotate: 4, opacity: 1 }, { ...inn, onComplete: land })
+    .to(jumpCard, { ...out, delay: 0.45 });
 }
 function togglePlan(open = !plan.classList.contains('open')) { plan.classList.toggle('open', open); planBtn.setAttribute('aria-expanded', open); }
 planBtn.onclick = () => togglePlan();

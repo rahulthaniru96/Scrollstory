@@ -100,19 +100,23 @@ for (let p = rail.total; p >= 0; p -= 15.5) {
     if (S[i] - S[i - 1] < 20) fail(`stops: ${S[i - 1].toFixed(0)} and ${S[i].toFixed(0)} vh are closer than 20 vh`);
     if (S[i] - S[i - 1] > 280) fail(`stops: ${(S[i] - S[i - 1]).toFixed(0)} vh between ${S[i - 1].toFixed(0)} and ${S[i].toFixed(0)} vh (limit 280)`);
   }
-  // One gesture, one stop: forward, back, the ends, one queued step and no more, and a coasting wheel counts once.
+  // One gesture, one stop: forward, back, the ends, nothing queues, and a coasting wheel counts once even when it outlasts the travel.
   const went = [], st = stepper(S, (i) => went.push(i));
   const eq = (what, a, b) => { if (JSON.stringify(a) !== JSON.stringify(b)) fail(`stepper: ${what}: got ${JSON.stringify(a)}, wanted ${JSON.stringify(b)}`); };
   st.step(-1); eq('cannot step before the start', went, []);
   st.step(1); st.step(1); st.step(1); eq('one travel at a time', went, [1]);
-  st.arrived(); eq('one queued step runs', went, [1, 2]);
-  st.arrived(); eq('only one was queued', went, [1, 2]);
-  st.step(-1); st.arrived(); eq('back', went, [1, 2, 1]);
-  for (let t = 10; t < 11; t += 0.05) st.wheel(1, t);
-  eq('a run of wheel events is one gesture', went, [1, 2, 1, 2]);
-  st.arrived(); st.wheel(1, 12); st.arrived(); eq('a new gesture after a pause', went, [1, 2, 1, 2, 3]);
-  st.sync(S[S.length - 1]); st.step(1); eq('cannot step past the end', went, [1, 2, 1, 2, 3]);
-  st.sync(S[5] + 3); st.step(1); eq('after a drag, steps from the nearest stop', went, [1, 2, 1, 2, 3, 6]);
+  st.arrived(); eq('nothing was queued', went, [1]);
+  st.step(-1); st.arrived(); eq('back', went, [1, 0]);
+  went.length = 0;
+  for (let t = 10; t < 11; t += 0.05) st.wheel(1, t, 60);
+  eq('a run of wheel events is one gesture', went, [1]);
+  st.arrived(); for (let t = 11; t < 12.5; t += 0.2) st.wheel(1, t, 30 * (12.5 - t)); // the tail keeps coasting after arrival
+  eq('a tail that outlasts the travel is the same gesture', went, [1]);
+  st.wheel(1, 13, 2); eq('a tiny delta after a pause starts nothing', went, [1]);
+  st.wheel(1, 14, 80); st.arrived(); eq('a new gesture after a pause', went, [1, 2]);
+  st.sync(S[S.length - 1]); st.step(1); eq('cannot step past the end', went, [1, 2]);
+  st.sync(S[5] + 3); st.step(1); eq('after a drag, steps from the nearest stop', went, [1, 2, 6]);
+  st.arrived(); eq('first stop at or after a room start', st.first(S[3] - 0.5), 3);
 }
 
 // 6. Same feel at any frame rate: the spring's step response at 60 and 144 frames per second.

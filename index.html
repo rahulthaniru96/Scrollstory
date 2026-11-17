@@ -75,6 +75,10 @@
   #hud b { color: var(--butter); font-weight: 500; }
   #hud .bad { color: #ff9c8a; }
   #mist { position: fixed; inset: 0; z-index: 3; background: #F6E7D2; opacity: 0; pointer-events: none; }
+  #jump { --card: var(--accent); position: fixed; inset: 3vh 3vw; z-index: 9; pointer-events: none; opacity: 0; border-radius: 22px; background: #F6E7D2; box-shadow: 0 30px 80px rgba(20, 32, 29, 0.35), inset 0 0 0 2px var(--card); display: grid; place-content: center; justify-items: center; color: #1E2A26; }
+  #jump small { letter-spacing: 0.3em; text-transform: uppercase; font-size: 12px; opacity: 0.7; }
+  #jump b { font: 300 clamp(140px, 30vw, 360px)/0.85 var(--display); color: transparent; -webkit-text-stroke: 2px var(--card); font-variation-settings: 'SOFT' 100, 'WONK' 1; }
+  #jump span { font: 400 clamp(30px, 5vw, 64px)/1 var(--display); margin-top: 24px; }
   #dusk { position: fixed; inset: 0; z-index: 1; background: #1a2030; mix-blend-mode: multiply; opacity: 0; pointer-events: none; } /* the intro starts on dark water */
   header, #hint, #caption, #contact, #hud, #pips, #level { transition: opacity 0.8s; }
   body.intro header, body.intro #hint, body.intro #contact, body.intro #hud, body.intro #pips, body.intro #level { opacity: 0; }
@@ -164,6 +168,7 @@
 </div>
 <div id="film"></div>
 <div id="mist"></div>
+<div id="jump" aria-hidden="true"><small class="mono">Level</small><b></b><span></span></div>
 <div id="dusk"></div>
 <div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp Rahul Thaniru, Scrollstory Studio: +91 99490 88659.</p></div>
 

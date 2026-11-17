@@ -258,10 +258,11 @@ sph('kite 2', 25, 42.5, 10, 1.4, 'kite');
 export const DRAFT = { x0: -9, x1: 3, z0: -42, z1: -31, y: H.drafting };
 export const SIGNAL = { x0: 24.5, x1: 33, z0: -36, z1: -18, y: H.signal };
 export const GREEN = { x0: 26, x1: 35, z0: -4, z1: 6, y: H.greenhouse };
+for (const [n, f] of [['drafting slab', DRAFT], ['signal slab', SIGNAL], ['greenhouse slab', GREEN]]) box(n, f.x0, f.x1, f.y - 1.5, f.y, f.z0, f.z1, 'floor');
 export const HUB = { x: 5, z: -10, r: 1.8, y0: 22, y1: 47, face: 41.5 }; // the clock tower: its hands are how far the walk has come
 cyl('clock tower', HUB.x, HUB.z, HUB.r + 0.4, HUB.y0, HUB.y1, 'wall', HID);
 // Drafting Room: a giant wireframe page stands across the room, and the walk goes through it.
-export const PAGE = { x: -1.2, z: -36.2, w: 7.2, h: 4.2, y: H.drafting + 0.25 };
+export const PAGE = { x: -1.2, z: -35.6, w: 6.2, h: 3.6, y: H.drafting + 0.25 };
 box('drafting back wall', DRAFT.x0, DRAFT.x1, H.drafting, H.drafting + 3.4, DRAFT.z0 - W, DRAFT.z0, 'wall', HID);
 box('drafting west wall', DRAFT.x0 - W, DRAFT.x0, H.drafting, H.drafting + 3.4, DRAFT.z0, -36.5, 'wall', HID);
 for (const sx of [-1, 1]) box(`page frame post ${sx < 0 ? 'W' : 'E'}`, PAGE.x + sx * (PAGE.w / 2 + 0.05) - 0.15, PAGE.x + sx * (PAGE.w / 2 + 0.05) + 0.15, H.drafting, PAGE.y + PAGE.h + 0.2, PAGE.z - 0.15, PAGE.z + 0.15, 'furniture', HID);

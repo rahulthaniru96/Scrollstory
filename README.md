@@ -91,6 +91,6 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - The mirror: the room sways with slow crossing waves and caustic light, as if under water.
 - Lobby lights: small paper lanterns over the courtyard instead of bright glowing bulbs, smaller rail sparks, and the lone door opens on a night sky.
 - Paint and furniture: each ground room has its own wall colour with a darker dado and a brass line; Worth it has terrazzo plinths with lit glass tops and number plates; the Workshop has fluted timber counters with stone tops and brass rails.
-- The Sky Quarter is planned, not built: four layout drawings are in `D:ahul-context\scrollstory\sky-quarter-layouts\` (sky map, side view, the four new rooms, the ground floor and the new order).
+- The Sky Quarter is planned, not built: four layout drawings are in `D:/rahul-context/scrollstory/sky-quarter-layouts/` (sky map, side view, the four new rooms, the ground floor and the new order).
 - Not checked: motion feel and frame rate on a real GPU, a real phone, how the 3D cards read on a small laptop screen, and reduced motion for the new pieces.
 

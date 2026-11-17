@@ -214,12 +214,12 @@ export function buildRail() {
   move('Bridge up to the Rooftop', 'room', 180, (a, d) => {
     line(15, -10, H.extras);
     P(15, H.extras + 1 + EYE, -7); P(15, H.extras + 2 + EYE, -4); g(15, -1, H.rooftop);
-    key(a + d, g(15, 2.5, H.rooftop));
-    look(a + d * 0.6, NORTH - 180, 6); look(a + d, NORTH - 180, 0);
+    key(a + d, g(15, 1.2, H.rooftop));
+    look(a + d * 0.6, NORTH - 180, 5); look(a + d, NORTH - 180, 2);
   });
-  move('Tilt up to the sky', 'room', 80, (a, d) => { key(a + d, last()); look(a + d * 0.9, NORTH - 180, 45); });
-  move('Settle on the desk', 'room', 60, (a, d) => {
-    key(a + d, g(15, 3.2, H.rooftop)); const [y, p] = aim(here(), DESK, NORTH - 180); look(a + d, y, p);
+  // one straight, level glide to the desk: no look up at the sky first, so the last step does not lurch
+  move('Settle on the desk', 'room', 120, (a, d) => {
+    key(a + d, g(15, 3.6, H.rooftop)); const [y, p] = aim(here(), DESK, NORTH - 180); look(a + d, y, p);
   });
   rooms.push({ name: '06 Rooftop', s: s - 1 });
 
@@ -260,7 +260,7 @@ export function buildRail() {
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
   // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
-  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Bridge up to the Rooftop', 'Tilt up to the sky'];
+  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Bridge up to the Rooftop'];
   const stops = [0, TOTAL_VH];
   for (const m of moves) {
     const d = m.s1 - m.s0;

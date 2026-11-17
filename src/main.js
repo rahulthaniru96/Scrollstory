@@ -9,6 +9,7 @@ import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
 import { gallery, SITES } from './gallery.js';
+import { deskSign } from './rooms.js';
 import { secrets, BOOKS, SECRETS } from './secrets.js';
 import { sound } from './sound.js';
 import { intro } from './intro.js';
@@ -295,6 +296,7 @@ const COPY = {
   'Bookshelf hold': ['The landing · How we work', 'Five volumes.', 'Pull one out.'],
   'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
   'Extras hold': ['Room 05 · Extras', 'Everything else', 'it takes to go digital.'],
+  'Bridge up to the Rooftop': ['Room 06 · The rooftop', 'Up on the roof.', 'The desk is one step away.'],
   'Settle on the desk': ['Room 06 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
 };
 const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta'), capNum = cap.querySelector('.num');
@@ -318,7 +320,7 @@ function caption(p) {
   }
   const u = mi >= 0 ? (phi + 0.5 - MILESTONES[mi].phi + 0.52) / 1.04 : tv ? env.tv.f : (p - m.s0) / (m.s1 - m.s0);
   // Scroll-driven, so it reverses exactly: the words come in one by one, then the whole caption leaves. The first caption is there when the intro ends.
-  const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
+  const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove || m.name === 'Bridge up to the Rooftop' ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
   for (const [k, w] of capWords.entries()) { const wo = sstep((k / n) * 0.6, (k / n) * 0.6 + 0.4, arrive); w.style.opacity = wo; w.style.transform = `translateY(${(1 - wo) * 0.4}em)`; }
   const o = sstep(0, 0.2, arrive) * out;
   cap.style.opacity = o; cap.style.transform = `translateY(${(1 - out) * 16}px)`; cap.classList.toggle('on', arrive > 0.6 && out > 0.5);
@@ -361,6 +363,8 @@ COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['The shelf moves. Step in', () => enterSecret('lab')] : null }; });
+INFO['Settle on the desk'] = { label: 'Room 06 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };
+let signText = '';
 SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} of 0${SECRETS.length}`, h: s.name, lines: [s.text], act: ['Back to the walk', () => leaveSecret()] }; });
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 const info = document.getElementById('info'), chooser = document.getElementById('chooser');
@@ -374,8 +378,9 @@ function cards(p) {
     info.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
     if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
     if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; info.append(b); }
+    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); }; info.append(i); }
   }
-  const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (1 - sstep(0.8, 1, u)) : 0;
+  const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (m === lastMove ? 1 : 1 - sstep(0.8, 1, u)) : 0;
   info.style.opacity = o; info.style.transform = `translateY(${(1 - o) * 14}px)`; info.classList.toggle('on', o > 0.5);
   const oc = m.name === 'Choose one' ? sstep(0.05, 0.25, u) * (1 - sstep(0.85, 1, u)) : 0;
   chooser.style.opacity = oc; chooser.classList.toggle('on', oc > 0.5);
@@ -393,6 +398,7 @@ const formBox = document.getElementById('form'), form = formBox.querySelector('f
 function openForm(plan) {
   formBox.classList.remove('sent'); form.reset();
   if (plan) form.elements.need.value = plan;
+  if (signText.trim()) form.elements.business.value = signText.trim();
   syncEmail(); lenis.stop(); formBox.showModal(); // the page behind stays where it is
 }
 const syncEmail = () => { const on = form.elements.contact.value === 'Email'; form.elements.email.closest('label').hidden = !on; form.elements.email.required = on; };

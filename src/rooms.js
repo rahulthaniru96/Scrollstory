@@ -14,6 +14,9 @@ const canvasTex = (w, h, draw) => {
 };
 
 // Rahul's story, from portfolio-brief.md ("The story"), cut into lines. Each line is a channel on the box TV.
+// The rooftop desk's front carries a neon sign the visitor writes: their business name, lit, for as long as the page is open. Nothing is stored.
+const sign = { draw: () => {} };
+export const deskSign = (text) => sign.draw(text);
 export const STORY = [
   "I've loved building websites for a long time.",
   'So I looked for clients, and built what they actually need.',
@@ -460,6 +463,21 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       card.rotation.y = Math.PI; hover(card, 0.08, 0.45, 0.05, 0.3);
     }
     glow(0xfff0cf, 3.5, 15, y + 2.0, 7.3, scene, 0.25);
+    {
+      const c = document.createElement('canvas'); c.width = 1024; c.height = 220; const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+      sign.draw = (text) => {
+        const t = (text || '').trim(), word = t || 'Your business';
+        x.fillStyle = '#1e1a22'; x.fillRect(0, 0, 1024, 220); x.strokeStyle = 'rgba(246,184,208,0.35)'; x.lineWidth = 4; x.strokeRect(10, 10, 1004, 200);
+        let size = 120; x.font = `italic 400 ${size}px Fraunces, serif`; while (x.measureText(word).width > 900 && size > 40) { size -= 6; x.font = `italic 400 ${size}px Fraunces, serif`; }
+        x.textAlign = 'center'; x.textBaseline = 'middle';
+        for (const [blur, col] of [[38, '#ff5fa2'], [14, '#ff9cc6'], [0, t ? '#fff1f7' : 'rgba(255,241,247,0.55)']]) { x.shadowColor = '#ff5fa2'; x.shadowBlur = blur; x.fillStyle = col; x.fillText(word, 512, 116); }
+        x.shadowBlur = 0; tex.needsUpdate = true;
+      };
+      sign.draw('');
+      const m = mesh(new THREE.PlaneGeometry(2.9, 0.62), basic(0xffffff, { map: tex }), 15, y + 0.6, 6.96); m.rotation.y = Math.PI; // on the desk's front, facing the visitor
+      document.fonts?.ready.then(() => sign.draw(sign.last));
+      const draw = sign.draw; sign.draw = (t) => { sign.last = t; draw(t); };
+    }
     prop('water_tank', 20, y, 9);
     hover(prop('water_tank', 18.2, y + 0.42, 9.4, { s: 0.75 }), 0.07, 0.3, 0.05); // this one has come loose
     const umbrella = hover(prop('umbrella', 17.4, y + 0.3, 6.4), 0.06, 0.35, 0.03);

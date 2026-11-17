@@ -88,19 +88,19 @@ export function buildRail() {
     look(a + d * 0.92, 180, -3); look(a + d, 180, -3);
   });
   // ---- 02 Gallery ----
+  const LAST_CARD = 180 + 24;
   move('Gallery, walking backwards', 'room', 220, (a, d) => {
     key(a + d, line(-9, -10));
-    for (const c of CARDS) { // glance at each card as it slides into view
-      const zc = c.z - 3.5;
-      if (zc < -9) continue; // the walk ends before this one's turn; squeezing its glance into the last metres made the view shake
-      look(a + (d * (7 - zc)) / 17, 180 + (c.x > -9 ? 6 : -6), -3);
+    for (const c of CARDS) { // each demo site gets a stop 3 m past it, with the eyes on it while it opens
+      const u = (10 - c.z) / 17;
+      if (u < 1) look(a + d * u, 180 + (c.x > -9 ? 17 : -17), -2);
     }
-    look(a + d, 180, -3);
+    look(a + d, LAST_CARD, -2); // the last one opens on the Gallery hold
   });
   hold('Gallery hold', 50, '02 Gallery');
   // ---- 03 Worth it: the why. Four counters on the south room's back wall, one beat at each ----
   move('Corner into Worth it', 'room', 110, (a, d) => {
-    look(a, 180, -3);
+    look(a, LAST_CARD, -2);
     g(-9.3, -13.5); key(a + d, g(-10.2, -17.4));
     look(a + d * 0.45, 250, 0); look(a + d * 0.85, 293, 0); look(a + d, 293, 0);
   });
@@ -251,14 +251,14 @@ export function buildRail() {
   const yawOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.yaw));
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
-  // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, two looks along the Gallery, and one per TV channel.
+  // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
   const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Pan across the board', 'Bridge up to the Rooftop', 'Tilt up to the sky'];
   const stops = [0, TOTAL_VH];
   for (const m of moves) {
     const d = m.s1 - m.s0;
     if (m.name === 'Arrival hold' || m.name === 'HOME hold') continue; // the walk opens on the first; the TV's channels cover the second
     if (m.name === 'HOME partial orbit') { const t1 = moves[moves.indexOf(m) + 1].s1; for (let c = 0; c < TV_CHANNELS; c++) stops.push(m.s0 + ((t1 - m.s0) * (c + 0.5)) / TV_CHANNELS); }
-    else if (m.name === 'Gallery, walking backwards') stops.push(m.s0 + d * 0.36, m.s0 + d * 0.72);
+    else if (m.name === 'Gallery, walking backwards') { for (const c of CARDS) if (c.z > -7) stops.push(m.s0 + (d * (10 - c.z)) / 17); }
     else if (m.hold) stops.push(m.s0 + d * 0.6);
     else if (END_STOPS.includes(m.name)) stops.push(m.s1 - 1);
   }

@@ -441,7 +441,9 @@ function cards(p) {
   for (const c of chooseCards) show3d(c, flatCards ? 0 : oc);
   const ocf = flatCards ? oc : 0;
   chooser.style.opacity = ocf; chooser.classList.toggle('on', ocf > 0.5);
-  sitBtn.classList.toggle('on', !state.seat && env.tv.ch >= 0 && p < TV_SPAN[1] && !!m.hold);
+  const canSit = !state.seat && env.tv.ch >= 0 && p < TV_SPAN[1] && !steps.travelling;
+  sitBtn.classList.toggle('on', flatCards && canSit); show3d(sit3d, flatCards ? 0 : canSit ? 1 : 0);
+  sit3d.rotation.y = Math.atan2(camera.position.x - sit3d.position.x, camera.position.z - sit3d.position.z);
   startBtn.classList.toggle('on', m === lastMove && u > 0.45); who.classList.toggle('on', m === lastMove && u > 0.45);
 }
 for (const pl of PLANS) {
@@ -547,6 +549,12 @@ function sit(on) {
   gsap.to(env, { seated: on ? 2 : 0, duration: state.reduce ? 0.01 : on ? 2.2 : 1.4, ease: 'power2.inOut', overwrite: true });
 }
 sitBtn.onclick = () => sit(true);
+// On a desktop the way to sit is at the set itself: a small control hovering over the TV, turned to the viewer.
+const sit3d = (() => {
+  const box = el('button', null, 'c3 sit'); box.append(el('b', '▶'), el('span', 'Sit & watch'), el('small', 'Scrollstory TV · 4 channels', 'mono'));
+  box.onclick = () => sit(true);
+  const obj = new CSS3DObject(box); obj.position.set(TV[0], H.home + 2.85, TV[2] + 0.3); obj.userData.k = 2.4; obj.scale.setScalar(C3); cssScene.add(obj); return obj; // over the set, turned to the viewer each frame
+})();
 remoteBar.querySelector('.prev').onclick = () => remote(state.seat.ch - 1);
 remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
 remoteBar.querySelector('.up').onclick = () => sit(false);

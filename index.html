@@ -62,6 +62,12 @@
   .c3.plan::after { display: none; }
   .c3.plan .price { font: 500 34px var(--display); margin-bottom: 6px; }
   .c3.plan ul { margin: 6px 0 0; padding-left: 20px; font-size: 18px; }
+  .c3.sit { width: auto; display: grid; grid-template-columns: auto auto; column-gap: 14px; align-items: center; padding: 16px 26px 16px 18px; border-radius: 999px; cursor: pointer; text-align: left; animation: sitbob 2.4s ease-in-out infinite; }
+  .c3.sit b { grid-row: span 2; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--cream); font-size: 20px; box-shadow: 0 0 0 0 var(--accent); animation: sitping 2.4s ease-out infinite; }
+  .c3.sit span { font: 500 28px var(--display); } .c3.sit small { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; }
+  .c3.sit::before { left: 50%; top: 100%; width: 2px; height: 40px; } .c3.sit::after { left: calc(50% - 5px); top: calc(100% + 40px); }
+  @keyframes sitping { 0% { box-shadow: 0 0 0 0 var(--accent); } 80%, 100% { box-shadow: 0 0 0 16px transparent; } }
+  @keyframes sitbob { 50% { margin-top: -8px; } }
   .c3.head { width: auto; background: none; border: 0; box-shadow: none; text-align: center; color: var(--cream); text-shadow: 0 2px 18px rgba(20, 32, 29, 0.6); }
   .c3.head::before, .c3.head::after { display: none; }
   .c3.head h2 { font-size: 72px; margin: 0; } .c3.head p { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; }

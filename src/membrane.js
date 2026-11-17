@@ -19,7 +19,7 @@ export function membranes({ scene, camera, lowQuality, crossings }) {
   const dropMat = new THREE.MeshBasicMaterial({ color: 0xd3efea, transparent: true, opacity: 0.8 }), dropGeo = new THREE.SphereGeometry(1, 10, 8);
   const local = new THREE.Vector3();
   const doors = crossings.map((c, k) => {
-    const g = new THREE.Group(); g.position.set(c.x, 0, c.z); g.rotation.y = c.turn; scene.add(g);
+    const g = new THREE.Group(); g.position.set(c.x, c.y || 0, c.z); // c.y: a membrane up in the Sky Quarter g.rotation.y = c.turn; scene.add(g);
     const geo = new THREE.PlaneGeometry(c.w, H, SEG, SEG), sheet = new THREE.Mesh(geo, gel); sheet.position.y = H / 2; g.add(sheet);
     const flat = geo.attributes.position.array.slice();
     const hint = holoEdges(new THREE.BoxGeometry(c.w * 1.7, 2.6, 3), { everywhere: true, opacity: 0.35 }); g.add(hint); // the next room, only as an outline
@@ -35,7 +35,7 @@ export function membranes({ scene, camera, lowQuality, crossings }) {
   return function update(p, time) {
     let crossing = 0; uTime.value = time;
     for (const d of doors) {
-      const before = p < d.c.at, far = d.g.position.distanceTo(camera.position) > 70 || camera.position.y > 6;
+      const before = p < d.c.at, far = d.g.position.distanceTo(camera.position) > 70 || Math.abs(camera.position.y - d.g.position.y) > 6;
       d.sheet.visible = d.hint.visible = before && !far;
       crossing = Math.max(crossing, sstep(1, 0, Math.abs(p - d.c.at) / 20) ** 2); // 40 vh wide, with a soft start and end
       const u = (p - d.c.at) / 24; // the burst: drops fall over the next 24 vh

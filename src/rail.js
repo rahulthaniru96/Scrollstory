@@ -226,45 +226,46 @@ export function buildRail() {
     look(a + d * 0.5, NORTH + 255, 0); look(a + d, NORTH + 180, -2);
   });
   // ---- 07 Signal Cabin: a funicular car across the gap, then into an old railway signal box ----
+  const N2 = NORTH + 360; // the cabin turns the walk once round: from the Extras board on, yaw counts from here
   move('Funicular to the Signal Cabin', 'cloud', 150, (a, d) => {
     for (const u of [0.25, 0.5, 0.75]) ramp(CAR, u);
     key(a + d, ramp(CAR, 0.99));
-    look(a + d * 0.2, NORTH + 180, -4); look(a + d * 0.8, NORTH + 175, -4); look(a + d, NORTH + 150, -2); // sideways, out over the whole archipelago
+    look(a + d * 0.2, NORTH + 180, -4); look(a + d * 0.8, NORTH + 175, -4); look(a + d, NORTH + 200, -2); // sideways, out over the whole archipelago
   });
   move('Into the cabin', 'room', 80, (a, d) => {
     g(25.3, -33, H.signal); g(25.5, -31.3, H.signal); key(a + d, g(27.8, -28, H.signal));
-    look(a + d * 0.6, NORTH + 100, 0); look(a + d, NORTH + 90, -4);
+    look(a + d * 0.6, NORTH + 255, 0); look(a + d, NORTH + 270, -4); // east, at the levers
   });
   hold('Signal Cabin hold', 50, '07 Signal Cabin');
   move('To the admin panel', 'room', 70, (a, d) => {
     key(a + d, g(28.3, -28.6, H.signal));
-    const [y, p] = aim(here(), [29.6, H.signal + 2.0, CABIN.z0], NORTH + 60); look(a + d * 0.9, y, p); look(a + d, y, p);
+    const [y, p] = aim(here(), [29.6, H.signal + 2.0, CABIN.z0], NORTH + 330); look(a + d * 0.9, y, p); look(a + d, y, p);
   });
   hold('Admin panel', 50);
   move('Out of the cabin', 'room', 110, (a, d) => {
     g(26.6, -26, H.signal); key(a + d, g(25.3, -21.3, H.signal));
-    look(a + d * 0.6, NORTH + 110, -4); look(a + d, NORTH + 92, -14); // at the edge, looking down at Extras
+    look(a + d * 0.6, NORTH + 430, -4); look(a + d, NORTH + 452, -14); // at the edge, looking down at Extras
   });
   // ---- 08 Extras: a short fall through a membrane onto the platform, then the board and the map ----
   move('A short fall', 'cloud', 70, (a, d) => {
     P(24.4, H.signal + EYE + 0.15, -20.9); P(22.9, H.signal + EYE - 0.4, -20.3); key(a + d, g(21.4, -19.8, H.extras));
-    look(a + d, NORTH + 75, -2);
+    look(a + d, NORTH + 435, -2);
   });
   move('To the board', 'room', 80, (a, d) => {
     g(19.5, -19.1, H.extras); key(a + d, g(15, -18.2, H.extras));
-    const [, p] = aim(here(), [BOARD.x, BOARD.y, BOARD.z], NORTH); look(a + d * 0.7, NORTH + 15, p * 0.3); look(a + d, NORTH, p * 0.3); // low, so the train on the yellow line stays in the frame under the board
+    const [, p] = aim(here(), [BOARD.x, BOARD.y, BOARD.z], N2); look(a + d * 0.7, N2 + 15, p * 0.3); look(a + d, N2, p * 0.3); // low, so the train on the yellow line stays in the frame under the board
   });
   hold('Extras hold', 40, '08 Extras');
   for (const [r, e] of EXTRAS.entries()) {
     move(`Extra: ${e.name}`, 'room', 50, (a, d) => {
       key(a + d, last());
-      const [, p] = aim(here(), [BOARD.x, BOARD.rowY(r), BOARD.z], NORTH); look(a + d * 0.5, NORTH, p * 0.3); look(a + d, NORTH, p * 0.3);
+      const [, p] = aim(here(), [BOARD.x, BOARD.rowY(r), BOARD.z], N2); look(a + d * 0.5, N2, p * 0.3); look(a + d, N2, p * 0.3);
     });
     moves[moves.length - 1].hold = true;
   }
   move('To the map', 'room', 70, (a, d) => {
     g(15.2, -16.4, H.extras); key(a + d, g(14.5, -14.4, H.extras));
-    const [y, p] = aim(here(), [MAP.x, H.extras + 1.0, MAP.z], NORTH + 90); look(a + d * 0.85, y, p); look(a + d, y, p);
+    const [y, p] = aim(here(), [MAP.x, H.extras + 1.0, MAP.z], N2 + 90); look(a + d * 0.85, y, p); look(a + d, y, p);
   });
   hold('Map hold', 50);
   // ---- 09 Greenhouse: a paper boat up a canal that runs uphill out of the lake ----
@@ -272,24 +273,24 @@ export function buildRail() {
     g(13.14, -10.92, H.extras); ramp(CANAL, 0);
     for (const u of [0.1, 0.4, 0.7, 0.92]) ramp(CANAL, u);
     key(a + d, ramp(CANAL, 0.99));
-    look(a + d * 0.35, NORTH + 245, 2); look(a + d * 0.8, NORTH + 250, 4); look(a + d, NORTH + 265, 0);
+    look(a + d * 0.35, N2 + 245, 2); look(a + d * 0.8, N2 + 250, 4); look(a + d, N2 + 265, 0);
   });
-  move('Into the Greenhouse', 'room', 60, (a, d) => { key(a + d, g(28.6, -0.6, H.greenhouse)); look(a + d, NORTH + 270, 2); });
+  move('Into the Greenhouse', 'room', 60, (a, d) => { key(a + d, g(28.6, -0.6, H.greenhouse)); look(a + d, N2 + 270, 2); });
   hold('Greenhouse hold', 50, '09 Greenhouse');
   move('To the care tools', 'room', 50, (a, d) => {
     key(a + d, g(29.3, 0.8, H.greenhouse));
-    const [y, p] = aim(here(), [31.4, H.greenhouse + 1.3, -2.6], NORTH + 300); look(a + d * 0.85, y, p); look(a + d, y, p);
+    const [y, p] = aim(here(), [31.4, H.greenhouse + 1.3, -2.6], N2 + 300); look(a + d * 0.85, y, p); look(a + d, y, p);
   });
   hold('Care tools', 50);
   // ---- 10 Rooftop: kites lift the walk up over the parapet, then the desk ----
   move('Kites up to the Rooftop', 'cloud', 160, (a, d) => {
     g(27.6, 2.2, H.greenhouse); P(26, H.greenhouse + EYE + 1.2, 2.4); P(24.2, H.rooftop + EYE + 0.9, 2.5); P(22.1, H.rooftop + EYE + 0.95, 2.4); P(19.6, H.rooftop + EYE + 0.3, 2);
     key(a + d, g(15, 1.2, H.rooftop));
-    look(a + d * 0.2, NORTH + 390, 8); look(a + d * 0.55, NORTH + 435, 4); look(a + d, NORTH + 540, 2);
+    look(a + d * 0.2, N2 + 390, 8); look(a + d * 0.55, N2 + 435, 4); look(a + d, N2 + 540, 2);
   });
   // one straight, level glide to the desk: no look up at the sky first, so the last step does not lurch
   move('Settle on the desk', 'room', 120, (a, d) => {
-    key(a + d, g(15, 3.6, H.rooftop)); const [y, p] = aim(here(), DESK, NORTH + 540); look(a + d, y, p);
+    key(a + d, g(15, 3.6, H.rooftop)); const [y, p] = aim(here(), DESK, N2 + 540); look(a + d, y, p);
   });
   rooms.push({ name: '10 Rooftop', s: s - 1 });
 

@@ -2,7 +2,8 @@
 // things hover, turn, come apart and drift, slowly. Their space is declared in world.js so the rail check covers it.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { SHOPS, COUNTERS, SHOP_ROOM, COUNTER_ROOM, LONE_DOOR, FANS, COLLIDERS, DEBRIS, UNDERSIDES, STAIR, H, WINDOW } from './world.js';
+import { holoEdges, holoFill } from './holo.js';
+import { EXTRAS, BOARD, SHOPS, COUNTERS, SHOP_ROOM, COUNTER_ROOM, LONE_DOOR, FANS, COLLIDERS, DEBRIS, UNDERSIDES, STAIR, H, WINDOW } from './world.js';
 
 const V3 = THREE.Vector3, X = new V3(1, 0, 0), Y = new V3(0, 1, 0), Z = new V3(0, 0, 1);
 const css = (c) => '#' + c.toString(16).padStart(6, '0');
@@ -27,7 +28,6 @@ export const TV_BEATS = [
   { short: 'A tool that brings a business income.', full: `${STORY[2]} ${STORY[3]} ${STORY[4]}` },
   { short: 'Help businesses go digital.', full: STORY[5] },
 ];
-const EXTRAS = ['QR CODES', 'PHOTOS', 'SOCIAL POSTS', 'MENU / PRICE CARD']; // build plan, section 8
 
 export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: glow0, glowTexture, lowQuality }) {
   // A room can be built in its own frame and then turned into place: while `root` is that room's group, everything made lands in it.
@@ -377,29 +377,52 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     const c = document.createElement('canvas'); c.width = W; c.height = Hh;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
     const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/ ';
-    const flipping = EXTRAS.map(() => 0); // seconds of flipping left, per row
-    const draw = () => {
+    // Each row is blank until the walk reaches it, flips while it arrives, and is lit while the walk rests on it (env.extra, from the scroll).
+    const draw = (u, litRow) => {
       x.fillStyle = '#15181a'; x.fillRect(0, 0, W, Hh);
       x.font = '600 20px monospace'; x.textAlign = 'left'; x.fillStyle = '#8c8a82'; x.fillText('NO.', 32, 44); x.fillText('ADD-ON', 214, 44);
       x.font = '700 32px monospace'; x.textAlign = 'center';
-      for (const [r, name] of EXTRAS.entries()) {
-        const text = `0${r + 1}  ${name}`.padEnd(COLS), ry = 66 + r * 64;
+      for (const [r, e] of EXTRAS.entries()) {
+        const text = (u[r] < 0 ? '' : `0${r + 1}  ${e.name}`).padEnd(COLS), ry = 66 + r * 64, flip = u[r] >= 0 && u[r] < 1, on = r === litRow;
         for (let k = 0; k < COLS; k++) {
-          const ch = flipping[r] > 0 && k > 3 ? ABC[Math.floor(Math.random() * ABC.length)] : text[k];
-          x.fillStyle = '#262c30'; x.fillRect(30 + k * 46, ry, 41, 54);
-          x.fillStyle = '#f2d98b'; x.fillText(ch, 50.5 + k * 46, ry + 38);
+          const ch = flip && k / COLS > u[r] - 0.25 ? ABC[Math.floor(Math.random() * ABC.length)] : text[k]; // the letters land from the left
+          x.fillStyle = on ? '#f2d98b' : '#262c30'; x.fillRect(30 + k * 46, ry, 41, 54);
+          x.fillStyle = on ? '#15181a' : '#f2d98b'; x.fillText(ch, 50.5 + k * 46, ry + 38);
           x.fillStyle = '#15181a'; x.fillRect(30 + k * 46, ry + 26, 41, 2); // the split in each flap
         }
       }
       tex.needsUpdate = true;
     };
-    draw();
-    mesh(new THREE.PlaneGeometry(7.8, 2.56), basic(0xffffff, { map: tex }), 15, y + 2.6, -23.84);
-    let next = 3, row = 0, last = 0;
-    tick.push((t, dt) => {
+    draw(EXTRAS.map(() => -1), -1);
+    mesh(new THREE.PlaneGeometry(BOARD.w, BOARD.h), basic(0xffffff, { map: tex }), BOARD.x, BOARD.y, BOARD.z);
+    const rowGlow = glow(0xf2d98b, 5, BOARD.x, BOARD.y, BOARD.z + 0.3, scene, 0);
+
+    // A train of light on the yellow line: one carriage for each add-on, its window showing what it carries.
+    const train = new THREE.Group(); train.position.set(15, y, -21.7); scene.add(train);
+    const ICONS = [
+      (q) => { for (let i = 0; i < 7; i++) for (let j = 0; j < 7; j++) if ((i * 3 + j * 5 + i * j) % 3 === 0 || ((i < 2 || i > 4) && (j < 2 || j > 4) && !(i > 4 && j > 4))) q.fillRect(22 + i * 12, 22 + j * 12, 10, 10); },
+      (q) => { q.strokeRect(20, 28, 88, 70); q.beginPath(); q.arc(84, 50, 8, 0, 7); q.fill(); q.beginPath(); q.moveTo(24, 94); q.lineTo(52, 58); q.lineTo(72, 80); q.lineTo(84, 68); q.lineTo(104, 94); q.fill(); },
+      (q) => { q.beginPath(); q.roundRect(20, 24, 88, 62, 14); q.stroke(); q.beginPath(); q.moveTo(40, 86); q.lineTo(36, 108); q.lineTo(60, 86); q.fill(); for (const cx of [44, 64, 84]) { q.beginPath(); q.arc(cx, 55, 5, 0, 7); q.fill(); } },
+      (q) => { q.strokeRect(30, 16, 68, 96); for (let i = 0; i < 4; i++) { q.fillRect(40, 32 + i * 18, 30, 5); q.fillRect(78, 32 + i * 18, 10, 5); } },
+    ];
+    const carGeo = new THREE.BoxGeometry(1.32, 1.0, 0.8), carFill = holoFill({ opacity: 0.16 });
+    const cars = EXTRAS.map((e, i) => {
+      const car = new THREE.Group(); car.position.set((i - 1.5) * 1.45, 0.7, 0); train.add(car); // 1.45 m apart: the whole train fits the frame from the stop, 3.5 m away
+      car.add(new THREE.Mesh(carGeo, carFill), holoEdges(carGeo, { everywhere: true, opacity: 0.9 }));
+      const icon = canvasTex(128, 128, (q) => { q.fillStyle = q.strokeStyle = '#f2d98b'; q.lineWidth = 5; ICONS[i](q); });
+      const win = mesh(new THREE.PlaneGeometry(0.72, 0.72), basic(0xffffff, { map: icon, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }), 0, 0.02, 0.41, car);
+      return { win, halo: glow(0xf2d98b, 2.6, 0, 0, 0.3, car, 0) };
+    });
+    train.add(mesh(new THREE.BoxGeometry(5.8, 0.03, 0.5), basic(0xbfe9ff, { transparent: true, opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false }), 0, 0.16, 0, train));
+    let shown = '', last = 0;
+    tick.push((t, dt, env) => {
       if (camera.position.y < H.home) return;
-      if (t > next) { flipping[row++ % EXTRAS.length] = 0.7; next = t + 3.5; }
-      if (flipping.some((f) => f > 0) && t - last > 0.07) { last = t; for (const i in flipping) flipping[i] -= 0.07; draw(); }
+      const { u, lit: on, train: arrive, leave } = env.extra;
+      train.visible = arrive > 0.01 && leave < 0.99; train.position.x = 15 + (1 - arrive) ** 2 * 20 - leave * leave * 26; // in from the east, out to the west
+      for (const [i, c] of cars.entries()) { c.win.material.opacity = i === on ? 1 : 0.4; c.halo.material.opacity = i === on ? 0.5 : 0; c.win.position.y = 0.02 + (i === on ? Math.sin(t * 2) * 0.03 : 0); }
+      rowGlow.material.opacity = on >= 0 ? 0.25 : 0; if (on >= 0) rowGlow.position.y = BOARD.rowY(on);
+      const flip = u.some((v) => v >= 0 && v < 1), k = u.map((v) => (v < 0 ? 'b' : v < 1 ? 'f' : 'l')).join('') + on;
+      if ((flip && t - last > 0.07) || k !== shown) { shown = k; last = t; draw(u, on); }
     });
     mesh(new THREE.BoxGeometry(12, 0.02, 0.4), lit(0xf2d98b), 15, y + 0.011, -21.7); // the platform's yellow line
     hover(prop('station_bench', 11.5, y + 0.2, -20.5, { ry: Math.PI }), 0.05, 0.4, 0.03);

@@ -12,7 +12,7 @@ import { gallery, SITES } from './gallery.js';
 import { intro } from './intro.js';
 import { TV_BEATS } from './rooms.js';
 import { SWIRL } from './stairs.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -176,7 +176,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const DAY = { hemi: new THREE.Color(0xfff4e4), sun: new THREE.Color(0xffe2b8) }, DUSK = { hemi: new THREE.Color(0xd9cdf0), sun: new THREE.Color(0xf6c66a) };
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, dusk: 0, site: [0, 0, 0, 0, 0] };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 } };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -305,7 +305,11 @@ const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 
 const GALLERY = byName['Gallery, walking backwards'], HAT = byName['Through the hat'];
 const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = TV_CHANNELS; // the last channel is "Your story?"
 const SITE_STOPS = demoCards.map((c, i) => (i < 4 ? GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (10 - c.z)) / 17 : lerp(byName['Gallery hold'].s0, byName['Gallery hold'].s1, 0.6))); // where the walk rests in front of each demo site
+const EX = EXTRAS.map((e) => byName[`Extra: ${e.name}`]), EX0 = byName['Extras hold'], ROOF = byName['Bridge up to the Rooftop'];
 function focus(p) {
+  EX.forEach((m, i) => { env.extra.u[i] = (p - (m.s0 - 8)) / 26; }); // below 0 the row is blank, 0 to 1 it flips, then it has landed
+  env.extra.lit = EX.findIndex((m) => p >= m.s0 - 2 && p < m.s1 - 2);
+  env.extra.train = sstep(EX0.s0 - 50, EX0.s0 + 20, p); env.extra.leave = sstep(ROOF.s0 + 5, ROOF.s0 + 70, p);
   SITE_STOPS.forEach((s, i) => { env.site[i] = sstep(s - 26, s - 5, p) * (1 - sstep(s + 6, s + 26, p)); });
   SHOPS.forEach((s, i) => { env.shop[i] = beat(`Shop: ${s.name}`, p); });
   COUNTERS.forEach((c, i) => { env.counter[i] = beat(`Counter: ${c.name}`, p); });
@@ -330,6 +334,7 @@ const INFO = {};
 PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} of 03`, h: pl.name, lines: [pl.line], plan: pl.name }; });
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
+EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 const info = document.getElementById('info'), chooser = document.getElementById('chooser');
 let infoFor = null;

@@ -1,8 +1,8 @@
 // The camera rail: one position spline measured by length, plus a separate look track.
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
-import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS } from './world.js';
+import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD } from './world.js';
 
-export const TOTAL_VH = 3860; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 3960; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -189,19 +189,21 @@ export function buildRail() {
   });
   hold('HOME hold', 120, 'HOME'); // the TV's four channels share this and the orbit
   // ---- 05 Extras ----
-  const boardL = [11, H.extras + 2.6, -24], boardR = [19, H.extras + 2.6, -24];
+  // Close enough that the board fills the frame. The eyes then go down it, one row to a stop.
   move('Bridge to Extras', 'room', 150, (a, d) => {
     g(0, -16, H.home); P(2, H.home + 0.5 + EYE, -16); P(6, H.home + 1.5 + EYE, -16); g(8, -16, H.extras);
-    key(a + d, g(15, -15.5, H.extras));
+    key(a + d, g(15, -18.2, H.extras));
     look(a + d * 0.5, NORTH - 90, 5); look(a + d * 0.65, NORTH - 90, 5);
-    const [y, p] = aim(here(), boardL, NORTH); look(a + d, y, p);
+    const [, p] = aim(here(), [BOARD.x, BOARD.y, BOARD.z], NORTH); look(a + d, NORTH, p * 0.3); // low, so the train on the yellow line stays in the frame under the board
   });
-  move('Pan across the board', 'room', 90, (a, d) => {
-    key(a + d, last());
-    const [y, p] = aim(here(), boardR, NORTH - 30); look(a + d * 0.75, y, p);
-    look(a + d, y + 12, p); // settle back a little, like eyes resting on the last row
-  });
-  hold('Extras hold', 50, '05 Extras');
+  hold('Extras hold', 40, '05 Extras');
+  for (const [r, e] of EXTRAS.entries()) {
+    move(`Extra: ${e.name}`, 'room', 50, (a, d) => {
+      key(a + d, last());
+      const [, p] = aim(here(), [BOARD.x, BOARD.rowY(r), BOARD.z], NORTH); look(a + d * 0.5, NORTH, p * 0.3); look(a + d, NORTH, p * 0.3);
+    });
+    moves[moves.length - 1].hold = true;
+  }
   // ---- 06 Rooftop ----
   move('Bridge up to the Rooftop', 'room', 180, (a, d) => {
     line(15, -10, H.extras);
@@ -252,7 +254,7 @@ export function buildRail() {
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
   // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
-  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Pan across the board', 'Bridge up to the Rooftop', 'Tilt up to the sky'];
+  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Bridge up to the Rooftop', 'Tilt up to the sky'];
   const stops = [0, TOTAL_VH];
   for (const m of moves) {
     const d = m.s1 - m.s0;

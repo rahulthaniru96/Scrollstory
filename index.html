@@ -31,6 +31,8 @@
   #plan { max-height: calc(100vh - 110px); overflow-y: auto; }
   #found .clue { opacity: 1; padding: 6px 10px; border-top: 1px dashed rgba(30, 42, 38, 0.2); }
   #found .clue p { margin: 0 0 4px; font-size: 13px; line-height: 1.35; white-space: normal; max-width: 260px; }
+  .spark { position: fixed; left: 50%; top: 45%; width: 10px; height: 10px; transform: rotate(45deg); z-index: 9; pointer-events: none; }
+  #found p.egg { margin: 2px 10px; font-size: 12px; opacity: 0.8; }
   #nudge { position: fixed; z-index: 5; left: 50%; top: 70px; transform: translateX(-50%); padding: 10px 16px; border-radius: 999px; background: rgba(247, 239, 226, 0.95); border: 1px solid var(--ink); font-size: 12px; opacity: 0; pointer-events: none; white-space: nowrap; }
   body.under #film { background: radial-gradient(ellipse at 50% 46%, rgba(40, 90, 150, 0.18) 0%, rgba(14, 40, 90, 0.5) 100%); }
   #caption { position: fixed; left: 5vw; bottom: 12vh; z-index: 4; max-width: 80vw; color: var(--cream); text-shadow: 0 2px 24px rgba(20, 32, 29, 0.55); opacity: 0; transform: translateY(16px); pointer-events: none; }

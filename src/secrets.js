@@ -22,6 +22,12 @@ export const SECRETS = [
   { id: 'mirror', clue: 'In the Lobby, a ring of light sits on the water. Step into it.', name: 'The mirror', text: 'An upside-down copy of the room, where the sky is underwater.', flip: true },
   { id: '201', clue: 'A teal door on the Landing has a number on it. Knock.', name: 'Door 201 · The sketch room', text: 'Where a site starts. Click a colour, a typeface and a layout on the desk, and the screen sketches a first homepage.', pose: { pos: [80.6, DEEP + 1.55, 1.5], yaw: 0, pitch: -6 } },
 ];
+// v1.1: three small ones on the walk itself. `egg`: no room to step into; something happens where it is.
+SECRETS.push(
+  { id: 'tile', egg: true, clue: 'One Lobby floor tile is loose. It goes somewhere.', name: 'The loose tile', text: 'A shortcut under the water, to the foot of the stairs.' },
+  { id: 'kite', egg: true, clue: 'From the roof, one kite in the sky is gold.', name: 'The golden kite', text: "You noticed. That's what we do: we notice the details others miss." },
+  { id: 'tank', egg: true, clue: 'On the roof, one water tank has come loose. Knock on the other one.', name: 'The VIP desk', text: 'A hatch in the water tank, and the desk inside it.' },
+);
 export const SHELF = { x: -11, z: -1.68 }, PUDDLE = [-3.4, 0.03, 7.0], DOOR = { x: -11, z: 0.75 };
 
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -88,11 +94,28 @@ export function secrets({ scene, camera, lowQuality }) {
   // ---------- the mirror's way in: a ring of light on the Lobby's water ----------
   const ring = mesh(new THREE.RingGeometry(0.42, 0.55, 40).rotateX(-Math.PI / 2), basic(0xbfe9ff, { transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }), ...PUDDLE);
 
+  // ---------- v1.1: the loose tile in the Lobby, the golden kite over the roof, the hatch on the rooftop tank ----------
+  const R = H.rooftop, TILE = new THREE.Vector3(0.6, 0.035, 4.4), KITE = new THREE.Vector3(11, R + 2.9, 12), TANK = new THREE.Vector3(20, R + 1.62, 9);
+  const tile = mesh(new THREE.PlaneGeometry(0.8, 0.8).rotateX(-Math.PI / 2), lit(0xd9d2c4, { map: canvasTex(128, 128, (x) => { x.fillStyle = '#d9d2c4'; x.fillRect(0, 0, 128, 128); x.strokeStyle = '#8c8a82'; x.lineWidth = 3; x.strokeRect(2, 2, 124, 124); x.beginPath(); x.moveTo(20, 30); x.lineTo(60, 64); x.lineTo(50, 100); x.stroke(); }) }), ...TILE.toArray());
+  const kite = new THREE.Group(); kite.position.copy(KITE); kite.rotation.y = Math.PI; scene.add(kite);
+  const diamond = new THREE.Shape([new THREE.Vector2(0, 0.7), new THREE.Vector2(0.45, 0), new THREE.Vector2(0, -0.7), new THREE.Vector2(-0.45, 0)]);
+  mesh(new THREE.ShapeGeometry(diamond), basic(0xf2c94c, { side: THREE.DoubleSide }), 0, 0, 0, kite); mesh(new THREE.BoxGeometry(0.02, 1.4, 0.02), basic(0x9e3b2c), 0, 0, 0.01, kite);
+  const banner = mesh(new THREE.PlaneGeometry(2.6, 0.5).translate(0, 0.25, 0), basic(0xffffff, { side: THREE.DoubleSide, transparent: true, map: canvasTex(780, 150, (x) => { x.fillStyle = '#f7efe2'; x.fillRect(0, 0, 780, 150); x.strokeStyle = '#c9a24a'; x.lineWidth = 6; x.strokeRect(3, 3, 774, 144); x.fillStyle = '#1e2a26'; x.textAlign = 'center'; x.font = 'italic 500 38px Fraunces, Georgia, serif'; x.fillText('You noticed. That is what we do:', 390, 64); x.fillText('we notice the details others miss.', 390, 112); }) }), 0, 0.75, 0, kite);
+  banner.scale.y = 0.001;
+  const hatch = new THREE.Group(); hatch.position.set(TANK.x - 0.5, TANK.y, TANK.z); scene.add(hatch); // hinged at its west edge
+  mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.05, 20), lit(0x2c3834), 0.5, 0.03, 0, hatch);
+  const hatchGlow = glowDisc(0xffd9a0, 0.45, TANK.x, TANK.y + 0.01, TANK.z);
+  const eggAt = {};
+  function glowDisc(color, r, x, y, z) { const m = mesh(new THREE.CircleGeometry(r, 20).rotateX(-Math.PI / 2), basic(color, { transparent: true, opacity: 0 }), x, y, z); return m; }
+
   // ---------- the way in to each: an outline that shows only when the cursor is near, and a few fireflies until it is found ----------
   const ways = [
     { id: 'lab', at: new THREE.Vector3(SHELF.x + 0.5, L + 1.66, books[4].z), geo: new THREE.BoxGeometry(0.56, 1.1, 0.3), near: 9 },
     { id: 'mirror', at: new THREE.Vector3(...PUDDLE).setY(0.25), geo: new THREE.CylinderGeometry(0.6, 0.6, 0.5, 20), near: 9 },
     { id: '201', at: new THREE.Vector3(DOOR.x + 0.1, L + 1.05, DOOR.z), geo: new THREE.BoxGeometry(0.2, 2.14, 1.0), near: 9 },
+    { id: 'tile', at: TILE.clone().setY(0.1), geo: new THREE.BoxGeometry(0.86, 0.2, 0.86), near: 9 },
+    { id: 'kite', at: KITE.clone(), geo: new THREE.BoxGeometry(1.0, 1.5, 0.3), near: 26 },
+    { id: 'tank', at: new THREE.Vector3(20, R + 0.85, 9), geo: new THREE.CylinderGeometry(0.95, 0.95, 1.75, 20), near: 14 },
   ].map((w, k) => {
     const fade = { value: 0 }, edge = holoEdges(w.geo, { everywhere: true, fade }); edge.position.copy(w.at); scene.add(edge);
     const n = 4, pos = new Float32Array(n * 3), flies = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pos, 3)), new THREE.PointsMaterial({ size: 0.07, color: [0x9fe8ff, 0xd9b8ff, 0xffc9a0][k], transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
@@ -187,6 +210,7 @@ export function secrets({ scene, camera, lowQuality }) {
   return {
     books, ways, openBook: open, get reading() { return openK; },
     found(id) { const w = ways.find((q) => q.id === id); w.found = true; w.flies.visible = false; },
+    egg(id, t) { eggAt[id] = t; }, // one of the v1.1 ones was clicked at time t: play its little moment
     beckon(id, until) { ways.find((q) => q.id === id).beckon = until; }, // a hint asked for: the outline glows on its own for a while
     hover(i) { for (const [k, b] of books.entries()) b.want = k === i ? 1 : 0; },
     open(i) { want = i; },
@@ -242,6 +266,12 @@ export function secrets({ scene, camera, lowQuality }) {
         w.flies.geometry.attributes.position.needsUpdate = true;
       }
       for (const m of sketch.items) { const on = sketch[m.userData.kind] === m.userData.i; m.position.y += ((m.userData.y + (on ? 0.06 : 0)) - m.position.y) * Math.min(1, dt * 8); }
+      { // the v1.1 moments: the tile drops, the kite unfurls its banner for a while, the hatch swings open
+        const since = (id) => (eggAt[id] === undefined ? -1 : t - eggAt[id]);
+        const s1 = since('tile'); tile.position.y = s1 >= 0 && s1 < 3 ? TILE.y - Math.min(0.7, s1 * s1 * 1.5) : TILE.y;
+        const s2 = since('kite'), u = s2 < 0 ? 0 : sstep(0, 0.6, s2) * (1 - sstep(6, 6.8, s2)); banner.scale.y = Math.max(0.001, u); kite.rotation.z = Math.sin(t * 0.8) * 0.2;
+        const open3 = ways.find((q) => q.id === 'tank').found ? 1 : 0; hatch.rotation.z += (open3 * 1.9 - hatch.rotation.z) * Math.min(1, dt * 3); hatchGlow.material.opacity = 0.8 * open3;
+      }
       for (const f of tick) f(t);
     },
   };

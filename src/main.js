@@ -424,7 +424,8 @@ try { for (const id of JSON.parse(localStorage.getItem('secrets') || '[]')) if (
 const foundBox = document.getElementById('found');
 function showFound() {
   foundBox.replaceChildren(el('div', foundIds.size === SECRETS.length ? 'You found every secret' : `${foundIds.size} of ${SECRETS.length} secrets found`, 'mono'));
-  for (const s of SECRETS) if (foundIds.has(s.id)) { const b = el('button', '✦ ' + s.name, 'mono'); b.onclick = () => { togglePlan(false); enterSecret(s.id); }; foundBox.append(b); }
+  for (const s of SECRETS) if (foundIds.has(s.id) && !s.egg) { const b = el('button', '✦ ' + s.name, 'mono'); b.onclick = () => { togglePlan(false); enterSecret(s.id); }; foundBox.append(b); }
+  for (const s of SECRETS) if (foundIds.has(s.id) && s.egg) foundBox.append(el('p', '✦ ' + s.name, 'mono egg'));
   for (const s of SECRETS) if (!foundIds.has(s.id)) { // a clue for each one still hidden, and a way to get close
     const row = el('div', null, 'clue'), b = el('button', 'Take me near', 'mono'); row.append(el('p', '? ' + s.clue));
     b.onclick = () => { togglePlan(false); const w = hidden.ways.find((q) => q.id === s.id); jump(nearStop(w.at)); hidden.beckon(s.id, now + 9); };
@@ -455,11 +456,29 @@ function through(change) { // a short fade covers every jump in or out
   state.fading = true;
   gsap.to(veil, { opacity: 1, duration: 0.45, ease: 'none', onComplete() { change(); gsap.to(veil, { opacity: 0, duration: 0.45, ease: 'none', onComplete() { state.fading = false; } }); } });
 }
+function markFound(id) { if (foundIds.has(id)) return; foundIds.add(id); sfx.chime(foundIds.size); try { localStorage.setItem('secrets', JSON.stringify([...foundIds])); } catch { /* not kept */ } showFound(); if (foundIds.size === SECRETS.length) firework(); }
+function toast(text, hold = 5) { nudgeBox.textContent = text; gsap.fromTo(nudgeBox, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5 }); gsap.to(nudgeBox, { opacity: 0, duration: 0.6, delay: hold }); }
+// Finding every secret: a burst of holographic diamonds from the middle of the screen.
+function firework() {
+  if (state.reduce) return toast('You found every secret. Thank you for looking so closely.', 6);
+  for (let k = 0; k < 48; k++) {
+    const d = document.createElement('i'); d.className = 'spark'; d.style.background = ['#9fe8ff', '#d9b8ff', '#ffc9a0', '#f2d98b'][k % 4]; document.body.append(d);
+    const a = (k / 48) * Math.PI * 2, r = 120 + Math.random() * 260;
+    gsap.fromTo(d, { x: 0, y: 0, scale: 1, opacity: 1 }, { x: Math.cos(a) * r, y: Math.sin(a) * r + 80, rotate: 180, scale: 0.3, opacity: 0, duration: 1.6 + Math.random() * 0.8, ease: 'power2.out', onComplete: () => d.remove() });
+  }
+  toast('You found every secret. Thank you for looking so closely.', 6);
+}
+// The v1.1 ones happen where they are, with no room to step into.
+const EGGS = {
+  tile() { setTimeout(() => jump(steps.first(LEVELS.find((r) => r.name === 'The stairs').s)), 900); toast('A shortcut, under the water.', 3); },
+  kite() { toast('The golden kite.', 3); },
+  tank() { toast('The VIP desk. This form goes straight to Rahul.', 4); setTimeout(() => openForm(), 1200); },
+};
 function enterSecret(id) {
   const s = SECRETS.find((q) => q.id === id);
+  if (s.egg) { hidden.egg(id, now); markFound(id); EGGS[id](); sfx.page(); return; }
   through(() => {
-    state.secret = s; document.body.classList.toggle('under', !!s.flip); hidden.open(-1);
-    if (!foundIds.has(id)) { foundIds.add(id); sfx.chime(foundIds.size); try { localStorage.setItem('secrets', JSON.stringify([...foundIds])); } catch { /* not kept */ } showFound(); }
+    state.secret = s; document.body.classList.toggle('under', !!s.flip); hidden.open(-1); markFound(id);
   });
 }
 function leaveSecret() { through(() => { state.secret = null; document.body.classList.remove('under'); }); }

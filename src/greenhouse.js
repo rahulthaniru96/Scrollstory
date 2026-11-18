@@ -89,7 +89,7 @@ export function greenhouse({ scene, lowQuality }) {
   // ---------- the tools of a care plan, each with a small brass label ----------
   const label = (text, sub, x, y, z, ry) => {
     const tex = canvas(320, 96, (c, w, h) => { c.fillStyle = '#c9a24a'; c.beginPath(); c.roundRect(0, 0, w, h, 14); c.fill(); c.fillStyle = INK; c.font = '600 30px Fraunces, Georgia, serif'; c.fillText(text, 16, 44); c.font = '500 15px "Martian Mono", monospace'; c.fillText(sub, 16, 76); });
-    const m = put(new THREE.PlaneGeometry(0.5, 0.15), new THREE.MeshStandardMaterial({ map: tex, metalness: 0.2, roughness: 0.4 }), x, y, z); m.rotation.y = ry; return m;
+    const m = put(new THREE.PlaneGeometry(0.8, 0.24), new THREE.MeshStandardMaterial({ map: tex, metalness: 0.2, roughness: 0.4 }), x, y, z); m.rotation.y = ry; return m; // big enough to read from the walk
   };
   const pickables = [];
   // Updates: a watering can that tips by itself and waters the plants
@@ -140,6 +140,18 @@ export function greenhouse({ scene, lowQuality }) {
   pickables.push([lect, 'ledger']);
   // Hosting: a plate on the vault's arch, because the glasshouse itself is the thing being looked after
   label('Hosting', 'THIS GLASSHOUSE, KEPT', VAULT_X + 0.02, Y + WALL + 0.25, cz - 2.7, Math.PI / 2);
+
+  // ---------- the sign over the staging: what this room is. A care plan is the site's maintenance (business-and-pricing.md) ----------
+  {
+    const tex = canvas(1024, 300, (c, w, h) => {
+      c.fillStyle = '#1e2a26'; c.beginPath(); c.roundRect(0, 0, w, h, 26); c.fill(); c.strokeStyle = '#c9a24a'; c.lineWidth = 6; c.beginPath(); c.roundRect(10, 10, w - 20, h - 20, 20); c.stroke();
+      c.textAlign = 'center'; c.fillStyle = '#c9a24a'; c.font = '500 30px "Martian Mono", monospace'; c.fillText('CHAPTER 5 · CARE PLAN', w / 2, 70);
+      c.fillStyle = CREAM; c.font = '500 104px Fraunces, Georgia, serif'; c.fillText('Maintenance', w / 2, 175);
+      c.fillStyle = '#cfe3d8'; c.font = '400 32px "Familjen Grotesk", Arial, sans-serif'; c.fillText('Hosting · Backups · Uptime · Security updates · Small changes', w / 2, 245);
+    });
+    const sign = put(new THREE.PlaneGeometry(3.0, 0.88), new THREE.MeshBasicMaterial({ map: tex }), G.x1 - 0.15, Y + 3.45, cz); sign.rotation.y = -Math.PI / 2;
+    for (const s of [-1, 1]) put(new THREE.CylinderGeometry(0.008, 0.008, 1.2, 4), ink, G.x1 - 0.15, Y + 4.45, cz + s * 1.3); // hung from the arch
+  }
 
   // ---------- a little life: paper butterflies, motes in the light ----------
   const flies = [...Array(lowQuality ? 3 : 6)].map((_, k) => {

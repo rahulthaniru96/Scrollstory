@@ -348,8 +348,8 @@ const COPY = {
   'Out of the cabin': ['Chapter 4 · Launch', 'Next: going live.', ''],
   'Extras hold': ['Room 08 · Chapter 4, Launch', 'See your site live', 'in 15 minutes.'],
   'Map hold': ['Room 08 · Being found', 'On the map, and on Google.', 'Your Business Profile, set up in every plan.'],
-  'Greenhouse hold': ['Room 09 · Chapter 5, Care', "We don't launch and leave.", 'We look after it.'],
-  'Care tools': ['Room 09 · A care plan', 'Hosting, backups, uptime, security updates,', 'and a few small changes a month.'],
+  'Greenhouse hold': ['Room 09 · Chapter 5, Care', 'After launch, we maintain your site.', 'Like a gardener keeps a greenhouse.'],
+  'Care tools': ['Room 09 · The care plan', 'Hosting, backups, uptime, updates, small changes.', 'From ₹1,200 a month at launch.'],
   'Kites up to the Rooftop': ['Room 10 · The rooftop', 'Five chapters done.', 'The next story is yours.'],
   'Settle on the desk': ['Room 10 · The front desk', "Let's build yours.", 'Tell Rahul about your business.'],
 };

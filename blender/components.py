@@ -23,7 +23,7 @@ PALETTE = {
     'wood': 0x9b7a55, 'wooddark': 0x6b4a32, 'woodlight': 0xc9a77c, 'charcoal': 0x2e2b27, 'grey': 0x8c8a82,
     'greylight': 0xc9c4b8, 'red': 0xc8372d, 'maroon': 0x8e3a3a, 'maroonlight': 0xa9504c, 'brass': 0xc9a04a,
     'blue': 0x2f5fa8, 'tank': 0x25282b, 'steel': 0x9aa3a6, 'glass': 0xbfd8d2, 'ink': 0x55524c, 'gold': 0xe2b54a,
-    'yellow': 0xf2d98b, 'rose': 0xc2387a, 'iron': 0x3a3530, 'tvbody': 0x6f5b4a, 'tvfront': 0x4a4038,
+    'yellow': 0xf2d98b, 'rose': 0xc2387a, 'iron': 0x3a3530, 'tvbody': 0x6f5b4a, 'tvfront': 0x4a4038, 'clay': 0xe08a52,
 }
 EMIT = {'screen': (0xfff3d6, 1.6), 'bulb': (0xffe9b8, 3.0)}
 
@@ -95,6 +95,26 @@ class Part:
         ob = bpy.data.objects.new(self.name, me)
         scene.collection.objects.link(ob); ob.parent = parent
         ob.location, ob.rotation_euler = self.loc, self.rot
+        return ob
+
+# ---------- lettering: a line of text in one of the site's fonts (blender/fonts, both OFL), extruded and turned to face the front ----------
+FONTS = os.path.join(ROOT, 'blender', 'fonts')
+class TextPart:
+    def __init__(self, name, text, font, width, depth, material, bevel=0.003):
+        self.name, self.text, self.font, self.width, self.depth, self.material, self.bevel = name, text, font, width, depth, material, bevel
+    def finish(self, parent):
+        cu = bpy.data.curves.new(self.name, 'FONT'); cu.body = self.text; cu.font = bpy.data.fonts.load(os.path.join(FONTS, self.font))
+        cu.align_x, cu.align_y = 'CENTER', 'CENTER'; cu.extrude = self.depth / 2; cu.bevel_depth = self.bevel; cu.bevel_resolution = 0; cu.resolution_u = 2
+        tmp = bpy.data.objects.new(self.name + '_curve', cu); scene.collection.objects.link(tmp)
+        def mesh():
+            bpy.context.view_layer.update(); return bpy.data.meshes.new_from_object(tmp.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+        me = mesh(); xs = [v.co.x for v in me.vertices]; k = self.width / (max(xs) - min(xs))
+        cu.extrude, cu.bevel_depth = self.depth / 2 / k, self.bevel / k  # the scale below must not thin the letters
+        bpy.data.meshes.remove(me); me = mesh(); bpy.data.objects.remove(tmp)
+        xs = [v.co.x for v in me.vertices]; cx = (max(xs) + min(xs)) / 2
+        me.transform(Matrix.Rotation(pi / 2, 4, 'X') @ Matrix.Scale(k, 4) @ Matrix.Translation((-cx, 0, 0))) # upright, facing -y (the front), at the asked width
+        me.materials.append(mat(self.material))
+        ob = bpy.data.objects.new(self.name, me); scene.collection.objects.link(ob); ob.parent = parent
         return ob
 
 COMPONENTS = {}
@@ -385,6 +405,16 @@ def stool():
         p.cyl(0.015, 0.44, (cos(a) * 0.15, sin(a) * 0.15, 0.22), 'steel', rot=(sin(a) * 0.12, -cos(a) * 0.12, 0), seg=6)
     p.cyl(0.17, 0.012, (0, 0, 0.15), 'steel', seg=18)
     return [p]
+
+@component
+def wordmark():
+    """The studio's name in raised clay letters, for the plaque on the lobby front (Fraunces, as on the site)."""
+    return [TextPart('word', 'scrollstory', 'Fraunces-Regular.ttf', 3.9, 0.07, 'clay', bevel=0.006)]
+
+@component
+def door_band():
+    """What the building is, in brass letters for the band over the door (Martian Mono, as on the site)."""
+    return [TextPart('band', 'WEBSITES · DESIGNED & BUILT HERE', 'MartianMono-Medium.ttf', 3.0, 0.02, 'brass', bevel=0)]
 
 # ================= build, export, render =================
 def build(name):

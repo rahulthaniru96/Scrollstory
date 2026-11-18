@@ -249,16 +249,16 @@ export function dress({ scene, camera, lowQuality = false }) {
     for (const pts of [archPts, sPts]) mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.2), 90, 0.032, 8), clay, 0, 0, 0, mark);
     { // over the door: what the studio does, in brass on a dark band
       const c2 = document.createElement('canvas'); c2.width = 1024; c2.height = 112; const y2 = c2.getContext('2d'), t2 = new THREE.CanvasTexture(c2); t2.colorSpace = THREE.SRGBColorSpace;
-      const band = () => { y2.fillStyle = '#1e2a26'; y2.fillRect(0, 0, 1024, 112); y2.fillStyle = '#e0b25a'; y2.font = '500 40px "Martian Mono", monospace'; y2.textAlign = 'center'; y2.textBaseline = 'middle'; y2.fillText('WEBSITES · DESIGNED & BUILT HERE', 512, 58); t2.needsUpdate = true; };
+      const band = () => { y2.fillStyle = '#1e2a26'; y2.fillRect(0, 0, 1024, 112); t2.needsUpdate = true; }; // the letters are a model in brass on it (door_band, placed by rooms.js)
       band(); document.fonts?.ready.then(band);
       mesh(new THREE.PlaneGeometry(3.3, 0.36), new THREE.MeshBasicMaterial({ map: t2 }), 0, 4.75 - 7.9, 1.0, g); // hung in front of the facade over the door canopy, clear of the frame's posts (the plaque's group sits at 7.9)
     }
-    // shortcut: the wordmark is a texture on the raised plaque, not extruded letters (three no longer ships a font). Upgrade when the logo is modelled in Blender.
+    // The wordmark is a model (blender/components.py, wordmark: raised Fraunces letters), placed by rooms.js; the texture below stays until it arrives.
     const c = document.createElement('canvas'); c.width = 1056; c.height = 240;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
     const word = () => { x.clearRect(0, 0, 1056, 240); x.font = '400 176px Fraunces, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#e08a52'; x.fillText('scrollstory', 528, 112); tex.needsUpdate = true; };
     word();
-    mesh(new THREE.PlaneGeometry(4.4, 1.0), basic(0xffffff, { map: tex, transparent: true }), 0.75, 0, 0.17, g);
+    g.userData.flatWord = mesh(new THREE.PlaneGeometry(4.4, 1.0), basic(0xffffff, { map: tex, transparent: true }), 0.75, 0, 0.17, g);
     glow(0xffb070, 8, 0, 0, 0.5, g, 0.22); // a soft glow, so it reads when the camera tilts up at the gate
   }
   // ---------- the founder's plaque: brass, on a slim stand just inside the front door, turned to whoever walks in ----------
@@ -390,6 +390,6 @@ export function dress({ scene, camera, lowQuality = false }) {
     }
   });
 
-  const ready = furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTexture, lowQuality });
+  const ready = furnish({ scene, camera, tick, mesh, basic, lit, glow, glowTexture, lowQuality, plaque });
   return { update: (time, dt, env) => { for (const f of tick) f(time, dt, env); }, ripple, ready, front, plaque };
 }

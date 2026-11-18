@@ -34,7 +34,7 @@ export const TV_BEATS = [
   { short: 'Help businesses go digital.', full: STORY[5] },
 ];
 
-export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: glow0, glowTexture, lowQuality }) {
+export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: glow0, glowTexture, lowQuality, plaque }) {
   // A room can be built in its own frame and then turned into place: while `root` is that room's group, everything made lands in it.
   let root = scene;
   const mesh = (geo, mat, x = 0, y = 0, z = 0, parent = root) => mesh0(geo, mat, x, y, z, parent);
@@ -72,6 +72,10 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     const parts = Object.entries(dirs).map(([name, d], i) => [part(m, name), part(m, name).position.clone(), new V3(...d), i]);
     tick.push((t, dt, env) => { for (const [o, p0, d, i] of parts) o.position.copy(p0).addScaledVector(d, 0.5 + 0.5 * Math.sin(env.air * 0.3 + i * 1.4)); });
   };
+  // The building's lettering, modelled in Blender in the site's own fonts: the wordmark on the plaque and the band over the door.
+  const glowOn = (color, k) => (m) => m.traverse((o) => { if (o.material) { o.material.emissive?.set(color); o.material.emissiveIntensity = k; } });
+  prop('wordmark', 0.75, 0.08, 0.16, { parent: plaque, then: (m) => { glowOn(0xc9733f, 0.55)(m); plaque.userData.flatWord.visible = false; } }); // raised clay letters replace the flat one
+  prop('door_band', 0, 4.75 - 7.9, 1.012, { parent: plaque, then: glowOn(0xe0b25a, 0.35) });
   const fan = (x, y, z, s = 1) => prop('ceiling_fan', x, y, z, { s, then: (m) => { const b = part(m, 'blades'); tick.push((t, dt, env) => { b.rotation.y += dt * 1.1 * env.wind; }); } });
   const at = (name) => COLLIDERS.find((c) => c.name === name);
   const both = { side: THREE.DoubleSide };

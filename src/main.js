@@ -476,7 +476,7 @@ function fillCard(box, d) {
     const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); };
     const b = el('button', 'Start your project', 'pill solid'); b.onclick = () => openForm();
     const w = el('p', null, 'mono who'); w.append('Rahul Thaniru · Founder · '); const a = el('a', '+91 99490 88659'); a.href = 'tel:+919949088659'; w.append(a);
-    box.append(i, b, w);
+    box.append(i, b, w, el('p', badgeLine(), 'mono badgeLine')); // the clock tower's key, at the end of the walk
   }
 }
 function linkPill([text, href]) { const a = el('a', text, 'pill solid'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; return a; }
@@ -549,7 +549,7 @@ function cards(p) {
     if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
     if (d.link) info.append(linkPill(d.link));
     if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; info.append(b); }
-    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; info.append(i); }
+    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; info.append(i, el('p', badgeLine(), 'mono badgeLine')); }
   }
   const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (m === lastMove ? 1 : 1 - sstep(0.8, 1, u)) : 0;
   const in3d = !flatCards && !pinnedCard && ANCHOR[key];
@@ -644,15 +644,25 @@ function through(change) { // a short fade covers every jump in or out
 function markFound(id) { if (foundIds.has(id)) return; foundIds.add(id); sfx.chime(foundIds.size); try { localStorage.setItem('secrets', JSON.stringify([...foundIds])); } catch { /* not kept */ } showFound(); if (foundIds.size === SECRETS.length) firework(); }
 function toast(text, hold = 5) { nudgeBox.textContent = text; gsap.fromTo(nudgeBox, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5 }); gsap.to(nudgeBox, { opacity: 0, duration: 0.6, delay: hold }); }
 // Finding every secret: a burst of holographic diamonds from the middle of the screen.
-function firework() {
-  if (state.reduce) return toast('You found every secret. Thank you for looking so closely.', 6);
+function firework(say = true) {
+  if (state.reduce) return say && toast('You found every secret. Thank you for looking so closely.', 6);
   for (let k = 0; k < 48; k++) {
     const d = document.createElement('i'); d.className = 'spark'; d.style.background = ['#9fe8ff', '#d9b8ff', '#ffc9a0', '#f2d98b'][k % 4]; document.body.append(d);
     const a = (k / 48) * Math.PI * 2, r = 120 + Math.random() * 260;
     gsap.fromTo(d, { x: 0, y: 0, scale: 1, opacity: 1 }, { x: Math.cos(a) * r, y: Math.sin(a) * r + 80, rotate: 180, scale: 0.3, opacity: 0, duration: 1.6 + Math.random() * 0.8, ease: 'power2.out', onComplete: () => d.remove() });
   }
-  toast('You found every secret. Thank you for looking so closely.', 6);
+  if (say) toast('You found every secret. Thank you for looking so closely.', 6);
 }
+// The clock tower's key: an achievement, kept in this browser with the secrets, and shown again on the rooftop desk's card at the end.
+const achieveBox = document.getElementById('achieve');
+function achievement() {
+  achieveBox.hidden = false; achieveBox.querySelector('.close').focus(); sfx.chime(9);
+  firework(false);
+}
+achieveBox.querySelector('.close').onclick = () => { achieveBox.hidden = true; };
+achieveBox.querySelector('.tell').onclick = () => window.open(`https://wa.me/919949088659?text=${encodeURIComponent("Hi Rahul, I turned the clock tower's key on the Scrollstory site. I'm a Watchmaker now.")}`, '_blank', 'noopener');
+addEventListener('keydown', (e) => { if (e.key === 'Escape') achieveBox.hidden = true; });
+const badgeLine = () => (foundIds.has('keyhole') ? 'Watchmaker: you turned the clock tower\'s key' : `${foundIds.size} of ${SECRETS.length} secrets found · six open the clock tower's key`);
 // The v1.1 ones happen where they are, with no room to step into.
 let clockAt = -9; // when the Renovation's clock was last turned back
 const EGGS = {
@@ -661,7 +671,7 @@ const EGGS = {
   tank() { toast('The VIP desk. This form goes straight to Rahul.', 4); setTimeout(() => openForm(), 1200); },
   clock() { clockAt = now; reno.turnBack(now); toast(env.lineU < 0.5 ? 'Forward to the new site, for a moment.' : 'Back to the old site, for a moment.', 3); },
   seal() { draft.openSeal(now); toast('Ideas we drop on the way to a good page.', 4); },
-  keyhole() { toast('Every story has moving parts. Thanks for finding them all.', 6); },
+  keyhole() { achievement(); },
 };
 function enterSecret(id) {
   const s = SECRETS.find((q) => q.id === id);

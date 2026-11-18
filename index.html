@@ -138,6 +138,15 @@
   #loader .bar { width: min(280px, 70vw); height: 3px; background: rgba(247, 239, 226, 0.18); border-radius: 3px; overflow: hidden; }
   #loader .bar i { display: block; height: 100%; background: var(--butter); transform-origin: left; transform: scaleX(0.04); transition: transform 0.3s; }
   #loader .step { margin: 4px 0 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+  #achieve { position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100vw - 32px)); padding: 28px 26px 24px; text-align: center; background: #1e2a26; color: var(--cream); border-radius: 22px; box-shadow: 0 0 0 2px #e0b25a, 0 30px 80px rgba(0, 0, 0, 0.45); }
+  #achieve[hidden] { display: none; }
+  #achieve .medal { width: 96px; height: 96px; margin: -76px auto 10px; border-radius: 50%; display: grid; place-items: center; color: #3a2810; background: radial-gradient(circle at 35% 30%, #fff1c2, #e0b25a 55%, #a87a2a); box-shadow: 0 10px 30px rgba(224, 178, 90, 0.5); animation: medal 1.2s var(--ease) both; }
+  #achieve .medal svg { width: 62px; height: 62px; }
+  #achieve > .mono { margin: 0; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #e0b25a; }
+  #achieve h2 { font: 420 40px/1.05 var(--display); margin: 6px 0 8px; } #achieve .why { margin: 0 0 16px; opacity: 0.85; }
+  #achieve .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; } #achieve .tell { background: #e0b25a; color: var(--ink); border-color: #e0b25a; } #achieve .close { background: transparent; color: var(--cream); border-color: rgba(247, 239, 226, 0.5); }
+  @keyframes medal { from { transform: scale(0.2) rotate(-200deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  .badgeLine { margin-top: 12px !important; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #8a6418; } .badgeLine::before { content: '◆ '; }
   #dusk { position: fixed; inset: 0; z-index: 1; background: #1a2030; mix-blend-mode: multiply; opacity: 0; pointer-events: none; } /* the intro starts on dark water */
   header, #hint, #caption, #contact, #hud, #pips, #level { transition: opacity 0.8s; }
   body.intro header, body.intro #hint, body.intro #contact, body.intro #hud, body.intro #pips, body.intro #level { opacity: 0; }
@@ -235,6 +244,7 @@
 <div id="film"></div>
 <div id="mist"></div>
 <div id="nudge" class="mono" role="status"></div>
+<div id="achieve" role="dialog" aria-labelledby="achieveH" hidden><div class="medal"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="22" cy="26" r="9" fill="none" stroke="currentColor" stroke-width="4"/><path d="M29 32 L46 49 M40 43 L44 39 M45 48 L49 44" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/></svg></div><p class="mono">Achievement unlocked</p><h2 id="achieveH">The Watchmaker</h2><p class="why">You turned the clock tower's key. Only people who find six of the building's secrets get here.</p><div class="row"><button class="pill solid tell">Tell Rahul you found it</button><button class="pill close">Back to the walk</button></div></div>
 <div id="jump" aria-hidden="true"><small class="mono">Level</small><b></b><span></span></div>
 <div id="dusk"></div>
 <div id="nogl"><h1>This walkthrough needs WebGL.</h1><p>Call or WhatsApp Rahul Thaniru, Scrollstory Studio: +91 99490 88659.</p></div>

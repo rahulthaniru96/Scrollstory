@@ -45,37 +45,52 @@ export function secrets({ scene, camera, lowQuality }) {
   const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
   const tick = [];
 
-  // ---------- the five volumes, open low in the Landing's sun beam over the bright patch, a page turning in each. Scattered, not in a row: each at its own height, turn and lean ----------
+  // ---------- the five volumes: old brown leather books, open low in the Landing's sun beam, their pages riffling fast as if the wind were at them, and a loose page blowing out of each with one fact on it.
+  // Each keeps its colour in a tint of the leather, a ribbon and the numbers inside. Scattered, not in a row: each at its own height, turn and lean ----------
   const COLORS = [0x9e3b2c, 0x3f6e68, 0x2f5fa8, 0xc98b5a, 0x6b4a7a], hex = (i) => '#' + COLORS[i].toString(16).padStart(6, '0');
   const leafGeo = new THREE.PlaneGeometry(0.5, 0.72).translate(0.25, 0, 0);
-  const leafTex = canvasTex(160, 230, (x, w, h) => { x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = '#d9cfbd'; for (let r = 0; r < 12; r++) x.fillRect(18, 26 + r * 15, r % 4 === 3 ? 70 : 124, 4); });
+  const leafTex = canvasTex(160, 230, (x, w, h) => { const g = x.createLinearGradient(0, 0, w, 0); g.addColorStop(0, '#e6d6b2'); g.addColorStop(0.15, '#f3e8cf'); g.addColorStop(1, '#efe2c4'); x.fillStyle = g; x.fillRect(0, 0, w, h); x.fillStyle = '#cdbb98'; for (let r = 0; r < 12; r++) x.fillRect(18, 26 + r * 15, r % 4 === 3 ? 70 : 124, 4); }); // old paper, a little yellow
   const wrap = (x, text, maxW) => { const out = []; let line = ''; for (const w of text.split(' ')) { if (x.measureText(line + w).width > maxW) { out.push(line.trim()); line = ''; } line += w + ' '; } out.push(line.trim()); return out; };
   const EYE_AT = new THREE.Vector3(-5.4, L + EYE, -0.65), sun = new THREE.Vector3(...SUN_PATCH);
   const f = sun.clone().sub(EYE_AT).setY(0).normalize(), left = new THREE.Vector3(f.z, 0, -f.x); // left on the screen, seen from the hold
   const faceYaw = (p) => Math.atan2(EYE_AT.x - p.x, EYE_AT.z - p.z);
   const HALF = 0.55; // how far from flat each half-open cover stands
   const pageL = new THREE.PlaneGeometry(0.5, 0.72).rotateY(Math.PI).translate(0.25, 0, 0), pageR = new THREE.PlaneGeometry(0.5, 0.72).translate(0.25, 0, 0);
-  const cg = new THREE.PlaneGeometry(0.57, 0.82).translate(0.285, 0, 0);
+  const boardR = new THREE.BoxGeometry(0.57, 0.82, 0.025).translate(0.285, 0, -0.013), boardL = boardR.clone().translate(0, 0, 0.026); // leather boards, behind each half's pages
+  const blockR = new THREE.BoxGeometry(0.5, 0.72, 0.04).translate(0.265, 0, 0.02), blockL = blockR.clone().translate(0, 0, -0.04); // the thickness of the pages
+  const paperMat = lit(0xe9dcbc, { roughness: 0.95 }), spineGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.82, 12), ribbonGeo = new THREE.PlaneGeometry(0.035, 0.32).translate(0, 0.16, 0);
+  const LEAVES = 5, leafSeg = () => new THREE.PlaneGeometry(0.5, 0.72, 6, 1).translate(0.25, 0, 0); // each riffling leaf bends, so each has its own geometry
+  const SHEET = new THREE.PlaneGeometry(0.62, 0.42);
+  const sheets = BOOKS.map((b, i) => b.facts.map((fact) => canvasTex(512, 348, (x, w, h) => { // a loose page: the book's number and title, and one fact from inside it
+    x.fillStyle = '#f3e8cf'; x.fillRect(0, 0, w, h); x.strokeStyle = 'rgba(90,58,36,0.25)'; x.lineWidth = 6; x.strokeRect(3, 3, w - 6, h - 6);
+    x.fillStyle = hex(i); x.font = '500 22px "Martian Mono", monospace'; x.fillText(`0${i + 1} · ${b.title.toUpperCase()}`, 30, 52);
+    x.fillStyle = '#2a1e14'; x.font = '500 38px Fraunces, Georgia, serif'; wrap(x, fact, 450).forEach((l, k) => x.fillText(l, 30, 120 + k * 48));
+  })));
   const books = BOOKS.map((b, i) => {
     const [x, h, z, turn, lean, roll] = [[-8.1, 0.5, 2.0, 0.35, -0.55, 0.06], [-9.4, 0.35, 2.5, -0.3, -0.95, -0.1], [-8.5, 0.8, 3.8, 0.12, -0.35, 0.12], [-9.6, 0.65, 4.5, -0.5, -0.7, -0.05], [-8.2, 0.3, 5.0, 0.45, -1.0, 0.08]][i];
     const base = new THREE.Vector3(x, L + h, z); // inside the beam at that height (rooms.js draws it at 40 degrees from the window)
     const g = new THREE.Group(); g.position.copy(base); g.rotation.set(lean, faceYaw(base) + turn, roll, 'YXZ'); g.scale.setScalar(0.8); scene.add(g);
-    const cover = lit(COLORS[i], { side: THREE.DoubleSide });
-    const cl = mesh(cg, cover, 0, 0, 0, g), cr = mesh(cg, cover, 0, 0, 0, g); cl.rotation.y = -(Math.PI - HALF); cr.rotation.y = -HALF;
+    const cover = lit(new THREE.Color(0x5b3a24).lerp(new THREE.Color(COLORS[i]), 0.25).getHex(), { roughness: 0.65 }); // brown leather, tinted with the book's colour
+    const cl = mesh(boardL, cover, 0, 0, 0, g), cr = mesh(boardR, cover, 0, 0, 0, g); cl.rotation.y = -(Math.PI - HALF); cr.rotation.y = -HALF;
+    mesh(blockL, paperMat, 0, 0, 0, cl); mesh(blockR, paperMat, 0, 0, 0, cr); mesh(spineGeo, cover, 0, 0, -0.03, g);
+    const ribbon = mesh(ribbonGeo, basic(COLORS[i], { side: THREE.DoubleSide }), 0.03, 0.36, 0.05, g); // a bookmark in the book's colour, out of the top and blowing
     const lt = canvasTex(256, 368, (x, w, h) => { x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.font = '500 15px "Martian Mono", monospace'; x.fillText(`HOW WE WORK · 0${i + 1}`, 22, 40); x.fillStyle = hex(i); x.font = '300 130px Fraunces, Georgia, serif'; x.fillText(String(i + 1), 18, 190); x.fillStyle = '#1e2a26'; x.font = '500 46px Fraunces, Georgia, serif'; x.fillText(b.title, 22, 270); });
     const rt = canvasTex(256, 368, (x, w, h) => { x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.font = 'italic 400 25px Fraunces, Georgia, serif'; wrap(x, b.line, 210).forEach((l, k) => x.fillText(l, 24, 70 + k * 32)); x.fillStyle = '#d9cfbd'; for (let r = 0; r < 6; r++) x.fillRect(24, 200 + r * 20, r % 3 === 2 ? 100 : 200, 4); });
-    mesh(pageL, basic(0xffffff, { map: lt }), 0, 0, -0.006, cl); mesh(pageR, basic(0xffffff, { map: rt }), 0, 0, 0.006, cr);
-    const turning = mesh(leafGeo, basic(0xffffff, { map: leafTex, side: THREE.DoubleSide }), 0, 0, 0.01, g); // the page that keeps turning
-    return { m: g, base, turning, pull: 0, want: 0, turn, lean, roll };
+    mesh(pageL, basic(0xf3e8cf, { map: lt }), 0, 0, -0.042, cl); mesh(pageR, basic(0xf3e8cf, { map: rt }), 0, 0, 0.042, cr);
+    const leafMat = basic(0xffffff, { map: leafTex, side: THREE.DoubleSide });
+    const leaves = [...Array(LEAVES)].map((_, k) => { const m = mesh(leafSeg(), leafMat, 0, 0, 0.045, g); m.userData.x = m.geometry.attributes.position.array.filter((_, j) => j % 3 === 0); return m; }); // the pages the wind keeps turning
+    const sheet = mesh(SHEET, basic(0xffffff, { map: sheets[i][0], side: THREE.DoubleSide, transparent: true, depthWrite: false }), 0, 0, 0); sheet.userData.fact = 0; // flies loose in the scene, not in the book
+    return { m: g, base, leaves, ribbon, sheet, pull: 0, want: 0, turn, lean, roll };
   });
   // The open book. A click lifts the volume out of the beam; it floats to the reader, opens flat, and a few leaves turn before its two pages settle.
+  const toEye = EYE_AT.clone().sub(sun).setY(0).normalize(); for (const b of books) b.sheet.userData.n = BOOKS[books.indexOf(b)].facts.length; // where the loose pages blow
   const READ = EYE_AT.clone().addScaledVector(f, 1.5).addScaledVector(left, 0.35).setY(L + 1.45); // in front of the Landing hold, left of the HTML card
   const open = new THREE.Group(); open.visible = false; scene.add(open);
-  const coverMats = COLORS.map((c) => lit(c, { side: THREE.DoubleSide })), coverGeo = new THREE.PlaneGeometry(0.57, 0.82).translate(0.285, 0, 0);
+  const coverMats = COLORS.map((c) => lit(new THREE.Color(0x5b3a24).lerp(new THREE.Color(c), 0.25).getHex(), { side: THREE.DoubleSide, roughness: 0.65 })), coverGeo = new THREE.PlaneGeometry(0.57, 0.82).translate(0.285, 0, 0);
   const covers = [-1, 1].map(() => mesh(coverGeo, coverMats[0], 0, 0, 0, open)), leaves = [0, 1, 2].map((k) => mesh(leafGeo, basic(0xffffff, { map: leafTex, side: THREE.DoubleSide }), 0, 0, 0.003 * (k + 1), open));
   const spreads = BOOKS.map((b, i) => canvasTex(1024, 700, (x, w, h) => {
     const hex = '#' + COLORS[i].toString(16).padStart(6, '0');
-    x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = 'rgba(30,42,38,0.08)'; x.fillRect(w / 2 - 14, 0, 28, h); // the gutter
+    x.fillStyle = '#f3e8cf'; x.fillRect(0, 0, w, h); x.fillStyle = 'rgba(90,58,36,0.12)'; x.fillRect(w / 2 - 14, 0, 28, h); // the gutter, on old paper
     x.fillStyle = '#1e2a26'; x.font = '500 22px "Martian Mono", monospace'; x.fillText(`HOW WE WORK · VOLUME 0${i + 1} OF 05`, 48, 70);
     x.fillStyle = hex; x.font = '300 210px Fraunces, Georgia, serif'; x.fillText(String(i + 1), 40, 300);
     x.fillStyle = '#1e2a26'; x.font = '500 78px Fraunces, Georgia, serif'; x.fillText(b.title, 48, 400);
@@ -288,8 +303,21 @@ export function secrets({ scene, camera, lowQuality }) {
         b.pull += (b.want - b.pull) * Math.min(1, dt * 9);
         b.m.position.y = b.base.y + Math.sin(t * 0.6 + k * 1.3) * 0.04 + 0.08 * b.pull; b.m.rotation.z = b.roll + Math.sin(t * 0.4 + k) * 0.04;
         b.m.scale.setScalar(0.8 * (1 + 0.12 * b.pull)); b.m.visible = !(k === shown && fly > 0.02);
-        const u = (t * 0.22 + k * 0.37) % 1, turn = sstep(0.55, 0.95, u); // a page turns every few seconds, right to left
-        b.turning.rotation.y = -HALF - (Math.PI - 2 * HALF) * turn; b.turning.visible = turn > 0.01 && turn < 0.99;
+        const near = b.m.visible && b.base.distanceTo(camera.position) < 16; // the wind only blows where it can be seen
+        for (const l of b.leaves) l.visible = near; b.sheet.visible = near; if (!near) continue;
+        const gust = 0.55 + 0.45 * Math.sin(t * 0.9 + k * 2.1); // the wind comes in gusts: the pages riffle fast, then slower
+        for (const [j, l] of b.leaves.entries()) {
+          const u = (t * (1.1 + 0.9 * gust) + j / LEAVES + k * 0.31) % 1, turn = u * u * (3 - 2 * u), bulge = Math.sin(turn * Math.PI) * 0.16; // right to left, a leaf every fraction of a second
+          l.rotation.y = -HALF - (Math.PI - 2 * HALF) * turn;
+          const pos = l.geometry.attributes.position; for (let v = 0; v < pos.count; v++) { const q = l.userData.x[v] / 0.5; pos.setZ(v, bulge * q * q); } pos.needsUpdate = true; // the leaf bows as it goes over
+        }
+        b.ribbon.rotation.set(0.9 + Math.sin(t * 5 + k) * 0.3 * gust, 0, -0.4 + Math.sin(t * 7 + k * 2) * 0.35 * gust);
+        // a loose page blows out of the book toward the reader, turning over, with one fact on it; then the next
+        const c = t * 0.15 + k * 0.2, v = c % 1, n = Math.floor(c) % b.sheet.userData.n;
+        if (n !== b.sheet.userData.fact) { b.sheet.userData.fact = n; b.sheet.material.map = sheets[k][n]; }
+        b.sheet.position.copy(b.m.position).addScaledVector(toEye, v * 1.9).addScaledVector(left, Math.sin(v * 4 + k) * 0.35); b.sheet.position.y += 0.15 + v * 1.2 + Math.sin(v * Math.PI) * 0.2; // up and toward the reader, close enough to read
+        b.sheet.lookAt(EYE_AT); b.sheet.rotateZ(Math.sin(t * 2.2 + k) * 0.3); b.sheet.rotateX(Math.sin(t * 1.7 + k) * 0.35);
+        b.sheet.material.opacity = sstep(0, 0.12, v) * (1 - sstep(0.8, 1, v));
       }
       open.visible = shown >= 0 && fly > 0.02;
       if (open.visible) {

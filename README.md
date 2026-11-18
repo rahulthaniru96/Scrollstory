@@ -51,7 +51,7 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Sound is a few oscillators and noise bursts made in code, not recorded audio, and it is not panned to its source.
 - Secrets fade in and out; the camera does not fly into them. Found secrets are kept in the browser's localStorage only.
 - Not built from Phase 4: the floor plan radar, wall scratches, reflections that lie, and the library shaft (the hat portal replaced the upper stairwell). The firework for finding everything is built.
-- The one-line descriptions of the four add-ons (`EXTRAS` in `src/world.js`) and the demo-site card line are plain wording written for the build. Rahul to confirm.
+- The Extras board's offer (`EXTRAS` in `src/world.js`), the Gallery's site lines (`SITES` in `src/gallery.js`) and the Greenhouse's "week 1 to year 1" plants are plain wording written for the build. Rahul to confirm.
 - The fonts (Fraunces, Familjen Grotesk, Martian Mono) load from Google Fonts. The scene waits up to 2 s for them, then uses fallbacks.
 - The plaque's wordmark is a texture on a raised panel; only the Doorway S mark is modelled.
 - The form stores nothing. Submit opens WhatsApp with the answers filled in.
@@ -141,3 +141,12 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Drafting Room: the page's frame has a bottom edge with a scrollbar and "The page goes on", so the page reads as a window onto a longer page rather than a sheet cut off.
 - Not checked: a real phone; how the caption cards sit in every room on a small laptop (some cover part of the room's subject).
 
+## Eighth round of feedback (18 Nov 2026)
+
+- Gallery: a row of seven framed screens on its west wall, each showing a site's real landing page (stills in `public/shots`), and the walk stops square in front of each. Two live client projects, Bhumi Insurance and G-Thriftz, with "Visit the live site"; five concept demos for made-up businesses, hosted with this site in `public/demos` and opened with "Open the demo". The domes, phones and props are gone and the room is labelled Gallery as soon as the screens show. The demo links work only once this site itself is deployed.
+- Extras: the departure board offers a live demo in 15 minutes instead of the four add-ons. One carriage, one map pin, and "Get my demo on WhatsApp". The walk is 5721 vh.
+- Phones: the finger drives the walk through Lenis, slows near stops, goes at most one stop per touch, and a flick glides to that stop. Native touch panning is off (pan-y kept for the chooser, floor plan and form). The hint pill, header buttons and card links fit a 390 px screen. A phone can lower its resolution when slow.
+- Greenhouse: a sign says Maintenance and lists the care plan; the plants are one site at five ages of care; captions say "After launch, we maintain your site" and give the launch price.
+- Landing books: old brown leather books with a page block, spine and a ribbon in each book's colour; the pages riffle in gusts and a loose page with one fact blows toward the reader.
+- Captions: lines that said what the room already shows are cut (the painted page, the cabin's exit, Worth it's counter count); others are shorter (STORYBOARD.md).
+- Not checked: a real phone and a real GPU (all tests were headless Chrome with software WebGL, phone size emulated); the Lobby's stairwell view, which may be what "Lobby messy" meant.

@@ -147,7 +147,7 @@ export function greenhouse({ scene, lowQuality }) {
       c.fillStyle = '#1e2a26'; c.beginPath(); c.roundRect(0, 0, w, h, 26); c.fill(); c.strokeStyle = '#c9a24a'; c.lineWidth = 6; c.beginPath(); c.roundRect(10, 10, w - 20, h - 20, 20); c.stroke();
       c.textAlign = 'center'; c.fillStyle = '#c9a24a'; c.font = '500 30px "Martian Mono", monospace'; c.fillText('CHAPTER 5 · CARE PLAN', w / 2, 70);
       c.fillStyle = CREAM; c.font = '500 104px Fraunces, Georgia, serif'; c.fillText('Maintenance', w / 2, 175);
-      c.fillStyle = '#cfe3d8'; c.font = '400 32px "Familjen Grotesk", Arial, sans-serif'; c.fillText('Hosting · Backups · Uptime · Security updates · Small changes', w / 2, 245);
+      c.fillStyle = '#cfe3d8'; c.font = '400 32px "Familjen Grotesk", Arial, sans-serif'; c.fillText('Hosting care · Backups · Uptime · Security updates · Small changes', w / 2, 245); // hosting itself is billed at cost (rate card): the plan manages it
     });
     const sign = put(new THREE.PlaneGeometry(3.0, 0.88), new THREE.MeshBasicMaterial({ map: tex }), G.x1 - 0.15, Y + 3.45, cz); sign.rotation.y = -Math.PI / 2;
     for (const s of [-1, 1]) put(new THREE.CylinderGeometry(0.008, 0.008, 1.2, 4), ink, G.x1 - 0.15, Y + 4.45, cz + s * 1.3); // hung from the arch

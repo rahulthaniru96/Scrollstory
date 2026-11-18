@@ -43,16 +43,16 @@ export function dress({ scene, camera, lowQuality = false }) {
       void main(){ vec3 d = normalize(vDir);
         vec3 c = mix(mid, upper, smoothstep(0.0, 0.3, d.y)); c = mix(c, top, smoothstep(0.25, 0.75, d.y)); c = mix(low, c, smoothstep(-0.15, 0.08, d.y));
         float s = max(dot(d, sunDir), 0.0);
-        c += sunCol * (smoothstep(0.9992, 0.9996, s) * 1.2 + pow(s, 60.0) * 0.45 + pow(s, 6.0) * 0.16);
+        c += sunCol * (smoothstep(0.9992, 0.9996, s) * 1.2 + pow(s, 60.0) * 0.6 + pow(s, 6.0) * 0.24);
         gl_FragColor = vec4(mix(c, veilCol, veil), 1.0);
         #include <colorspace_fragment>
       }`,
   }));
   sky.renderOrder = -10; sky.frustumCulled = false; scene.add(sky);
   const pal = (top, upper, mid, low, sun) => ({ top: new THREE.Color(top), upper: new THREE.Color(upper), mid: new THREE.Color(mid), low: new THREE.Color(low), sunCol: new THREE.Color(sun) });
-  const SKY_LOW = pal(0x9db9c7, 0xc9c6b6, 0xf5d3a6, 0xf2a766, 0xfff1cf);
-  const SKY_HIGH = pal(0xc9744b, 0xde8e58, 0xf2a766, 0xf6c08a, 0xfff1cf);
-  const SKY_DUSK = pal(0x5e5a8e, 0x9c8fc4, 0xb58db8, 0xe79aa3, 0xf2a36b); // the rooftop: violet zenith down to a pink horizon, orange where the sun is
+  const SKY_LOW = pal(0x5f9fd8, 0xa9c4dc, 0xffc98f, 0xff9c55, 0xfff1cf); // round 9: more vivid
+  const SKY_HIGH = pal(0xc4553a, 0xec7f45, 0xffa257, 0xffc184, 0xfff1cf);
+  const SKY_DUSK = pal(0x3f3a9a, 0x8a72d6, 0xd884bc, 0xff8c8c, 0xffa860); // the rooftop: violet zenith down to a pink horizon, orange where the sun is
   tick.push((t, dt, env) => {
     sky.position.copy(camera.position); SUN_DIR.lerpVectors(SUN_DAY, SUN_DUSK, env.dusk).normalize();
     const u = sky.material.uniforms, k = sstep(10, 26, env.h);
@@ -164,7 +164,7 @@ export function dress({ scene, camera, lowQuality = false }) {
     tick.push(() => { for (const m of well) m.material.opacity = 0.95 * Math.min(1, Math.max(0, (m.position.distanceTo(camera.position) - 1.3) / 1.2)); });
   }
 
-  // ---------- portal windows: every window shows a different sky, and throws its own light ----------
+  // ---------- windows: bright daylight outside, a little overexposed like a real window seen from a room, a soft glow on the wall round it, and a beam that fades as it falls ----------
   const SKIES = {
     gold: { a: 0x9db9c7, b: 0xf7b978, orb: 0xfff2cc, orbAt: [0.62, 0.3], orbR: 0.13, stars: 0, clouds: 0.5, light: 0xffd9a0 },
     rose: { a: 0xe9a7a0, b: 0xf8dcc0, orb: 0xffffff, orbAt: [0.5, -1], orbR: 0.01, stars: 0, clouds: 0.9, light: 0xffc9b8 },
@@ -173,20 +173,24 @@ export function dress({ scene, camera, lowQuality = false }) {
     dawn: { a: 0x5d62a0, b: 0xf2b38b, orb: 0xffffff, orbAt: [0.5, -1], orbR: 0.01, stars: 0.5, clouds: 0.3, light: 0xf5b7a6 },
   };
   const skyMats = {}, shaftMats = {}, patchMats = {};
+  const softPatch = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); x.filter = 'blur(10px)'; x.fillStyle = '#fff'; x.fillRect(18, 18, 92, 92); return new THREE.CanvasTexture(c); })(); // a lit patch with soft edges
   const skyMat = (name) => (skyMats[name] ||= new THREE.ShaderMaterial({
     fog: false,
     uniforms: { a: { value: new THREE.Color(SKIES[name].a) }, b: { value: new THREE.Color(SKIES[name].b) }, orb: { value: new THREE.Color(SKIES[name].orb) }, orbAt: { value: new THREE.Vector2(...SKIES[name].orbAt) }, orbR: { value: SKIES[name].orbR }, stars: { value: SKIES[name].stars }, clouds: { value: SKIES[name].clouds }, time: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `uniform vec3 a, b, orb; uniform vec2 orbAt; uniform float orbR, stars, clouds, time; varying vec2 vUv;
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
       void main(){ vec3 c = mix(b, a, smoothstep(0.0, 1.0, vUv.y));
-        vec2 sp = vUv * vec2(22.0, 40.0), g = floor(sp); // stars: one small round dot in some cells
-        c += step(0.9, hash(g)) * smoothstep(0.2, 0.06, length(fract(sp) - 0.5)) * stars * (0.6 + 0.4 * sin(time * 2.0 + hash(g) * 40.0));
+        float n = noise(vUv * vec2(3.0, 5.0) + vec2(time * 0.02, 0.0)) * 0.6 + noise(vUv * vec2(7.0, 11.0) - vec2(time * 0.03, 0.0)) * 0.4; // soft clouds, out of focus
+        c = mix(c, vec3(1.0, 0.98, 0.95), clouds * smoothstep(0.45, 0.8, n) * 0.55);
         float d = distance(vUv * vec2(1.0, 1.7), orbAt * vec2(1.0, 1.7));
-        c += orb * 0.3 * smoothstep(orbR * 3.5, orbR, d); c = mix(c, orb, smoothstep(orbR, orbR * 0.86, d));
-        float band = sin(vUv.x * 5.0 + time * 0.05 + sin(vUv.y * 9.0) * 1.2) * sin(vUv.y * 13.0 + 1.0);
-        c = mix(c, vec3(1.0, 0.97, 0.93), clouds * smoothstep(0.55, 0.95, band) * 0.8);
-        gl_FragColor = vec4(c, 1.0);
+        c += orb * (0.55 * smoothstep(orbR * 6.0, 0.0, d) + 0.35 * smoothstep(orbR * 1.2, orbR * 0.4, d)); // the sun or moon as a glow, no hard disc
+        vec2 sp = vUv * vec2(22.0, 40.0), g = floor(sp);
+        c += step(0.95, hash(g)) * smoothstep(0.12, 0.0, length(fract(sp) - 0.5)) * stars * 0.5;
+        float out_ = 1.0 - stars * 0.6; // daylight is brighter than the room: it washes towards white in the middle of the glass
+        c = mix(c, vec3(1.0, 0.985, 0.95), out_ * 0.45 * smoothstep(0.75, 0.0, distance(vUv, vec2(0.5, 0.45))));
+        gl_FragColor = vec4(min(c * (1.0 + 0.25 * out_), vec3(1.0)), 1.0);
         #include <colorspace_fragment>
       }`,
   }));
@@ -199,14 +203,15 @@ export function dress({ scene, camera, lowQuality = false }) {
     return geo;
   };
   const NORMAL = { '+x': [1, 0, Math.PI / 2], '-x': [-1, 0, -Math.PI / 2], '+z': [0, 1, 0], '-z': [0, -1, Math.PI] };
-  const trim = basic(0xf7f1e6), bar = basic(0x3f6e68);
+  const trim = lit(0xece4d6, { roughness: 0.6 }), bar = lit(0x2f3a36, { roughness: 0.5 }); // painted timber, lit by the room, not flat colour
   for (const w of WINDOWS) {
     const [nx, nz, ry] = NORMAL[w.n], g = new THREE.Group();
     g.position.set(w.x + nx * 0.03, w.y, w.z + nz * 0.03); g.rotation.y = ry; scene.add(g);
     const frame = mesh(arch(w.w + 0.24, w.h + 0.12), trim, 0, -0.02, 0, g); frame.position.z = 0;
     mesh(arch(w.w, w.h), skyMat(w.sky), 0, 0, 0.01, g);
-    mesh(new THREE.BoxGeometry(0.05, w.h - 0.05, 0.03), bar, 0, w.h / 2, 0.03, g); // mullion
-    mesh(new THREE.BoxGeometry(w.w, 0.05, 0.03), bar, 0, w.h - w.w / 2, 0.03, g); // transom at the spring of the arch
+    mesh(new THREE.BoxGeometry(0.035, w.h - 0.05, 0.04), bar, 0, w.h / 2, 0.03, g); // mullion
+    mesh(new THREE.BoxGeometry(w.w, 0.035, 0.04), bar, 0, w.h - w.w / 2, 0.03, g); // transom at the spring of the arch
+    const spill = mesh(new THREE.PlaneGeometry(w.w * 1.8, w.h * 1.35), basic(SKIES[w.sky].light, { map: glowTexture, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false }), 0, w.h / 2, 0.005, g); spill.renderOrder = 1; // the light spilling onto the wall round the opening
     if (!w.shaft) continue;
     // Light shaft: the window's outline carried down to the floor.
     const a = (w.shaft * Math.PI) / 180, dir = new V3(nx * Math.cos(a), -Math.sin(a), nz * Math.cos(a)), right = new V3(nz, 0, -nx);
@@ -214,13 +219,16 @@ export function dress({ scene, camera, lowQuality = false }) {
     const at = [[-1, 0], [1, 0], [1, top], [-1, top]].map(([sx, y]) => base.clone().addScaledVector(right, (sx * w.w) / 2).add(new V3(0, y, 0)));
     const down = at.map((p) => p.clone().addScaledVector(dir, (p.y - (w.floor || 0) - 0.03) / Math.sin(a)));
     const quad = (p0, p1, p2, p3) => [p0, p1, p2, p0, p2, p3].flatMap((p) => [p.x, p.y, p.z]);
-    const sides = new THREE.BufferGeometry();
-    sides.setAttribute('position', new THREE.Float32BufferAttribute([...quad(at[0], at[3], down[3], down[0]), ...quad(at[1], at[2], down[2], down[1]), ...quad(at[3], at[2], down[2], down[3])], 3));
-    const light = SKIES[w.sky].light;
-    scene.add(new THREE.Mesh(sides, (shaftMats[w.sky] ||= basic(light, { transparent: true, opacity: 0.055, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))));
+    const sides = new THREE.BufferGeometry(), light = new THREE.Color(SKIES[w.sky].light);
+    const shaftPts = [...quad(at[0], at[3], down[3], down[0]), ...quad(at[1], at[2], down[2], down[1]), ...quad(at[3], at[2], down[2], down[3])];
+    sides.setAttribute('position', new THREE.Float32BufferAttribute(shaftPts, 3));
+    const fall = []; for (let j = 0; j < shaftPts.length; j += 3) { const fromWin = Math.min(...at.map((p) => Math.hypot(p.x - shaftPts[j], p.y - shaftPts[j + 1], p.z - shaftPts[j + 2]))) < 0.01; fall.push(...light.toArray().map((v) => v * (fromWin ? 0.016 : 0.0))); } // bright at the glass, almost gone at the floor
+    sides.setAttribute('color', new THREE.Float32BufferAttribute(fall, 3));
+    scene.add(new THREE.Mesh(sides, (shaftMats.v ||= basic(0xffffff, { vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))));
     const patch = new THREE.BufferGeometry();
     patch.setAttribute('position', new THREE.Float32BufferAttribute(quad(down[0], down[1], down[2], down[3]), 3));
-    scene.add(new THREE.Mesh(patch, (patchMats[w.sky] ||= basic(light, { transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))));
+    patch.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1], 2));
+    scene.add(new THREE.Mesh(patch, (patchMats[w.sky] ||= basic(light, { map: softPatch, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })))); // the sunlit patch, its edges soft
   }
 
   let plaque;

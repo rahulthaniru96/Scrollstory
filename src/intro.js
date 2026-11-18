@@ -1,7 +1,7 @@
-// The intro: the building builds itself in front of the visitor, once per session.
+// The intro: the building builds itself in front of the visitor, every time the walk opens at its start.
 //   1 water only  2 holographic outlines rise out of the water  3 each piece fits into place with a small overshoot
 //   4 the outlines fill in as a clean iridescent model  5 a scan line turns it real from the bottom up  6 the plaque lights last
-// Stage 5 waits for the room models, so this is also the loader. Any scroll, click or key jumps to the end.
+// Stage 5 waits for the room models, so this is also the loader. After the first 3.5 s any scroll, click or key jumps to the end.
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { HOLO, holoFill } from './holo.js';
@@ -51,7 +51,7 @@ export function intro({ scene, renderer, shell, parts, outlines, plaque, ready, 
   tl.call(() => { plaque.visible = true; }, null, 6.6);
   tl.fromTo(plaque.scale, { x: 0.92, y: 0.92, z: 0.92 }, { x: 1, y: 1, z: 1, duration: 0.5, ease: 'back.out(2.5)' }, 6.6);
   tl.to(HOLO.base, { value: 0, duration: 0.6, ease: 'none', onUpdate() { HOLO.dream.value = HOLO.base.value; } }, 6.6);
-  tl.to('#dusk', { opacity: 0, duration: 6.6, ease: 'power1.in' }, 0);
+  tl.to('#dusk', { opacity: 0, duration: 1.4, ease: 'power1.out' }, 0); // dusk lifts first, so the building is seen rising
 
   function end() {
     for (const b of body) b.m.material = b.real;
@@ -67,7 +67,7 @@ export function intro({ scene, renderer, shell, parts, outlines, plaque, ready, 
     for (const ev of SKIP) removeEventListener(ev, skip);
     onEnd?.();
   }
-  const SKIP = ['wheel', 'touchstart', 'keydown', 'pointerdown'], skip = () => tl.progress(1);
+  const SKIP = ['wheel', 'touchstart', 'keydown', 'pointerdown'], skip = () => { if (tl.time() > 3.5) tl.progress(1); }; // the rise always plays; after it, any input jumps to the end
   if (freezeAt !== null) tl.time(freezeAt);
   else { for (const ev of SKIP) addEventListener(ev, skip, { passive: true }); tl.play(); }
 }

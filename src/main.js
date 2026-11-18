@@ -253,13 +253,15 @@ function theme(p) {
 
 // ---------- scroll, springs and caps ----------
 document.getElementById('track').style.height = `${rail.total + 100}vh`;
+history.scrollRestoration = 'manual'; // a visit always starts at the gate, where the building builds itself
 const startAt = Number(new URLSearchParams(location.search).get('p')); // ?p=1118 opens the walk at that point
 if (startAt > 0) scrollTo(0, (startAt / rail.total) * (document.documentElement.scrollHeight - innerHeight));
 const free = new URLSearchParams(location.search).has('free'); // ?free=1: the old free scroll, for tuning
 const blocked = (e) => state.secret || state.seat || document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
 // Lenis hands every wheel event here first. Coming up to a stop the wheel slows; leaving one it is quicker again. It never stops the walk.
 const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: FEEL.wheel, virtualScroll: (d) => {
-  if (free || d.event.ctrlKey || blocked(d.event)) return true;
+  if (document.body.classList.contains('intro')) return false; // the building is building itself: watch first
+  if (free || d.event.ctrlKey || (blocked(d.event) && !state.seat)) return true; // seated, the wheel still scrolls: it changes the channel
   const p = target(), gap = rail.stops[steps.nearest(p)] - p, k = FEEL.linger + (1 - FEEL.linger) * sstep(0, FEEL.lingerVh, Math.abs(gap));
   d.deltaY *= Math.sign(gap) === Math.sign(d.deltaY) || Math.abs(gap) < 1 ? k : Math.max(k, 0.6);
   return true;
@@ -392,7 +394,7 @@ function focus(p) {
   env.cards = sstep(INTO_CABIN.s0 + 10, byName['Signal Cabin hold'].s1, p); env.levers = Math.min(1, Math.max(0, (p - TO_PANEL.s0) / (TO_PANEL.s1 - TO_PANEL.s0 + 25)));
   env.page = sstep(lerp(PAGE_MOVE.s0, PAGE_MOVE.s1, 0.28), lerp(PAGE_MOVE.s0, PAGE_MOVE.s1, 0.75), p); // the colour spreads from where the walk goes through
   // The Renovation's line follows the walk across the room. Resting at either end, the cursor slides it back and forth to compare.
-  const lu = Math.min(1, Math.max(0, (p - LINE.s0) / (LINE.s1 - LINE.s0))), still = p > RENO_SPAN[0] && p < RENO_SPAN[1] && (lu === 0 || lu === 1) ? 1 : 0;
+  const lu = Math.min(1, Math.max(0, (p - LINE.s0) / (LINE.s1 - LINE.s0))), still = p > RENO_SPAN[0] && p < RENO_SPAN[1] && lu === 1 ? 1 : 0; // only once the walk has crossed the line: before it, nothing new shows
   env.wipe = Math.min(RENO.x1 + 0.4, Math.max(RENO.x0 - 0.4, lerp(RENO.x0 - 0.4, RENO.x1 + 0.4, lu) + still * pointer.sx * 2.6));
   const back = now - clockAt; env.lineU = lu; if (back > 0 && back < 3.5) env.wipe = lerp(env.wipe, lu < 0.5 ? RENO.x1 + 0.4 : RENO.x0 - 0.4, Math.sin((back / 3.5) * Math.PI)); // the time machine: the other version sweeps over the room, then away
   EX.forEach((m, i) => { env.extra.u[i] = (p - (m.s0 - 8)) / 26; }); // below 0 the row is blank, 0 to 1 it flips, then it has landed
@@ -403,7 +405,10 @@ function focus(p) {
   COUNTERS.forEach((c, i) => { env.counter[i] = beat(`Counter: ${c.name}`, p); });
   const x = ((p - TV_SPAN[0]) / (TV_SPAN[1] - TV_SPAN[0])) * CHANNELS, ch = Math.floor(x);
   env.tv.ch = x < 0 ? -1 : Math.min(CHANNELS - 1, ch); env.tv.f = x < 0 || x >= CHANNELS ? 1 : x - ch;
-  if (state.seat) { env.tv.ch = state.seat.ch; env.tv.f = Math.min(1, (performance.now() / 1000 - state.seat.at) / 1.5); } // seated: the remote, not the scroll, picks the channel
+  if (state.seat) { // seated: the channel is still the scroll's (the remote scrolls to it), so standing up keeps it
+    if (p < TV_SPAN[0] - 5 || p > TV_SPAN[1] + 5) sit(false); // scrolled out of the TV room: stand up
+    else { if (env.tv.ch !== state.seat.ch) seatCh(env.tv.ch); env.tv.f = Math.min(1, (performance.now() / 1000 - state.seat.at) / 1.5); }
+  }
 }
 
 // ---------- room cards: what each shop and counter means, in HTML over the canvas ----------
@@ -640,7 +645,11 @@ function enterSecret(id) {
 function leaveSecret() { through(() => { state.secret = null; document.body.classList.remove('under'); }); }
 // ---------- the HOME sofa: sit to watch. The camera sits, then leans in to the set; the channel tiles float beside it. ----------
 const sitBtn = document.getElementById('sitBtn'), remoteBar = document.getElementById('remote');
-function remote(ch) { if (!state.seat) return; state.seat.ch = (ch + CHANNELS) % CHANNELS; state.seat.at = performance.now() / 1000; sfx.blip(); remoteBar.querySelector('b').textContent = `CH 0${state.seat.ch + 1}`; remoteBar.classList.toggle('last', state.seat.ch === CHANNELS - 1); }
+function seatCh(ch) { state.seat.ch = ch; state.seat.at = performance.now() / 1000; sfx.blip(); remoteBar.querySelector('b').textContent = `CH 0${ch + 1}`; remoteBar.classList.toggle('last', ch === CHANNELS - 1); }
+function remote(ch) { // the remote moves the walk to that channel's stop, so the scroll and the set never disagree
+  if (!state.seat) return; ch = (ch + CHANNELS) % CHANNELS;
+  lenis.scrollTo(((TV_SPAN[0] + ((TV_SPAN[1] - TV_SPAN[0]) * (ch + 0.5)) / CHANNELS) / rail.total) * lenis.limit, { immediate: true, force: true }); seatCh(ch);
+}
 function sit(on) {
   if (on === !!state.seat) return;
   if (on) { state.seat = { ch: Math.max(0, env.tv.ch), at: 0 }; remote(state.seat.ch); } else state.seat = null;
@@ -843,9 +852,7 @@ gsap.ticker.add((time, deltaMs) => {
 // ---------- the intro: once per session, never on a pinned frame or a page opened part-way down ----------
 {
   const freeze = new URLSearchParams(location.search).get('intro'); // ?intro=3.2 holds the intro at 3.2 s, for screenshots
-  let seen = false;
-  try { seen = sessionStorage.getItem('intro') === '1'; sessionStorage.setItem('intro', '1'); } catch { /* private mode: play it */ }
-  if (freeze !== null || (!pinned && !seen && !(startAt > 0) && scrollY < innerHeight * 0.3)) {
+  if (freeze !== null || (!pinned && !(startAt > 0) && scrollY < innerHeight * 0.3)) {
     if (state.reduce && freeze === null) gsap.fromTo(veil, { opacity: 1 }, { opacity: 0, duration: 1, ease: 'none' }); // reduced motion: a 1 s fade
     else { document.getElementById('dusk').style.opacity = 1; intro({ scene, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), freezeAt: freeze === null ? null : Number(freeze) }); }
   }

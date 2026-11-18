@@ -462,15 +462,15 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     const c = document.createElement('canvas'); c.width = W; c.height = Hh;
     const x = c.getContext('2d'), tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
     const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/ ';
-    // Each row is blank until the walk reaches it, flips while it arrives, and is lit while the walk rests on it (env.extra, from the scroll).
+    // The offer's rows are blank until the walk reaches it, flip in one after another, and are lit while the walk rests on it (env.extra, from the scroll).
     const draw = (u, litRow) => {
       x.fillStyle = '#15181a'; x.fillRect(0, 0, W, Hh);
-      x.font = '600 20px "Martian Mono", monospace'; x.textAlign = 'left'; x.fillStyle = '#8c8a82'; x.fillText('NO.', 32, 44); x.fillText('ADD-ON', 214, 44);
+      x.font = '600 20px "Martian Mono", monospace'; x.textAlign = 'left'; x.fillStyle = '#8c8a82'; x.fillText('NOW BOARDING', 32, 44); x.textAlign = 'right'; x.fillText('ASK ON WHATSAPP', W - 32, 44);
       x.font = '700 32px "Martian Mono", monospace'; x.textAlign = 'center';
-      for (const [r, e] of EXTRAS.entries()) {
-        const text = (u[r] < 0 ? '' : `0${r + 1}  ${e.name}`).padEnd(COLS), ry = 66 + r * 64, flip = u[r] >= 0 && u[r] < 1, on = r === litRow;
+      for (const [r, row] of EXTRAS[0].rows.entries()) {
+        const ur = u[0] * 1.6 - r * 0.2, text = (ur < 0 ? '' : row).padEnd(COLS), ry = 66 + r * 64, flip = ur >= 0 && ur < 1, on = litRow === 0;
         for (let k = 0; k < COLS; k++) {
-          const ch = flip && k / COLS > u[r] - 0.25 ? ABC[Math.floor(Math.random() * ABC.length)] : text[k]; // the letters land from the left
+          const ch = flip && k / COLS > ur - 0.25 ? ABC[Math.floor(Math.random() * ABC.length)] : text[k]; // the letters land from the left
           x.fillStyle = on ? '#f2d98b' : '#262c30'; x.fillRect(30 + k * 46, ry, 41, 54);
           x.fillStyle = on ? '#15181a' : '#f2d98b'; x.fillText(ch, 50.5 + k * 46, ry + 38);
           x.fillStyle = '#15181a'; x.fillRect(30 + k * 46, ry + 26, 41, 2); // the split in each flap
@@ -482,17 +482,14 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     mesh(new THREE.PlaneGeometry(BOARD.w, BOARD.h), basic(0xffffff, { map: tex }), BOARD.x, BOARD.y, BOARD.z);
     const rowGlow = glow(0xf2d98b, 5, BOARD.x, BOARD.y, BOARD.z + 0.3, scene, 0);
 
-    // A train of light on the yellow line: one carriage for each add-on, its window showing what it carries.
+    // A train of light on the yellow line: one carriage, a stopwatch at 15 in its window.
     const train = new THREE.Group(); train.position.set(15, y, -21.7); scene.add(train);
-    const ICONS = [
-      (q) => { for (let i = 0; i < 7; i++) for (let j = 0; j < 7; j++) if ((i * 3 + j * 5 + i * j) % 3 === 0 || ((i < 2 || i > 4) && (j < 2 || j > 4) && !(i > 4 && j > 4))) q.fillRect(22 + i * 12, 22 + j * 12, 10, 10); },
-      (q) => { q.strokeRect(20, 28, 88, 70); q.beginPath(); q.arc(84, 50, 8, 0, 7); q.fill(); q.beginPath(); q.moveTo(24, 94); q.lineTo(52, 58); q.lineTo(72, 80); q.lineTo(84, 68); q.lineTo(104, 94); q.fill(); },
-      (q) => { q.beginPath(); q.roundRect(20, 24, 88, 62, 14); q.stroke(); q.beginPath(); q.moveTo(40, 86); q.lineTo(36, 108); q.lineTo(60, 86); q.fill(); for (const cx of [44, 64, 84]) { q.beginPath(); q.arc(cx, 55, 5, 0, 7); q.fill(); } },
-      (q) => { q.strokeRect(30, 16, 68, 96); for (let i = 0; i < 4; i++) { q.fillRect(40, 32 + i * 18, 30, 5); q.fillRect(78, 32 + i * 18, 10, 5); } },
+    const ICONS = [ // a stopwatch: its hand a quarter of the way round, 15 minutes
+      (q) => { q.beginPath(); q.arc(64, 70, 42, 0, 7); q.stroke(); q.fillRect(56, 14, 16, 10); q.fillRect(61, 22, 6, 8); q.beginPath(); q.moveTo(64, 70); q.arc(64, 70, 34, -Math.PI / 2, 0); q.closePath(); q.globalAlpha = 0.45; q.fill(); q.globalAlpha = 1; q.font = '700 22px "Martian Mono", monospace'; q.textAlign = 'center'; q.fillText('15', 50, 98); },
     ];
     const carGeo = new THREE.BoxGeometry(1.32, 1.0, 0.8), carFill = holoFill({ opacity: 0.16 });
     const cars = EXTRAS.map((e, i) => {
-      const car = new THREE.Group(); car.position.set((i - 1.5) * 1.45, 0.7, 0); train.add(car); // 1.45 m apart: the whole train fits the frame from the stop, 3.5 m away
+      const car = new THREE.Group(); car.position.set((i - (EXTRAS.length - 1) / 2) * 1.45, 0.7, 0); train.add(car); // 1.45 m apart: the whole train fits the frame from the stop, 3.5 m away
       car.add(new THREE.Mesh(carGeo, carFill), holoEdges(carGeo, { everywhere: true, opacity: 0.9 }));
       const icon = canvasTex(128, 128, (q) => { q.fillStyle = q.strokeStyle = '#f2d98b'; q.lineWidth = 5; ICONS[i](q); });
       const win = mesh(new THREE.PlaneGeometry(0.72, 0.72), basic(0xffffff, { map: icon, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }), 0, 0.02, 0.41, car);
@@ -505,7 +502,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       const { u, lit: on, train: arrive, leave } = env.extra;
       train.visible = arrive > 0.01 && leave < 0.99; train.position.x = 15 + (1 - arrive) ** 2 * 20 - leave * leave * 26; // in from the east, out to the west
       for (const [i, c] of cars.entries()) { c.win.material.opacity = i === on ? 1 : 0.4; c.halo.material.opacity = i === on ? 0.5 : 0; c.win.position.y = 0.02 + (i === on ? Math.sin(t * 2) * 0.03 : 0); }
-      rowGlow.material.opacity = on >= 0 ? 0.25 : 0; if (on >= 0) rowGlow.position.y = BOARD.rowY(on);
+      rowGlow.material.opacity = on >= 0 ? 0.25 : 0; if (on >= 0) rowGlow.position.y = BOARD.rowY(1.5);
       const flip = u.some((v) => v >= 0 && v < 1), k = u.map((v) => (v < 0 ? 'b' : v < 1 ? 'f' : 'l')).join('') + on;
       if ((flip && t - last > 0.07) || k !== shown) { shown = k; last = t; draw(u, on); }
     });

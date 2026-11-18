@@ -1,5 +1,5 @@
 // 08 Extras grows a map room: being found. A brass relief map of Hyderabad on a table beside the departures board.
-// As each add-on flips in on the board, a pin rises on the map; at the map's own stop a QR code unfolds in the air like origami, beside a business profile card.
+// As the offer flips in on the board, a pin rises on the map for the visitor's business; at the map's own stop a QR code unfolds in the air like origami, beside a business profile card.
 // The map is drawn, not surveyed: a few real landmarks for orientation, and no real business on it. The QR is a made-up pattern; it opens nothing.
 import * as THREE from 'three';
 import { MAP, H, EXTRAS } from './world.js';
@@ -47,13 +47,13 @@ export function mapRoom({ scene, lowQuality }) {
   // the clock tower, small, in brass, at Secunderabad
   put(new THREE.BoxGeometry(0.05, 0.22, 0.05), brass, 0.35, TOP + 0.11, -0.86); put(new THREE.ConeGeometry(0.045, 0.06, 4), brass, 0.35, TOP + 0.25, -0.86);
 
-  // ---------- the pins: one rises for each add-on as the board flips it. A coloured head and a small flag with its name ----------
+  // ---------- the pin: it rises as the board flips the offer in. A coloured head and a small flag ----------
   const COLORS = [0x9e3b2c, 0x2f5fa8, 0x3f6e68, 0xe8a89a], SPOTS = [[-0.6, -0.2], [0.55, 0.15], [-0.25, 0.55], [0.85, -0.45]];
   const pins = EXTRAS.map((e, i) => {
     const g = new THREE.Group(); g.position.set(SPOTS[i][0], TOP, SPOTS[i][1]); root.add(g);
     put(new THREE.CylinderGeometry(0.008, 0.002, 0.42, 6), brass, 0, 0.21, 0, g);
     put(new THREE.SphereGeometry(0.05, 14, 10), std(COLORS[i], { roughness: 0.35 }), 0, 0.44, 0, g);
-    const flag = canvas(256, 64, (x, w, h) => { x.fillStyle = CREAM; x.fillRect(0, 0, w, h); x.fillStyle = '#' + COLORS[i].toString(16).padStart(6, '0'); x.fillRect(0, 0, 14, h); x.fillStyle = INK; x.font = '600 26px "Familjen Grotesk", Arial, sans-serif'; x.fillText(e.title, 26, 42); });
+    const flag = canvas(256, 64, (x, w, h) => { x.fillStyle = CREAM; x.fillRect(0, 0, w, h); x.fillStyle = '#' + COLORS[i].toString(16).padStart(6, '0'); x.fillRect(0, 0, 14, h); x.fillStyle = INK; x.font = '600 26px "Familjen Grotesk", Arial, sans-serif'; x.fillText(e.pin, 26, 42); });
     const f = put(new THREE.PlaneGeometry(0.36, 0.09), new THREE.MeshStandardMaterial({ map: flag, side: THREE.DoubleSide }), 0.19, 0.36, 0, g);
     const ring = put(new THREE.RingGeometry(0.04, 0.06, 24), new THREE.MeshBasicMaterial({ color: COLORS[i], transparent: true, opacity: 0, depthWrite: false }), 0, 0.003, 0, g); ring.rotation.x = -Math.PI / 2;
     return { g, f, ring };
@@ -90,7 +90,7 @@ export function mapRoom({ scene, lowQuality }) {
 
   root.rotation.y = Math.PI / 2; // the walk looks at it from the east: the map's north is to the right, as the room's is
   return {
-    update(t, dt, u, open) { // u: each add-on's flip, 0 to 1; open: 0 to 1 at the map's stop
+    update(t, dt, u, open) { // u: the offer's flip, 0 to 1; open: 0 to 1 at the map's stop
       pins.forEach((p, i) => {
         const k = sstep(0.4, 1, u[i]);
         p.g.position.y = TOP + (1 - k) * -0.44; p.g.visible = k > 0.01; p.f.rotation.y = Math.sin(t * 2 + i) * 0.25;

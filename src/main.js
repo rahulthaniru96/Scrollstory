@@ -334,7 +334,7 @@ const COPY = {
   'Signal Cabin hold': ['Room 07 · Chapter 3, Build', 'Behind the page, the systems:', 'bookings, enquiries and staff in one panel.'],
   'Admin panel': ['Room 07 · Pull a lever', 'New becomes booked.', 'Demo data: nothing on this panel is real.'],
   'Out of the cabin': ['Chapter 4 · Launch', 'Next: going live.', ''],
-  'Extras hold': ['Room 08 · Chapter 4, Launch', 'Going live takes more than a site.', 'Click a carriage to see what it carries.'],
+  'Extras hold': ['Room 08 · Chapter 4, Launch', 'See your site live', 'in 15 minutes.'],
   'Map hold': ['Room 08 · Being found', 'On the map, and on Google.', 'Your Business Profile, set up in every plan.'],
   'Greenhouse hold': ['Room 09 · Chapter 5, Care', "We don't launch and leave.", 'We look after it.'],
   'Care tools': ['Room 09 · A care plan', 'Hosting, backups, uptime, security updates,', 'and a few small changes a month.'],
@@ -436,7 +436,7 @@ COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i
 { const LIVE = SITES.filter((s) => s.live).length; SITES.forEach((s, i) => { INFO['site' + i] = s.live
   ? { label: `Live project 0${i + 1} of 0${LIVE}`, h: s.name, lines: [s.line], link: ['Visit the live site ↗', s.url] }
   : { label: `Concept demo 0${i + 1 - LIVE} of 0${SITES.length - LIVE} · a made-up business`, h: s.name, lines: [s.line], link: ['Open the demo ↗', s.url] }; }); }
-EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
+EXTRAS.forEach((e) => { INFO[`Extra: ${e.name}`] = { label: 'Now boarding · try it', h: e.title, lines: [e.line], act: ['Get my demo on WhatsApp', () => window.open(`https://wa.me/919949088659?text=${encodeURIComponent(`Hi Rahul, I'd like a live demo of my website in 15 minutes.\nMy business: ${signText}`)}`, '_blank', 'noopener')] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type it, and the desk wears it in neon.'], sign: true };
 let signText = '';
@@ -453,7 +453,7 @@ const ANCHOR = {}; // INFO key: [x, y, z, yaw] where its card stands
 COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x + 1.35, 1.7, -20.4, 0]; }); // right of what floats over the counter
 ANCHOR['Settle on the desk'] = [13.8, H.rooftop + 1.35, 6.2, 2.7]; // right of the desk, turned to the visitor
 SHOPS.forEach((s) => { ANCHOR[`Shop: ${s.name}`] = [10.25, 1.7, s.z + 1.3, -Math.PI / 2]; }); // right of the shop's device
-EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - 1.5) * 1.45, H.extras + 1.15, -20.85, 0]; }); // stepping out of the front of its carriage
+EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - (EXTRAS.length - 1) / 2) * 1.45 + 1.6, H.extras + 1.3, -20.6, -0.2]; }); // beside its carriage, the board above it
 demoCards.forEach((c, i) => { ANCHOR['site' + i] = [c.m.position.x + 0.3, 0.95, c.m.position.z, c.m.rotation.y]; }); // under its screen, a little in front of the wall
 const card3d = {}; // key: { obj, box }
 function fillCard(box, d) {
@@ -681,7 +681,7 @@ remoteBar.querySelector('.prev').onclick = () => remote(state.seat.ch - 1);
 remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
 remoteBar.querySelector('.up').onclick = () => sit(false);
 remoteBar.querySelector('.tell').onclick = () => { sit(false); openForm(); };
-const carBoxes = EXTRAS.map((e, k) => new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(15 + (k - 1.5) * 1.45, H.extras + 0.7, -21.7), new THREE.Vector3(1.32, 1.0, 0.8)));
+const carBoxes = EXTRAS.map((e, k) => new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(15 + (k - (EXTRAS.length - 1) / 2) * 1.45, H.extras + 0.7, -21.7), new THREE.Vector3(1.32, 1.0, 0.8)));
 const carAt = (r) => (state.body > EX0.s0 - 5 && state.body < EX_END.s0 + 5 ? carBoxes.findIndex((b) => r.ray.intersectsBox(b)) : -1);
 const tvBox = new THREE.Box3(new THREE.Vector3(TV[0] - 1.5, H.home, TV[2] - 1.2), new THREE.Vector3(TV[0] + 1.5, H.home + 3.7, TV[2] + 0.8)); // the set
 // Things in the Sky Quarter rooms that answer a click, each only while the walk is in its room.
@@ -704,7 +704,7 @@ addEventListener('click', (e) => {
   if (hit?.secret) return enterSecret(hit.secret);
   if (hit && rail.moveAt(state.body) === BOOK_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }
   if (state.seat) { const hit = ray.intersectObjects(seat.tiles)[0]; if (hit) remote(hit.object.userData.ch); return; }
-  const car = carAt(ray); // the Extras train: a click on a carriage goes to that add-on's stop, and its card steps out of it
+  const car = carAt(ray); // the Extras train: a click on the carriage goes to the offer's stop, and its card steps out
   if (car >= 0) { const m = byName[`Extra: ${EXTRAS[car].name}`]; steps.goto(rail.stops.findIndex((s) => s >= m.s0 - 1 && s <= m.s1 + 1)); sfx.blip(); return; }
   const onTv = env.tv.ch >= 0 && state.body < TV_SPAN[1];
   if (rail.moveAt(state.body) !== lastMove && !onTv) return;

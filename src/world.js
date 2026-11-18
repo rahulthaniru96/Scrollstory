@@ -205,12 +205,10 @@ export const TV_CHANNELS = 4; // three beats of the story, then "Your story?"; /
 export const TV = [-6.5, H.home + 1.0, -19];
 
 // Extras fragment.
-// The four add-ons are from the build plan, section 8. The one-line descriptions are plain wording of what each is; Rahul to confirm.
+// The departure board carries one offer (Rahul, round 8): a live demo of the visitor's site in 15 minutes, asked for on WhatsApp.
+// Its four rows are the one message, a row at a time; the train has one carriage, and the map one pin for it.
 export const EXTRAS = [
-  { name: 'QR CODES', title: 'QR codes', line: 'Scan to open your site, your menu or your WhatsApp.' },
-  { name: 'PHOTOS', title: 'Photos', line: 'Pictures of your place and your work, for the site.' },
-  { name: 'SOCIAL POSTS', title: 'Social posts', line: 'Posts for your pages that match the site.' },
-  { name: 'MENU / PRICE CARD', title: 'Menu or price card', line: 'Your menu or price list, designed to match.' },
+  { name: 'LIVE DEMO', title: 'A live demo in 15 minutes', pin: 'Your business', rows: ['LIVE DEMO', 'OF YOUR SITE', 'IN 15 MINUTES', 'ON WHATSAPP'], line: 'Send us your business name on WhatsApp. In 15 minutes, we show you a live demo of its site.' },
 ];
 export const BOARD = { x: 15, y: H.extras + 2.6, z: -23.84, w: 7.8, h: 2.56, rowY: (r) => H.extras + 3.17 - 0.488 * r }; // the departure board's face, and the height of each row on it
 box('extras slab', 8, 22, H.extras - 1.5, H.extras, -24, -10, 'floor');

@@ -2,7 +2,7 @@
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
 import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER, RENO, PAGE, BRIDGES, MAP, CABIN } from './world.js';
 
-export const TOTAL_VH = 5874; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 5721; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -252,9 +252,9 @@ export function buildRail() {
   });
   hold('Extras hold', 40, '08 Extras');
   for (const [r, e] of EXTRAS.entries()) {
-    move(`Extra: ${e.name}`, 'room', 50, (a, d) => {
+    move(`Extra: ${e.name}`, 'room', 60, (a, d) => {
       key(a + d, last());
-      const [, p] = aim(here(), [BOARD.x, BOARD.rowY(r), BOARD.z], N2); look(a + d * 0.5, N2, p * 0.3); look(a + d, N2, p * 0.3);
+      const [, p] = aim(here(), [BOARD.x, BOARD.rowY(1.5), BOARD.z], N2); look(a + d * 0.5, N2, p * 0.3); look(a + d, N2, p * 0.3); // the whole board
     });
     moves[moves.length - 1].hold = true;
   }

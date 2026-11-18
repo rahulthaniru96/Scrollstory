@@ -17,7 +17,7 @@ One story, told in order. Each caption says one new thing. Where a point is made
 | 3. How we work | HOME, Chapter 1, Story | Stories used to live on TV. Then the TV tells Rahul's story, and ends on "Your story?" | Story comes first. |
 | | 06 Drafting Room, Chapter 2, Design | You see every screen before a line of code. Wireframe first, then colour. | Design. |
 | | 07 Signal Cabin, Chapter 3, Build | Behind the page, the systems. Pull a lever: new becomes booked (demo data). | Build. |
-| | 08 Extras and map, Chapter 4, Launch | Going live takes more than a site. Being found: on the map and on Google. | Launch. |
+| | 08 Extras and map, Chapter 4, Launch | See your site live in 15 minutes: the board and its card offer a live demo, asked for on WhatsApp. Then being found: on the map and on Google. | Launch, and the easiest first step. |
 | | 09 Greenhouse, Chapter 5, Care | We don't launch and leave. Then what a care plan covers. | Care. |
 | Ending | 10 Rooftop | Five chapters done. The next story is yours. Let's build yours. | The ask. |
 

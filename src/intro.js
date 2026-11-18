@@ -7,7 +7,8 @@ import gsap from 'gsap';
 import { HOLO, holoFill } from './holo.js';
 
 // shell: the blockout's meshes. parts: the facade's pieces, each with its outline as a child. freezeAt: seconds, for screenshots.
-export function intro({ scene, camera, renderer, shell, parts, outlines, plaque, ready, ripple, freezeAt = null, onEnd }) {
+// prepare(gather): the loading screen's work (models in, every shader compiled); the rise plays when it is done.
+export function intro({ scene, camera, renderer, shell, parts, outlines, plaque, ready, ripple, prepare, freezeAt = null, onEnd }) {
   const scanPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), -1); // keeps what is below the scan line
   const reveal = { value: 0 }, floor = { value: -1e3 }, S = { scan: -1 };
   const fill = holoFill({ reveal, floor, opacity: 0.55 }), unseen = new THREE.MeshBasicMaterial({ visible: false });
@@ -27,7 +28,7 @@ export function intro({ scene, camera, renderer, shell, parts, outlines, plaque,
   gather();
   const late = setInterval(gather, 150); // the room models arrive while this plays; they wait under the line too
   renderer.localClippingEnabled = true;
-  const warm = renderer.compileAsync(scene, camera).catch(() => {}); // the real materials, clipped, compiled behind the dusk before anything moves: compiling them mid-rise froze it for 2 s
+  const warm = Promise.resolve(prepare ? prepare(gather) : renderer.compileAsync(scene, camera)).catch(() => {}); // the real materials, clipped, compiled behind the loading screen before anything moves: compiling them mid-rise froze it for 2 s
   for (const b of body) b.m.material = unseen; // a hidden mesh still draws its outline
   plaque.visible = false;
   HOLO.base.value = HOLO.dream.value = 1; // every outline shows, not only the ones above the dream line

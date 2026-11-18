@@ -770,16 +770,28 @@ addEventListener('resize', resize); resize();
 let frames = 0, propsReady = false;
 const sfxWas = { ch: -1, k: 0, hat: false };
 const ride = portalRide({ lowQuality });
-dressing.ready.then(() => {
-  propsReady = true;
-  // Compile every room's shaders now, a few objects a frame, rather than all on the first frame a room is seen (that froze the walk for half a second).
-  const todo = [...scene.children];
-  const step = () => {
-    for (const o of todo.splice(0, 24)) { const shown = []; o.traverse((q) => { if (!q.visible) { shown.push(q); q.visible = true; } }); renderer.compile(o, camera, scene); for (const q of shown) q.visible = false; }
-    if (todo.length) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-});
+dressing.ready.then(() => { propsReady = true; });
+// ---------- the loading screen: the models arrive, then every room's shaders are compiled and its pictures sent to the graphics chip, all behind it, so nothing stalls once the walk starts ----------
+const loaderEl = document.getElementById('loader'), loadBar = loaderEl.querySelector('.bar i'), loadStep = loaderEl.querySelector('.step');
+const loading = (f, text) => { loadBar.style.transform = `scaleX(${f.toFixed(3)})`; if (text && loadStep.textContent !== text) loadStep.textContent = text; };
+const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+async function warmAll(gather) {
+  while (!propsReady) { loading(0.12 + 0.55 * (dressing.ready.progress?.() ?? 0), 'Furnishing the rooms'); await Promise.race([dressing.ready, new Promise((r) => setTimeout(r, 100))]); }
+  gather?.(); // the intro's clipping goes on the new models first, so what is compiled is what is drawn
+  const todo = [...scene.children], n = todo.length, maps = new Set();
+  while (todo.length) {
+    for (const o of todo.splice(0, 16)) {
+      const shown = []; o.traverse((q) => { if (!q.visible) { shown.push(q); q.visible = true; } for (const m of [q.material].flat()) if (m) for (const v of [...Object.values(m), ...Object.values(m.uniforms || {}).map((u) => u.value)]) if (v?.isTexture) maps.add(v); });
+      renderer.compile(o, camera, scene); for (const q of shown) q.visible = false;
+    }
+    loading(0.67 + 0.25 * (1 - todo.length / n), 'Lighting the rooms'); await nextFrame();
+  }
+  for (const t of maps) if (!t.isRenderTargetTexture) renderer.initTexture(t); // pictures go up now, not on the first frame each is seen
+  loading(1, 'Ready'); await nextFrame();
+}
+const hideLoader = () => { loaderEl.classList.add('done'); setTimeout(() => loaderEl.remove(), 900); };
+// Repeat visits: the scripts, models and pictures come from the browser's cache (public/sw.js). Only on a served page, not in development.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !import.meta.env.DEV) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
 // A slow graphics chip: drop the resolution a step at a time until the frame rate holds (desktop only; phones already draw at 1).
 const dpr = { steps: lowQuality ? [1, 0.85, 0.7] : [1.5, 1.25, 1, 0.85].filter((r) => r <= Math.min(devicePixelRatio, 1.5)), i: 0, t: 0, n: 0, since: 0 }; // a phone starts at 1 and may go lower
 function adaptResolution(dt, time) {
@@ -893,10 +905,12 @@ gsap.ticker.add((time, deltaMs) => {
 // ---------- the intro: once per session, never on a pinned frame or a page opened part-way down ----------
 {
   const freeze = new URLSearchParams(location.search).get('intro'); // ?intro=3.2 holds the intro at 3.2 s, for screenshots
+  let introOn = false;
   if (freeze !== null || (!pinned && !(startAt > 0) && scrollY < innerHeight * 0.3)) {
     if (state.reduce && freeze === null) gsap.fromTo(veil, { opacity: 1 }, { opacity: 0, duration: 1, ease: 'none' }); // reduced motion: a 1 s fade
-    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, camera, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), freezeAt: freeze === null ? null : Number(freeze) }); }
+    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, camera, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), prepare: freeze === null ? (gather) => warmAll(gather).then(hideLoader) : null, freezeAt: freeze === null ? null : Number(freeze) }); introOn = freeze === null; }
   }
+  if (!introOn) (freeze !== null || pinned ? Promise.resolve() : warmAll()).then(hideLoader); // no intro: the loading screen still covers the warm-up
 }
 
 if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, cssScene, renderer, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console

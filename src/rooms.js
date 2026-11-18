@@ -40,7 +40,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
   const mesh = (geo, mat, x = 0, y = 0, z = 0, parent = root) => mesh0(geo, mat, x, y, z, parent);
   const glow = (color, size, x, y, z, parent = root, opacity = 0.9) => glow0(color, size, x, y, z, parent, opacity);
   const room = (r) => { root = new THREE.Group(); root.position.set(r.x, 0, r.z); root.rotation.y = r.turn; scene.add(root); };
-  const loader = new GLTFLoader(), cache = {}, pending = [];
+  const loader = new GLTFLoader(), cache = {}, pending = []; let landed = 0; // models placed so far, for the loading screen
   // Plain XHR, not the loader's fetch: fetch cannot read file:// pages, and scripts/shot.sh captures the built page that way.
   const get = (url) => new Promise((res, rej) => { const r = new XMLHttpRequest(); r.open('GET', url); r.responseType = 'arraybuffer'; r.onload = () => loader.parse(r.response, '', res, rej); r.onerror = rej; r.send(); });
   const load = (name) => (cache[name] ||= get(`${import.meta.env.BASE_URL}models/${name}.glb`).then((g) => {
@@ -50,7 +50,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
   // A prop is a group placed now and filled when its model arrives. `then` gets the model, for parts that move.
   const prop = (name, x, y, z, { ry = 0, s = 1, parent = root, then } = {}) => {
     const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; g.scale.setScalar(s); parent.add(g);
-    pending.push(load(name).then((src) => { const m = src.clone(true); g.add(m); then?.(m, g); }).catch((e) => console.error(`model ${name}:`, e)));
+    pending.push(load(name).then((src) => { const m = src.clone(true); g.add(m); then?.(m, g); }).catch((e) => console.error(`model ${name}:`, e)).finally(() => landed++));
     return g;
   };
   const part = (m, name) => { const o = m.getObjectByName(name); if (!o) throw new Error(`no part "${name}"`); return o; };
@@ -595,5 +595,5 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     hover(prop('phone', ph.x, ph.y, ph.z, { s: 5, then: (m) => { m.rotation.x = 1.1; apart(m, { cover: [0, -0.07, 0], battery: [0.0, 0.08, -0.06], charger: [0.07, 0.02, 0.04] }); } }), 0.1, 0.3, 0.15, 0.8);
   }
 
-  return Promise.all(pending);
+  const all = Promise.all(pending); all.progress = () => landed / Math.max(1, pending.length); return all;
 }

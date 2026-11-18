@@ -359,11 +359,13 @@ const lastMove = rail.moves[rail.moves.length - 1];
 let capFor = null, cap3d = null;
 // On a desktop the caption is a card standing in the room: 2.6 m ahead of where it is read and a metre to the left, beside what it talks about.
 // A room's caption is placed from its stop; a TV channel's or a milestone's from where the camera is when it starts.
+const CAP_UP = { 'Landing hold': 0.1 }; // the books lie low in the sun: the caption stands above them
 function placeCaption(name) {
   if (!cap3d) { cap.classList.add('c3', 'in3d'); cap3d = new CSS3DObject(cap); cap3d.userData.k = 1.05; cap3d.scale.setScalar(C3); cssScene.add(cap3d); }
   const m = COPY[name] && byName[name], s = m && (m.hold ? lerp(m.s0, m.s1, 0.6) : m.s1 - 1);
   const at = m ? new THREE.Vector3(...rail.pos(s)) : camera.position.clone(), yr = m ? THREE.MathUtils.degToRad(rail.yaw(s)) : Math.atan2(-camera.getWorldDirection(new THREE.Vector3()).x, -camera.getWorldDirection(new THREE.Vector3()).z);
-  cap3d.position.copy(at).add(new THREE.Vector3(-Math.sin(yr) * 2.6 - Math.cos(yr) * 1.2, -0.32, -Math.cos(yr) * 2.6 + Math.sin(yr) * 1.2));
+  const up = CAP_UP[name] || -0.32; // a few rooms keep the low left for what is in it
+  cap3d.position.copy(at).add(new THREE.Vector3(-Math.sin(yr) * 2.6 - Math.cos(yr) * 1.2, up, -Math.cos(yr) * 2.6 + Math.sin(yr) * 1.2));
   cap3d.rotation.y = Math.atan2(at.x - cap3d.position.x, at.z - cap3d.position.z);
   const g = cap3d.userData.ground; if (g) { scene.remove(g.shadow); if (g.wall) scene.remove(g.wall); }
   ground(cap3d, false); // its shadow moves with it

@@ -122,6 +122,9 @@ export function drafting({ scene, lowQuality }) {
         float k = smoothstep(edge, edge - 0.08, r);
         vec3 col = mix(w.rgb, c.rgb, k);
         col += vec3(0.95, 0.75, 0.45) * (smoothstep(0.06, 0.0, abs(r - edge)) * step(0.001, paint) * step(paint, 0.999)) * 0.5; // a bright rim on the wet edge
+        col *= 1.0 - 0.38 * pow(1.0 - smoothstep(0.0, 0.16, vUv.y), 1.5); // the page goes on under the frame: a soft fold shadow at the bottom edge
+        float top = 1.0 - scroll, bar = step(0.982, vUv.x) * step(0.004, vUv.y) * step(vUv.y, 0.996); // the scrollbar: its thumb shows how much of the page is in view, and where
+        col = mix(col, vec3(0.12, 0.16, 0.15), bar * (0.12 + 0.55 * step(top - view, vUv.y) * step(vUv.y, top)));
         gl_FragColor = vec4(col, 0.97);
         #include <colorspace_fragment>
       }`,
@@ -136,6 +139,10 @@ export function drafting({ scene, lowQuality }) {
   const bar = canvas(1024, 40, (x, w, h) => { x.fillStyle = INK; x.fillRect(0, 0, w, h); [OXIDE, BUTTER, TEAL].forEach((c, k) => { x.fillStyle = c; x.beginPath(); x.arc(22 + k * 22, 20, 7, 0, 7); x.fill(); }); x.fillStyle = '#33403b'; x.beginPath(); x.roundRect(260, 8, 500, 24, 12); x.fill(); x.fillStyle = CREAM; x.font = '500 15px "Martian Mono", monospace'; x.fillText('your-business · draft 3', 300, 26); });
   for (const sz of [1, -1]) { const b = put(new THREE.BoxGeometry(PAGE.w + 0.34, 0.3, 0.02), new THREE.MeshBasicMaterial({ map: bar }), PAGE.x, PAGE.y + PAGE.h + 0.12, PAGE.z + sz * 0.12); if (sz < 0) b.rotation.y = Math.PI; }
   put(new THREE.BoxGeometry(PAGE.w + 0.34, 0.3, 0.22), ink, PAGE.x, PAGE.y + PAGE.h + 0.12, PAGE.z);
+  // and a bottom edge, so the page reads as a window onto a longer page, not a sheet cut off: the rest is below, as the scrollbar says
+  const foot = canvas(1024, 40, (x, w, h) => { x.fillStyle = INK; x.fillRect(0, 0, w, h); x.fillStyle = CREAM; x.font = '500 15px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText('▼   THE PAGE GOES ON   ▼', w / 2, 26); });
+  for (const sz of [1, -1]) { const b = put(new THREE.BoxGeometry(PAGE.w + 0.34, 0.16, 0.02), new THREE.MeshBasicMaterial({ map: foot }), PAGE.x, PAGE.y - 0.06, PAGE.z + sz * 0.12); if (sz < 0) b.rotation.y = Math.PI; }
+  put(new THREE.BoxGeometry(PAGE.w + 0.34, 0.16, 0.22), ink, PAGE.x, PAGE.y - 0.06, PAGE.z);
 
   // ---------- the drafting tables: boards on trestles. Nothing lies on them: the paper, the T-square and the lamp hover over each ----------
   const tables = [];

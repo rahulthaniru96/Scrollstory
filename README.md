@@ -137,5 +137,7 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - TV: one channel for the seat and the scroll. The remote moves the walk to that channel's stop, the wheel changes channel while seated, scrolling out of the room stands up, and standing up keeps the channel.
 - Captions: on a desktop each caption is a card standing in the room, 2.6 m ahead of where it is read and a little to the left, beside what it talks about, with a soft shadow; it turns slowly to the reader. Phones keep the caption at the bottom.
 - Rooftop: the desk's card is a 3D card like the others and holds the ending: the name field, Start your project, and Rahul's number. The neon warms up with two stutters as the walk arrives and flickers on each new letter. The plan cards over the desk carry their names.
+- Landing books: they lie low in the sun beam over the bright patch, scattered, each at its own height, turn and lean. The Landing's caption card stands higher so it does not cover them.
+- Drafting Room: the page's frame has a bottom edge with a scrollbar and "The page goes on", so the page reads as a window onto a longer page rather than a sheet cut off.
 - Not checked: a real phone; how the caption cards sit in every room on a small laptop (some cover part of the room's subject).
 

@@ -262,7 +262,7 @@ for (const [n, f] of [['drafting slab', DRAFT], ['signal slab', SIGNAL], ['green
 export const HUB = { x: 5, z: -10, r: 1.8, y0: 22, y1: 47, face: 41.5 }; // the clock tower: its hands are how far the walk has come
 cyl('clock tower', HUB.x, HUB.z, HUB.r + 0.4, HUB.y0, HUB.y1, 'wall', HID);
 // Drafting Room: a giant wireframe page stands across the room, and the walk goes through it.
-export const PAGE = { x: -1.2, z: -35.6, w: 6.2, h: 3.6, y: H.drafting + 0.25 };
+export const PAGE = { x: -1.2, z: -36.2, w: 4.6, h: 2.875, y: H.drafting + 0.4 }; // 1280 x 800 of a desktop page, the shape of a laptop screen
 box('drafting back wall', DRAFT.x0, DRAFT.x1, H.drafting, H.drafting + 3.4, DRAFT.z0 - W, DRAFT.z0, 'wall', HID);
 box('drafting west wall', DRAFT.x0 - W, DRAFT.x0, H.drafting, H.drafting + 3.4, DRAFT.z0, -36.5, 'wall', HID);
 for (const sx of [-1, 1]) box(`page frame post ${sx < 0 ? 'W' : 'E'}`, PAGE.x + sx * (PAGE.w / 2 + 0.05) - 0.15, PAGE.x + sx * (PAGE.w / 2 + 0.05) + 0.15, H.drafting, PAGE.y + PAGE.h + 0.2, PAGE.z - 0.15, PAGE.z + 0.15, 'furniture', HID);

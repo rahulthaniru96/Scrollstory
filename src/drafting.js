@@ -1,4 +1,4 @@
-// 06 The Drafting Room: design comes first. A giant wireframe of a page stands across the room; the walk goes through it and it paints itself in colour, then scrolls like a live page.
+// 06 The Drafting Room: design comes first. A wireframe of a desktop page stands across the room, in a browser's frame; the walk goes through it and it paints itself in colour, then scrolls like a live page.
 // Drafting tables with their tools lifting off them, blueprints in the air (click one and the big page becomes that screen), a pinboard of choices on the back wall.
 import * as THREE from 'three';
 import { DRAFT, PAGE, DRAFT_TABLES, H } from './world.js';
@@ -19,42 +19,48 @@ export const SCREENS = [
   { name: 'Menu', hero: ['What we', 'make, and why.'], blocks: ['Breakfast', 'All day', 'To take home'], cta: 'Order on WhatsApp' },
   { name: 'Book', hero: ['Pick a day.', 'We will be ready.'], blocks: ['Choose a time', 'Tell us who', 'See you then'], cta: 'Book a visit' },
 ];
-const PW = 768, PH = 1600; // page canvas: 6.2 m wide shows 768 px across, and 448 px of height at a time (3.6 m)
+const PW = 1280, PH = 1700, VIEW = 800; // a desktop page, drawn at its real width: the frame shows 1280 x 800 of it at a time, the shape of a laptop screen
+// One layout, drawn twice. Every box is placed from here, so the wireframe and the finished page line up exactly as the colour spreads.
+const L = { nav: 76, hero: [96, 620], pic: [700, 130, 532, 440], cards: 690, cardW: 368, cardH: 400, find: [1150, 250], foot: 1460 };
 function wire(x, s) {
   x.fillStyle = '#eef3fb'; x.fillRect(0, 0, PW, PH);
-  x.strokeStyle = 'rgba(47,95,168,0.12)'; x.lineWidth = 1; for (let g = 0; g < PW; g += 24) { x.beginPath(); x.moveTo(g, 0); x.lineTo(g, PH); x.stroke(); } for (let g = 0; g < PH; g += 24) { x.beginPath(); x.moveTo(0, g); x.lineTo(PW, g); x.stroke(); }
+  x.strokeStyle = 'rgba(47,95,168,0.12)'; x.lineWidth = 1; for (let g = 0; g < PW; g += 32) { x.beginPath(); x.moveTo(g, 0); x.lineTo(g, PH); x.stroke(); } for (let g = 0; g < PH; g += 32) { x.beginPath(); x.moveTo(0, g); x.lineTo(PW, g); x.stroke(); }
   x.strokeStyle = BLUE; x.lineWidth = 3; x.fillStyle = BLUE;
   const boxX = (bx, by, bw, bh) => { x.strokeRect(bx, by, bw, bh); x.beginPath(); x.moveTo(bx, by); x.lineTo(bx + bw, by + bh); x.moveTo(bx + bw, by); x.lineTo(bx, by + bh); x.stroke(); };
-  const note = (t, nx, ny) => { x.save(); x.fillStyle = OXIDE; x.font = 'italic 22px Fraunces, Georgia, serif'; x.fillText(t, nx, ny); x.restore(); };
-  x.strokeRect(24, 20, PW - 48, 56); x.font = '500 18px "Martian Mono", monospace'; x.fillText('LOGO', 44, 55); for (let k = 0; k < 3; k++) x.strokeRect(PW - 300 + k * 90, 36, 70, 24);
-  for (let k = 0; k < 2; k++) { x.fillRect(48, 130 + k * 64, [420, 330][k], 40); } note('hero: the one line', 520, 160);
-  x.strokeRect(48, 270, 220, 52); note('the button a thumb finds', 290, 304);
-  boxX(48, 360, PW - 96, 260); note(s.name === 'Book' ? 'calendar here' : 'one big photo', 60, 650);
-  s.blocks.forEach((b, k) => { const by = 700 + k * 230; boxX(48, by, 200, 180); for (let l = 0; l < 4; l++) x.fillRect(280, by + 20 + l * 38, [380, 340, 360, 200][l], 14); x.font = '500 18px "Martian Mono", monospace'; x.fillText(b.toUpperCase(), 280, by + 190); });
-  note('section 0' + 1 + ' to 0' + s.blocks.length + ': the story, in order', 60, 1395);
-  x.strokeRect(24, 1430, PW - 48, 140); note('footer: phone, map, hours', 48, 1510);
-  // dimension arrows, as on a drawing
-  x.strokeStyle = OXIDE; x.lineWidth = 2; x.beginPath(); x.moveTo(24, 96); x.lineTo(PW - 24, 96); x.stroke(); x.fillStyle = OXIDE; x.font = '16px "Martian Mono", monospace'; x.fillText('1280', PW / 2 - 20, 116);
+  const note = (t, nx, ny) => { x.save(); x.fillStyle = OXIDE; x.font = 'italic 26px Fraunces, Georgia, serif'; x.fillText(t, nx, ny); x.restore(); };
+  x.strokeRect(24, 14, PW - 48, L.nav - 24); x.font = '500 20px "Martian Mono", monospace'; x.fillText('LOGO', 48, 48); for (let k = 0; k < 3; k++) x.strokeRect(PW - 380 + k * 110, 28, 90, 24);
+  for (let k = 0; k < 2; k++) x.fillRect(64, 170 + k * 80, [520, 430][k], 52); note('hero: the one line', 64, 340);
+  x.strokeRect(64, 380, 260, 60); note('the button a thumb finds', 64, 486);
+  boxX(...L.pic); note(s.name === 'Book' ? 'calendar here' : 'one big picture', L.pic[0], L.pic[1] + L.pic[3] + 34);
+  s.blocks.forEach((b, k) => { const bx = 64 + k * (L.cardW + 24); boxX(bx, L.cards, L.cardW, 170); for (let l = 0; l < 4; l++) x.fillRect(bx, L.cards + 200 + l * 30, [320, 280, 300, 180][l], 12); x.font = '500 20px "Martian Mono", monospace'; x.fillText(b.toUpperCase(), bx, L.cards + 350); });
+  note('three parts of the story, side by side', 64, L.cards + L.cardH + 30);
+  boxX(64, L.find[0], 560, L.find[1]); note('map', 80, L.find[0] + 36); for (let l = 0; l < 4; l++) x.fillRect(680, L.find[0] + 30 + l * 40, [300, 240, 260, 200][l], 14); note('phone, hours, how to get here', 680, L.find[0] + 220);
+  x.strokeRect(24, L.foot, PW - 48, PH - L.foot - 24); note('footer: phone, map, hours', 48, L.foot + 70);
+  // a dimension line, as on a drawing
+  x.strokeStyle = OXIDE; x.lineWidth = 2; x.beginPath(); x.moveTo(24, 92); x.lineTo(PW - 24, 92); x.stroke(); x.fillStyle = OXIDE; x.font = '18px "Martian Mono", monospace'; x.fillText('1280', PW / 2 - 24, 116);
 }
 function done(x, s, i) {
   const acc = [OXIDE, TEAL, BLUE][i], soft = ['#f2c9a8', '#cfe3d8', '#d6e1f5'][i];
   x.fillStyle = '#fffaf0'; x.fillRect(0, 0, PW, PH);
-  x.fillStyle = INK; x.fillRect(0, 0, PW, 96); x.fillStyle = CREAM; x.font = '500 34px Fraunces, Georgia, serif'; x.fillText('Your business', 44, 60);
-  x.font = '500 18px "Familjen Grotesk", Arial, sans-serif'; ['Home', 'Menu', 'Book'].forEach((t, k) => { x.globalAlpha = t === s.name ? 1 : 0.6; x.fillText(t, PW - 290 + k * 90, 58); }); x.globalAlpha = 1;
-  const g = x.createLinearGradient(0, 96, 0, 640); g.addColorStop(0, soft); g.addColorStop(1, '#fffaf0'); x.fillStyle = g; x.fillRect(0, 96, PW, 560);
-  x.fillStyle = INK; x.font = '400 64px Fraunces, Georgia, serif'; x.fillText(s.hero[0], 48, 190); x.font = 'italic 400 64px Fraunces, Georgia, serif'; x.fillStyle = acc; x.fillText(s.hero[1], 48, 262);
-  x.fillStyle = '#25d366'; x.beginPath(); x.roundRect(48, 290, 260, 56, 28); x.fill(); x.fillStyle = '#fff'; x.font = '600 22px "Familjen Grotesk", Arial, sans-serif'; x.fillText(s.cta, 72, 326);
+  x.fillStyle = INK; x.fillRect(0, 0, PW, L.nav); x.fillStyle = CREAM; x.font = '500 32px Fraunces, Georgia, serif'; x.fillText('Your business', 48, 50);
+  x.font = '500 20px "Familjen Grotesk", Arial, sans-serif'; ['Home', 'Menu', 'Book'].forEach((t, k) => { x.globalAlpha = t === s.name ? 1 : 0.6; x.fillText(t, PW - 380 + k * 110, 47); }); x.globalAlpha = 1;
+  const g = x.createLinearGradient(0, L.nav, 0, L.hero[1]); g.addColorStop(0, soft); g.addColorStop(1, '#fffaf0'); x.fillStyle = g; x.fillRect(0, L.nav, PW, L.hero[1] - L.nav);
+  x.fillStyle = INK; x.font = '400 76px Fraunces, Georgia, serif'; x.fillText(s.hero[0], 64, 220); x.font = 'italic 400 76px Fraunces, Georgia, serif'; x.fillStyle = acc; x.fillText(s.hero[1], 64, 300);
+  x.fillStyle = '#25d366'; x.beginPath(); x.roundRect(64, 380, 300, 60, 30); x.fill(); x.fillStyle = '#fff'; x.font = '600 24px "Familjen Grotesk", Arial, sans-serif'; x.fillText(s.cta, 92, 418);
   // the big picture: a drawn scene, not a photo
-  x.fillStyle = acc; x.beginPath(); x.roundRect(48, 370, PW - 96, 250, 26); x.fill();
-  x.fillStyle = BUTTER; x.beginPath(); x.arc(PW - 190, 450, 46, 0, 7); x.fill();
-  x.fillStyle = 'rgba(255,250,240,0.35)'; for (let k = 0; k < 5; k++) { x.beginPath(); x.moveTo(48 + k * 140, 620); x.lineTo(118 + k * 140, 500 - (k % 2) * 40); x.lineTo(188 + k * 140, 620); x.fill(); }
+  const [px, py, pw, ph] = L.pic; x.fillStyle = acc; x.beginPath(); x.roundRect(px, py, pw, ph, 28); x.fill();
+  x.fillStyle = BUTTER; x.beginPath(); x.arc(px + pw - 110, py + 100, 52, 0, 7); x.fill();
+  x.fillStyle = 'rgba(255,250,240,0.35)'; for (let k = 0; k < 4; k++) { x.beginPath(); x.moveTo(px + k * 140, py + ph); x.lineTo(px + 70 + k * 140, py + ph - 150 - (k % 2) * 60); x.lineTo(px + 140 + k * 140, py + ph); x.fill(); }
   s.blocks.forEach((b, k) => {
-    const by = 700 + k * 230; x.fillStyle = k % 2 ? '#efe6d6' : '#f6eee0'; x.beginPath(); x.roundRect(36, by - 12, PW - 72, 204, 22); x.fill();
-    x.fillStyle = [acc, BUTTER, ROSE][k]; x.beginPath(); x.roundRect(48, by, 200, 180, 18); x.fill();
-    x.fillStyle = INK; x.font = '500 34px Fraunces, Georgia, serif'; x.fillText(b, 280, by + 48);
-    x.fillStyle = '#5b625e'; x.font = '400 19px "Familjen Grotesk", Arial, sans-serif'; for (let l = 0; l < 3; l++) x.fillText(['Sample wording for this part', 'of the story, in plain words,', 'the way your customers speak.'][l], 280, by + 92 + l * 30);
+    const bx = 64 + k * (L.cardW + 24); x.fillStyle = '#f6eee0'; x.beginPath(); x.roundRect(bx - 12, L.cards - 12, L.cardW + 24, L.cardH, 22); x.fill();
+    x.fillStyle = [acc, BUTTER, ROSE][k]; x.beginPath(); x.roundRect(bx, L.cards, L.cardW, 170, 18); x.fill();
+    x.fillStyle = INK; x.font = '500 34px Fraunces, Georgia, serif'; x.fillText(b, bx, L.cards + 222);
+    x.fillStyle = '#5b625e'; x.font = '400 20px "Familjen Grotesk", Arial, sans-serif'; ['Sample wording for this part', 'of the story, in plain words,', 'the way your customers speak.'].forEach((t, l) => x.fillText(t, bx, L.cards + 262 + l * 30));
   });
-  x.fillStyle = INK; x.fillRect(0, 1430, PW, 170); x.fillStyle = BUTTER; x.font = '500 16px "Martian Mono", monospace'; x.fillText('DEMO PAGE · SAMPLE WORDING', 48, 1480); x.fillStyle = CREAM; x.font = '500 26px Fraunces, Georgia, serif'; x.fillText('Find us · Call · WhatsApp', 48, 1530);
+  x.fillStyle = '#e6efe9'; x.beginPath(); x.roundRect(64, L.find[0], 560, L.find[1], 22); x.fill(); x.strokeStyle = acc; x.lineWidth = 6; x.beginPath(); x.moveTo(90, L.find[0] + 200); x.bezierCurveTo(250, L.find[0] + 40, 380, L.find[0] + 230, 600, L.find[0] + 60); x.stroke();
+  x.fillStyle = OXIDE; x.beginPath(); x.arc(330, L.find[0] + 120, 14, 0, 7); x.fill();
+  x.fillStyle = INK; x.font = '500 40px Fraunces, Georgia, serif'; x.fillText('Find us', 680, L.find[0] + 60); x.fillStyle = '#5b625e'; x.font = '400 22px "Familjen Grotesk", Arial, sans-serif'; ['Open every day, sample hours', 'Call or WhatsApp us', 'Two minutes from the station'].forEach((t, l) => x.fillText(t, 680, L.find[0] + 110 + l * 36));
+  x.fillStyle = INK; x.fillRect(0, L.foot, PW, PH - L.foot); x.fillStyle = BUTTER; x.font = '500 18px "Martian Mono", monospace'; x.fillText('DEMO PAGE · SAMPLE WORDING', 64, L.foot + 70); x.fillStyle = CREAM; x.font = '500 30px Fraunces, Georgia, serif'; x.fillText('Find us · Call · WhatsApp', 64, L.foot + 130);
 }
 
 export function drafting({ scene, lowQuality }) {
@@ -100,13 +106,13 @@ export function drafting({ scene, lowQuality }) {
   // ---------- the giant page: a browser window's frame, the page inside painted by a shader ----------
   const shots = SCREENS.map((s, i) => ({ wire: canvas(PW, PH, (x) => wire(x, s)), done: canvas(PW, PH, (x) => done(x, s, i)) }));
   for (const sh of shots) for (const t of [sh.wire, sh.done]) t.wrapT = THREE.RepeatWrapping;
-  const U = { wire: { value: shots[0].wire }, done: { value: shots[0].done }, paint: { value: 0 }, scroll: { value: 0 }, t: { value: 0 }, hole: { value: new THREE.Vector2(0.5, 0.375) } };
+  const U = { wire: { value: shots[0].wire }, done: { value: shots[0].done }, paint: { value: 0 }, scroll: { value: 0 }, t: { value: 0 }, hole: { value: new THREE.Vector2(0.5, 0.45) } };
   const pageMat = new THREE.ShaderMaterial({
     uniforms: U, side: THREE.FrontSide, transparent: true,
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `uniform sampler2D wire, done; uniform float paint, scroll, t; uniform vec2 hole; varying vec2 vUv;
       void main(){
-        float view = ${(448 / PH).toFixed(4)};
+        float view = ${(VIEW / PH).toFixed(4)};
         vec2 st = vec2(vUv.x, 1.0 - view + vUv.y * view - scroll);
         vec4 w = texture2D(wire, st), c = texture2D(done, st);
         // colour spreads out from where the walk went through, with a wet, uneven edge
@@ -212,7 +218,7 @@ export function drafting({ scene, lowQuality }) {
       if (opened >= 0) { const u = Math.min(1, (t - opened) / 0.8); wax.scale.setScalar(1 - u); wax.visible = u < 1; sealed.scale.setScalar(1 + 0.6 * Math.min(1, (t - opened) / 1.2)); }
       const p = Math.min(paint, repaint);
       live = p > 0.98 ? live + dt : 0; // the page starts scrolling from its top once it is finished, down and back up
-      U.paint.value = p; U.t.value = t; U.scroll.value = ((1 - Math.cos(live * 0.16)) / 2) * (1 - 448 / PH);
+      U.paint.value = p; U.t.value = t; U.scroll.value = ((1 - Math.cos(live * 0.16)) / 2) * (1 - VIEW / PH);
       for (const b of bps) b.material.emissiveIntensity = b.userData.i === hot ? 0.6 : b.userData.i === screen ? 0.25 : 0;
       for (const f of tick) f(t, dt);
     },

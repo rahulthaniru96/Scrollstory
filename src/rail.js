@@ -2,7 +2,7 @@
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
 import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER, RENO, PAGE, BRIDGES, MAP, CABIN } from './world.js';
 
-export const TOTAL_VH = 5834; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 5874; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -223,15 +223,15 @@ export function buildRail() {
   });
   hold('The page, painted', 50);
   move('Back through to the funicular', 'room', 100, (a, d) => {
-    g(0.2, -38.2, H.drafting); g(0.6, PAGE.z, H.drafting); g(0.9, -34.1, H.drafting); g(1.1, -33.6, H.drafting); g(1.9, -33, H.drafting); ramp(CAR, 0); key(a + d, ramp(CAR, 0.01));
-    look(a + d * 0.5, NORTH + 255, 0); look(a + d, NORTH + 180, -2);
+    g(-0.1, -38.2, H.drafting); g(0.05, PAGE.z, H.drafting); g(0.9, -34.1, H.drafting); g(1.1, -33.6, H.drafting); g(1.9, -33, H.drafting); ramp(CAR, 0); key(a + d, ramp(CAR, 0.01));
+    look(a + d * 0.5, NORTH + 255, 0); look(a + d, NORTH + 258, -2);
   });
   // ---- 07 Signal Cabin: a funicular car across the gap, then into an old railway signal box ----
   const N2 = NORTH + 360; // the cabin turns the walk once round: from the Extras board on, yaw counts from here
-  move('Funicular to the Signal Cabin', 'cloud', 150, (a, d) => {
+  move('Funicular to the Signal Cabin', 'cloud', 190, (a, d) => {
     for (const u of [0.25, 0.5, 0.75]) ramp(CAR, u);
     key(a + d, ramp(CAR, 0.99));
-    look(a + d * 0.2, NORTH + 180, -4); look(a + d * 0.8, NORTH + 175, -4); look(a + d, NORTH + 200, -2); // sideways, out over the whole archipelago
+    look(a + d * 0.3, NORTH + 258, -4); look(a + d * 0.7, NORTH + 262, -4); look(a + d, NORTH + 262, -2); // facing the way the car goes, a little turned to the archipelago, and slow enough to look
   });
   move('Into the cabin', 'room', 80, (a, d) => {
     g(25.3, -33, H.signal); g(25.5, -31.3, H.signal); key(a + d, g(27.8, -28, H.signal));

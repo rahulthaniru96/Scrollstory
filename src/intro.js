@@ -7,7 +7,7 @@ import gsap from 'gsap';
 import { HOLO, holoFill } from './holo.js';
 
 // shell: the blockout's meshes. parts: the facade's pieces, each with its outline as a child. freezeAt: seconds, for screenshots.
-export function intro({ scene, renderer, shell, parts, outlines, plaque, ready, ripple, freezeAt = null, onEnd }) {
+export function intro({ scene, camera, renderer, shell, parts, outlines, plaque, ready, ripple, freezeAt = null, onEnd }) {
   const scanPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), -1); // keeps what is below the scan line
   const reveal = { value: 0 }, floor = { value: -1e3 }, S = { scan: -1 };
   const fill = holoFill({ reveal, floor, opacity: 0.55 }), unseen = new THREE.MeshBasicMaterial({ visible: false });
@@ -27,6 +27,7 @@ export function intro({ scene, renderer, shell, parts, outlines, plaque, ready, 
   gather();
   const late = setInterval(gather, 150); // the room models arrive while this plays; they wait under the line too
   renderer.localClippingEnabled = true;
+  const warm = renderer.compileAsync(scene, camera).catch(() => {}); // the real materials, clipped, compiled behind the dusk before anything moves: compiling them mid-rise froze it for 2 s
   for (const b of body) b.m.material = unseen; // a hidden mesh still draws its outline
   plaque.visible = false;
   HOLO.base.value = HOLO.dream.value = 1; // every outline shows, not only the ones above the dream line
@@ -57,9 +58,9 @@ export function intro({ scene, renderer, shell, parts, outlines, plaque, ready, 
     for (const b of body) b.m.material = b.real;
     for (const t of twins) t.removeFromParent();
     for (const q of order) q.m.position.y = q.y0;
-    for (const m of clipped) { m.clippingPlanes = null; m.needsUpdate = true; }
+    scanPlane.constant = 1e9; // the line goes far overhead and stays: taking the planes off would recompile every shader at once, a freeze of seconds
     for (const [o] of waiting) o.visible = true;
-    renderer.localClippingEnabled = false; plaque.visible = true; plaque.scale.setScalar(1);
+    plaque.visible = true; plaque.scale.setScalar(1);
     HOLO.base.value = HOLO.dream.value = 0;
     fill.dispose(); unseen.dispose();
     document.body.classList.remove('intro');
@@ -69,5 +70,5 @@ export function intro({ scene, renderer, shell, parts, outlines, plaque, ready, 
   }
   const SKIP = ['wheel', 'touchstart', 'keydown', 'pointerdown'], skip = () => { if (tl.time() > 3.5) tl.progress(1); }; // the rise always plays; after it, any input jumps to the end
   if (freezeAt !== null) tl.time(freezeAt);
-  else { for (const ev of SKIP) addEventListener(ev, skip, { passive: true }); tl.play(); }
+  else { for (const ev of SKIP) addEventListener(ev, skip, { passive: true }); warm.then(() => tl.play()); }
 }

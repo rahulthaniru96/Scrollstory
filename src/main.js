@@ -363,13 +363,15 @@ const CAP_UP = { 'Landing hold': 0.1 }; // the books lie low in the sun: the cap
 function placeCaption(name) {
   if (!cap3d) { cap.classList.add('c3', 'in3d'); cap3d = new CSS3DObject(cap); cap3d.userData.k = 1.05; cap3d.scale.setScalar(C3); cssScene.add(cap3d); }
   const m = COPY[name] && byName[name], s = m && (m.hold ? lerp(m.s0, m.s1, 0.6) : m.s1 - 1);
-  const at = m ? new THREE.Vector3(...rail.pos(s)) : camera.position.clone(), yr = m ? THREE.MathUtils.degToRad(rail.yaw(s)) : Math.atan2(-camera.getWorldDirection(new THREE.Vector3()).x, -camera.getWorldDirection(new THREE.Vector3()).z);
-  const up = CAP_UP[name] || -0.32; // a few rooms keep the low left for what is in it
+  const g = cap3d.userData.ground; if (g) { scene.remove(g.shadow); if (g.wall) scene.remove(g.wall); cap3d.userData.ground = null; }
+  cap3d.userData.follow = !m; // a TV channel's or a milestone's caption is read on the move: it stays in front of the eyes, a little to the left
+  if (!m) { cap3d.position.copy(CAP_VIEW).applyQuaternion(camera.quaternion).add(camera.position); cap3d.quaternion.copy(camera.quaternion); return; }
+  const at = new THREE.Vector3(...rail.pos(s)), yr = THREE.MathUtils.degToRad(rail.yaw(s)), up = CAP_UP[name] || -0.32; // a few rooms keep the low left for what is in it
   cap3d.position.copy(at).add(new THREE.Vector3(-Math.sin(yr) * 2.6 - Math.cos(yr) * 1.2, up, -Math.cos(yr) * 2.6 + Math.sin(yr) * 1.2));
-  cap3d.rotation.y = Math.atan2(at.x - cap3d.position.x, at.z - cap3d.position.z);
-  const g = cap3d.userData.ground; if (g) { scene.remove(g.shadow); if (g.wall) scene.remove(g.wall); }
+  cap3d.rotation.set(0, Math.atan2(at.x - cap3d.position.x, at.z - cap3d.position.z), 0);
   ground(cap3d, false); // its shadow moves with it
 }
+const CAP_VIEW = new THREE.Vector3(-1.2, -0.32, -2.6), capTo = new THREE.Vector3(); // where a moving caption floats, in the camera's frame
 function caption(p) {
   const m = rail.moveAt(p), tv = env.tv.ch >= 0 && p < TV_SPAN[1]; // in the TV room each channel is its own caption
   // on the stair, the milestone the camera is passing is the caption
@@ -390,7 +392,8 @@ function caption(p) {
   const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove || m.name === 'Kites up to the Rooftop' ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
   for (const [k, w] of capWords.entries()) { const wo = sstep((k / n) * 0.6, (k / n) * 0.6 + 0.4, arrive); w.style.opacity = wo; w.style.transform = `translateY(${(1 - wo) * 0.4}em)`; }
   const o = sstep(0, 0.2, arrive) * out;
-  if (cap3d) { show3d(cap3d, o); const turn = Math.atan2(camera.position.x - cap3d.position.x, camera.position.z - cap3d.position.z) - cap3d.rotation.y; cap3d.rotation.y += Math.atan2(Math.sin(turn), Math.cos(turn)) * 0.05; } // it turns slowly to the reader
+  if (cap3d?.userData.follow) { show3d(cap3d, o); capTo.copy(CAP_VIEW).applyQuaternion(camera.quaternion).add(camera.position); cap3d.position.lerp(capTo, 0.12); cap3d.quaternion.slerp(camera.quaternion, 0.12); }
+  else if (cap3d) { show3d(cap3d, o); const turn = Math.atan2(camera.position.x - cap3d.position.x, camera.position.z - cap3d.position.z) - cap3d.rotation.y; cap3d.rotation.y += Math.atan2(Math.sin(turn), Math.cos(turn)) * 0.05; } // it turns slowly to the reader
   else { cap.style.opacity = o; cap.style.transform = `translateY(${(1 - out) * 16}px)`; }
   cap.classList.toggle('on', arrive > 0.6 && out > 0.5);
 }
@@ -768,7 +771,24 @@ addEventListener('resize', resize); resize();
 let frames = 0, propsReady = false;
 const sfxWas = { ch: -1, k: 0, hat: false };
 const ride = portalRide({ lowQuality });
-dressing.ready.then(() => { propsReady = true; });
+dressing.ready.then(() => {
+  propsReady = true;
+  // Compile every room's shaders now, a few objects a frame, rather than all on the first frame a room is seen (that froze the walk for half a second).
+  const todo = [...scene.children];
+  const step = () => {
+    for (const o of todo.splice(0, 24)) { const shown = []; o.traverse((q) => { if (!q.visible) { shown.push(q); q.visible = true; } }); renderer.compile(o, camera, scene); for (const q of shown) q.visible = false; }
+    if (todo.length) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+});
+// A slow graphics chip: drop the resolution a step at a time until the frame rate holds (desktop only; phones already draw at 1).
+const dpr = { steps: [1.5, 1.25, 1, 0.85].filter((r) => r <= Math.min(devicePixelRatio, 1.5)), i: 0, t: 0, n: 0, since: 0 };
+function adaptResolution(dt, time) {
+  if (lowQuality || time < 2 || dpr.i >= dpr.steps.length - 1) return;
+  dpr.t += Math.min(dt, 0.1); dpr.n++; if (dpr.t < 2) return; // one long hitch does not count as a slow chip
+  const avg = dpr.t / dpr.n; dpr.t = dpr.n = 0;
+  if (avg > 1 / 40 && time - dpr.since > 3) { dpr.i++; dpr.since = time; renderer.setPixelRatio(dpr.steps[dpr.i]); resize(); }
+}
 const prev = { pos: null, yaw: 0, t: 0 };
 const shown = { speed: 0, turn: 0, fps: 0 }, view = { w: innerWidth, h: innerHeight, p: 0 };
 gsap.ticker.add((time, deltaMs) => {
@@ -777,7 +797,7 @@ gsap.ticker.add((time, deltaMs) => {
   } else view.p = target();
   lenis.raf(time * 1000);
   now = time;
-  const dt = Math.min(0.05, Math.max(0.001, deltaMs / 1000));
+  const dt = Math.min(0.05, Math.max(0.001, deltaMs / 1000)); adaptResolution(deltaMs / 1000, time);
   let pT = target();
 
   if (state.reduce) { // reduced motion: fade between hold frames, never fly
@@ -876,7 +896,7 @@ gsap.ticker.add((time, deltaMs) => {
   const freeze = new URLSearchParams(location.search).get('intro'); // ?intro=3.2 holds the intro at 3.2 s, for screenshots
   if (freeze !== null || (!pinned && !(startAt > 0) && scrollY < innerHeight * 0.3)) {
     if (state.reduce && freeze === null) gsap.fromTo(veil, { opacity: 1 }, { opacity: 0, duration: 1, ease: 'none' }); // reduced motion: a 1 s fade
-    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), freezeAt: freeze === null ? null : Number(freeze) }); }
+    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, camera, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), freezeAt: freeze === null ? null : Number(freeze) }); }
   }
 }
 

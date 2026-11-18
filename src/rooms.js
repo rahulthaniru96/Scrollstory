@@ -468,7 +468,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       x.font = '600 20px "Martian Mono", monospace'; x.textAlign = 'left'; x.fillStyle = '#8c8a82'; x.fillText('NOW BOARDING', 32, 44); x.textAlign = 'right'; x.fillText('ASK ON WHATSAPP', W - 32, 44);
       x.font = '700 32px "Martian Mono", monospace'; x.textAlign = 'center';
       for (const [r, row] of EXTRAS[0].rows.entries()) {
-        const ur = u[0] * 1.6 - r * 0.2, text = (ur < 0 ? '' : row).padEnd(COLS), ry = 66 + r * 64, flip = ur >= 0 && ur < 1, on = litRow === 0;
+        const ur = u[0] * 1.6 - r * 0.2, text = (ur < 0 ? '' : ' '.repeat((COLS - row.length) >> 1) + row).padEnd(COLS), ry = 66 + r * 64, flip = ur >= 0 && ur < 1, on = litRow === 0;
         for (let k = 0; k < COLS; k++) {
           const ch = flip && k / COLS > ur - 0.25 ? ABC[Math.floor(Math.random() * ABC.length)] : text[k]; // the letters land from the left
           x.fillStyle = on ? '#f2d98b' : '#262c30'; x.fillRect(30 + k * 46, ry, 41, 54);

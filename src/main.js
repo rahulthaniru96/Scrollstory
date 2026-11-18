@@ -248,13 +248,25 @@ if (startAt > 0) scrollTo(0, (startAt / rail.total) * (document.documentElement.
 const free = new URLSearchParams(location.search).has('free'); // ?free=1: the old free scroll, for tuning
 const blocked = (e) => state.secret || state.seat || document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
 // Lenis hands every wheel event here first. Coming up to a stop the wheel slows; leaving one it is quicker again. It never stops the walk.
-const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: FEEL.wheel, virtualScroll: (d) => {
+// On a phone the finger drives the walk through Lenis too (syncTouch), so it slows at stops like the wheel, and a flick glides to the next stop and settles there instead of flying past several.
+const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: FEEL.wheel, syncTouch: lowQuality, allowNestedScroll: true, virtualScroll: (d) => {
   if (document.body.classList.contains('intro')) return false; // the building is building itself: watch first
   if (free || d.event.ctrlKey || (blocked(d.event) && !state.seat)) return true; // seated, the wheel still scrolls: it changes the channel
+  if (d.event.type === 'touchstart') { touchFrom = target(); return true; }
+  if (d.event.type === 'touchend') return flick(d.deltaY);
   const p = target(), gap = rail.stops[steps.nearest(p)] - p, k = FEEL.linger + (1 - FEEL.linger) * sstep(0, FEEL.lingerVh, Math.abs(gap));
   d.deltaY *= Math.sign(gap) === Math.sign(d.deltaY) || Math.abs(gap) < 1 ? k : Math.max(k, 0.6);
+  if (d.event.type === 'touchmove') { const i = beyond(touchFrom, d.deltaY); if (i >= 0) { const room = stopPx(i) - lenis.targetScroll; d.deltaY = d.deltaY > 0 ? Math.min(d.deltaY, Math.max(0, room)) : Math.max(d.deltaY, Math.min(0, room)); } } // one touch goes at most one stop on
   return true;
 } });
+let touchFrom = 0; // where the walk was when the finger touched down
+const beyond = (p, dir) => (dir > 0 ? rail.stops.findIndex((q) => q > p + 1) : rail.stops.findLastIndex((q) => q < p - 1)); // the next stop that way
+function flick(dy) { // the finger has left the glass: a slow release stays put, a flick glides on to the stop this touch was heading for
+  if (Math.abs(dy) < 6) return false;
+  const p = target(), i = beyond(touchFrom, dy);
+  if (i >= 0 && Math.abs(rail.stops[i] - p) > 0.5) lenis.scrollTo(stopPx(i), { duration: Math.min(1.6, Math.max(0.6, Math.abs(rail.stops[i] - p) / 110)), easing: (t) => 1 - (1 - t) ** 3 }); // a new touch stops it
+  return false; // instead of Lenis's own fling
+}
 gsap.ticker.lagSmoothing(0);
 
 const state = { seat: null, secret: null, body: 0, look: 0, vBody: 0, vLook: 0, fading: false, started: false, reduce: matchMedia('(prefers-reduced-motion: reduce)').matches, hold: null };
@@ -771,9 +783,9 @@ dressing.ready.then(() => {
   requestAnimationFrame(step);
 });
 // A slow graphics chip: drop the resolution a step at a time until the frame rate holds (desktop only; phones already draw at 1).
-const dpr = { steps: [1.5, 1.25, 1, 0.85].filter((r) => r <= Math.min(devicePixelRatio, 1.5)), i: 0, t: 0, n: 0, since: 0 };
+const dpr = { steps: lowQuality ? [1, 0.85, 0.7] : [1.5, 1.25, 1, 0.85].filter((r) => r <= Math.min(devicePixelRatio, 1.5)), i: 0, t: 0, n: 0, since: 0 }; // a phone starts at 1 and may go lower
 function adaptResolution(dt, time) {
-  if (lowQuality || time < 2 || dpr.i >= dpr.steps.length - 1) return;
+  if (time < 2 || dpr.i >= dpr.steps.length - 1) return;
   dpr.t += Math.min(dt, 0.1); dpr.n++; if (dpr.t < 2) return; // one long hitch does not count as a slow chip
   const avg = dpr.t / dpr.n; dpr.t = dpr.n = 0;
   if (avg > 1 / 40 && time - dpr.since > 3) { dpr.i++; dpr.since = time; renderer.setPixelRatio(dpr.steps[dpr.i]); resize(); }

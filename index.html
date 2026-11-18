@@ -19,7 +19,7 @@
   .brand { font-family: var(--display); font-weight: 500; font-size: 25px; letter-spacing: -0.02em; font-variation-settings: 'SOFT' 100, 'WONK' 1; }
   .brand small { margin-left: 8px; font-size: 10px; letter-spacing: 0.1em; font-variation-settings: normal; }
   .brand small b { font-weight: 600; }
-  .pill { font: inherit; border: 1px solid var(--ink); background: rgba(247, 239, 226, 0.7); color: var(--ink); border-radius: 999px; padding: 10px 16px; cursor: pointer; text-decoration: none; transition: background-color 0.35s, color 0.35s; }
+  .pill { display: inline-block; font: inherit; border: 1px solid var(--ink); background: rgba(247, 239, 226, 0.7); color: var(--ink); border-radius: 999px; padding: 10px 16px; cursor: pointer; text-decoration: none; transition: background-color 0.35s, color 0.35s; }
   .pill:hover, .pill:focus-visible { background: var(--ink); color: var(--cream); }
   .pill.solid { background: var(--ink); color: var(--cream); }
   #plan { position: fixed; top: 70px; right: 28px; z-index: 6; background: var(--cream); border: 1px solid var(--ink); border-radius: 14px; padding: 10px; display: none; width: 220px; }
@@ -81,7 +81,7 @@
   #info h2, #chooser h3, #form h2 { font-family: var(--display); font-weight: 420; letter-spacing: -0.02em; margin: 6px 0 8px; line-height: 1.05; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
   #info h2 { font-size: 34px; }
   #info p { margin: 0; line-height: 1.45; }
-  #info button { margin-top: 14px; }
+  #info .pill { margin-top: 14px; }
   #chooser { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(900px, 92vw); max-height: 78vh; overflow: auto; }
   #chooser > h2, #chooser > .note { color: var(--cream); text-shadow: 0 2px 18px rgba(20, 32, 29, 0.8); text-align: center; margin: 0 0 12px; }
   #chooser > h2 { font-family: var(--display); font-weight: 380; letter-spacing: -0.02em; font-size: clamp(30px, 4vw, 48px); line-height: 1; }
@@ -142,9 +142,10 @@
   #pips button:hover::before, #pips button:focus-visible::before { opacity: 1; transform: scale(1.8); }
   #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 4; color: var(--cream); text-shadow: 0 1px 10px rgba(20, 32, 29, 0.6); }
   #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
+  @media (pointer: coarse) { html, body { touch-action: none; } #chooser, #plan, dialog { touch-action: pan-y; } } /* the finger moves the walk through Lenis only: a native scroll starting first is what flung the walk far past a stop */
   @media (max-width: 640px) { #hint, #who { display: none; } #startBtn { bottom: 84px; } body:has(#info.on) #caption { opacity: 0 !important; } #sitBtn { top: 150px; bottom: auto; right: 16px; } #remote { bottom: 84px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: 92vw; border-radius: 20px; } }
   @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 140px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 8px; } #chooser article { padding: 10px 14px; } #chooser h3 { font-size: 22px; margin-bottom: 2px; } #chooser ul { margin: 6px 0 10px; font-size: 13px; }
-    header { padding: 14px 16px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 9px; top: 64px; } .brand { font-size: 21px; } .brand small { display: block; margin: 2px 0 0; font-size: 9px; } #level { top: auto; bottom: 62px; font-size: 9px; } #who { font-size: 9px; } #caption .num { opacity: 0.3; } }
+    header { padding: 14px 16px; } header nav { display: flex; gap: 6px; } header nav .pill { padding: 7px 10px; font-size: 10px; } #nudge { white-space: normal; width: max-content; max-width: calc(100vw - 32px); text-align: center; border-radius: 16px; top: 64px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 9px; top: 64px; } .brand { font-size: 21px; } .brand small { display: block; margin: 2px 0 0; font-size: 9px; } #level { top: auto; bottom: 62px; font-size: 9px; } #who { font-size: 9px; } #caption .num { opacity: 0.3; } }
 </style>
 </head>
 <body>

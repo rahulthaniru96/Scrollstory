@@ -331,7 +331,7 @@ export function buildRail() {
   const yawOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.yaw));
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
-  // Stops: where one scroll gesture comes to rest. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
+  // Stops: where the wheel slows and the keys and pips land. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
   const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Back through to the funicular', 'Funicular to the Signal Cabin', 'Out of the cabin', 'Kites up to the Rooftop'];
   const stops = [0, TOTAL_VH];
   for (const m of moves) {

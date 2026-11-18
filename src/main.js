@@ -29,6 +29,7 @@ import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_C
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
   smooth: { room: 0.35, stair: 0.5, cloud: 0.6 }, // seconds, body spring
+  wheel: 0.8, linger: 0.3, lingerVh: 45, // the wheel scrolls freely, at down to 0.3 of its speed within 45 vh of a stop: it slows where there is something to see, never stops
   lookFactor: 0.7, // the eyes' spring is this much quicker than the body's
   // Loose caps: they only stop a hard fling from whipping the view. The camera always flies; it never cuts.
   caps: { room: { move: 9, yaw: 140, pitch: 90 }, stair: { move: 10, yaw: 160, pitch: 90 }, cloud: { move: 10, yaw: 160, pitch: 90 } },
@@ -256,10 +257,12 @@ const startAt = Number(new URLSearchParams(location.search).get('p')); // ?p=111
 if (startAt > 0) scrollTo(0, (startAt / rail.total) * (document.documentElement.scrollHeight - innerHeight));
 const free = new URLSearchParams(location.search).has('free'); // ?free=1: the old free scroll, for tuning
 const blocked = (e) => state.secret || state.seat || document.body.classList.contains('intro') || document.querySelector('dialog[open]') || e?.target?.closest?.('#plan, [data-lenis-prevent]') || (e?.target?.closest?.('#chooser')?.scrollHeight > chooser.clientHeight + 2);
-// One wheel gesture is one stop. Lenis hands every wheel event here first; returning false keeps it from scrolling.
-const lenis = new Lenis({ lerp: 0.1, virtualScroll: (d) => {
-  if (free || !d.event.type.startsWith('wheel') || d.event.ctrlKey || blocked(d.event)) return true;
-  d.event.preventDefault(); if (Math.abs(d.deltaY) > 1) steps.wheel(Math.sign(d.deltaY), d.event.timeStamp / 1000, Math.abs(d.deltaY)); return false;
+// Lenis hands every wheel event here first. Coming up to a stop the wheel slows; leaving one it is quicker again. It never stops the walk.
+const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: FEEL.wheel, virtualScroll: (d) => {
+  if (free || d.event.ctrlKey || blocked(d.event)) return true;
+  const p = target(), gap = rail.stops[steps.nearest(p)] - p, k = FEEL.linger + (1 - FEEL.linger) * sstep(0, FEEL.lingerVh, Math.abs(gap));
+  d.deltaY *= Math.sign(gap) === Math.sign(d.deltaY) || Math.abs(gap) < 1 ? k : Math.max(k, 0.6);
+  return true;
 } });
 gsap.ticker.lagSmoothing(0);
 
@@ -292,20 +295,15 @@ rail.stops.forEach((s, i) => {
 });
 if (free) pips.hidden = true;
 else {
-  let settle = 0, ty = null;
-  // a scrollbar drag or a jump stays free, then comes to rest on the nearest stop
-  lenis.on('scroll', () => { if (steps.travelling) return; clearTimeout(settle); settle = setTimeout(() => { if (steps.travelling || blocked()) return; steps.sync(target()); if (Math.abs(rail.stops[steps.dest] - target()) > 1.5) steps.goto(steps.dest); }, 350); });
+  lenis.on('scroll', () => steps.sync(target())); // the wheel, a touch or the scrollbar moved the walk: the keys and pips count from here
+  const next = (dir) => { if (steps.travelling) return; const p = target(), i = dir > 0 ? rail.stops.findIndex((q) => q > p + 1) : rail.stops.findLastIndex((q) => q < p - 1); if (i >= 0) steps.goto(i); }; // the next stop ahead, or the one behind
   addEventListener('keydown', (e) => {
     if (e.target.closest?.('input, textarea, select, button, a') || e.ctrlKey || e.metaKey || e.altKey || blocked(e)) return;
     const dir = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1, ' ': e.shiftKey ? -1 : 1 }[e.key];
-    if (dir) { e.preventDefault(); steps.step(dir); }
-    else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && env.tv.ch >= 0 && state.body < TV_SPAN[1]) steps.step(e.key === 'ArrowLeft' ? -1 : 1); // change the channel
+    if (dir) { e.preventDefault(); next(dir); }
+    else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && env.tv.ch >= 0 && state.body < TV_SPAN[1]) next(e.key === 'ArrowLeft' ? -1 : 1); // change the channel
     else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); steps.goto(e.key === 'Home' ? 0 : rail.stops.length - 1); }
   });
-  // touch: a swipe of 40 px or more is one step; the page itself does not drag
-  addEventListener('touchstart', (e) => { ty = blocked(e) || e.target.closest('button, a') ? null : e.touches[0].clientY; }, { passive: true });
-  addEventListener('touchmove', (e) => { if (ty !== null && e.cancelable) e.preventDefault(); }, { passive: false });
-  addEventListener('touchend', (e) => { if (ty === null) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 40) steps.step(Math.sign(dy)); }, { passive: true });
 }
 const pinned = Number(new URLSearchParams(location.search).get('at')); // ?at=1118 freezes the walk there, for screenshots
 const target = () => (pinned > 0 ? pinned : lenis.limit > 0 ? (lenis.scroll / lenis.limit) * rail.total : 0);
@@ -742,8 +740,11 @@ const sfxWas = { ch: -1, k: 0, hat: false };
 const ride = portalRide({ lowQuality });
 dressing.ready.then(() => { propsReady = true; });
 const prev = { pos: null, yaw: 0, t: 0 };
-const shown = { speed: 0, turn: 0, fps: 0 };
+const shown = { speed: 0, turn: 0, fps: 0 }, view = { w: innerWidth, h: innerHeight, p: 0 };
 gsap.ticker.add((time, deltaMs) => {
+  if (innerWidth !== view.w || innerHeight !== view.h) { // fullscreen or a resized window: the page's height changed, so put the walk back where it was
+    view.w = innerWidth; view.h = innerHeight; lenis.resize(); if (lenis.limit > 0) lenis.scrollTo((view.p / rail.total) * lenis.limit, { immediate: true, force: true });
+  } else view.p = target();
   lenis.raf(time * 1000);
   now = time;
   const dt = Math.min(0.05, Math.max(0.001, deltaMs / 1000));

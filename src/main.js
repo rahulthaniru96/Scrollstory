@@ -24,7 +24,7 @@ import { journeys } from './journeys.js';
 import { mapRoom } from './maproom.js';
 import { greenhouse } from './greenhouse.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
-import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE, RENO } from './world.js';
+import { COLLIDERS, BRIDGES, STAIR, PHI_END, STAIR_EXIT_WEDGE, stairPt, TV, TV_CHANNELS, EXTRAS, THEME, SKY_BY_HEIGHT, clearanceAt, CLEAR, LEAN_SHIFT, SHOPS, COUNTERS, H, DOORS, MILESTONES, EYE, RENO, floorAt } from './world.js';
 
 // ---------- feel numbers. All are starting values to tune. ----------
 const FEEL = {
@@ -457,10 +457,31 @@ function fillCard(box, d) {
 function getCard(key) {
   if (card3d[key]) return card3d[key];
   const box = el('article', null, 'c3'); fillCard(box, INFO[key]);
-  const obj = new CSS3DObject(box), [x, y, z, yaw] = ANCHOR[key]; obj.position.set(x, y, z); obj.rotation.y = yaw; obj.userData.k = BIG[key] || 1; obj.scale.setScalar(C3); cssScene.add(obj);
+  const obj = new CSS3DObject(box), [x, y, z, yaw] = ANCHOR[key]; obj.position.set(x, y, z); obj.rotation.y = yaw; obj.userData.k = BIG[key] || 1; obj.scale.setScalar(C3); cssScene.add(obj); ground(obj);
   return (card3d[key] = { obj, box });
 }
 const flatCards = lowQuality; // phones: the flat card
+// A card should look as if it is really standing in the room: a soft shadow on the floor under it, and on the ground floor's water a faint reflection.
+const shadowTex = (() => { // a soft-edged card shape, not a round blob: it reads as this card's shadow
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  x.filter = 'blur(18px)'; x.fillStyle = 'rgba(20,32,29,0.85)'; x.beginPath(); x.roundRect(44, 44, 168, 168, 18); x.fill(); return new THREE.CanvasTexture(c);
+})();
+const shadowGeo = new THREE.PlaneGeometry(1, 1);
+function ground(obj) {
+  const p = obj.position, floor = floorAt(p.x, p.y, p.z), g = { floor, w: 0, shadow: new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0 })) };
+  g.shadow.renderOrder = -1; scene.add(g.shadow); // drawn before the glows, which write depth and would hide it
+  if (floor < 0.5) { g.ref = new CSS3DObject(obj.element.cloneNode(true)); g.ref.element.classList.add('reflect'); g.ref.element.removeAttribute('id'); cssScene.add(g.ref); } // only the water mirrors
+  // and its shadow on the wall behind it, if there is one within reach: that is the one the eye sees from the walk
+  const back = new THREE.Vector3(-Math.sin(obj.rotation.y), 0, -Math.cos(obj.rotation.y)), cast = new THREE.Raycaster(p.clone(), back, 0.2, 4); cast.camera = camera;
+  const seen = (o) => { for (; o; o = o.parent) if (!o.visible) return false; return true; }; // hidden colliders are not walls you can see
+  const hit = cast.intersectObjects(scene.children, true).find((h) => h.object.isMesh && !h.object.material.transparent && h.face && seen(h.object));
+  if (hit) {
+    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    g.wall = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0 })); g.wall.renderOrder = -1;
+    g.wall.position.copy(hit.point).addScaledVector(n, 0.08).addScaledVector(new THREE.Vector3().crossVectors(n, new THREE.Vector3(0, 1, 0)).normalize(), 0.1 + hit.distance * 0.08).add(new THREE.Vector3(0, -0.2 - hit.distance * 0.15, 0)); g.wall.lookAt(g.wall.position.clone().add(n)); g.wall.userData.d = hit.distance; scene.add(g.wall); // the light is above: the shadow falls a little low
+  }
+  obj.userData.ground = g;
+}
 // "Choose one": the three plans hang in the room in a shallow arc in front of the walk, each on two cords.
 const chooseCards = [];
 {
@@ -473,7 +494,7 @@ const chooseCards = [];
     b.onclick = () => openForm(pl.name);
     box.append(el('div', `Plan 0${k + 1} of 03`, 'label mono'), el('h2', pl.name), el('div', pl.price, 'price'), ul, b);
     const obj = new CSS3DObject(box), at = new THREE.Vector3(p[0], 1.75, p[2]).addScaledVector(f, 3.1).addScaledVector(r, (k - 1) * 1.28).addScaledVector(f, -Math.abs(k - 1) * 0.35);
-    obj.position.copy(at); obj.rotation.y = Math.atan2(p[0] - at.x, p[2] - at.z); obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj);
+    obj.position.copy(at); obj.rotation.y = Math.atan2(p[0] - at.x, p[2] - at.z); obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj); ground(obj);
   });
   const head = el('div', null, 'c3 head'); head.append(el('h2', 'Choose one'), el('p', 'Launch prices, for the first 5 clients', 'mono'));
   const obj = new CSS3DObject(head); obj.position.set(p[0], 2.75, p[2]).addScaledVector(f, 3.2); obj.rotation.y = yr; obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj);
@@ -481,7 +502,15 @@ const chooseCards = [];
 function show3d(obj, o) { // fade in, rise a little, tilt up into place
   const e = obj.element; e.style.opacity = o; e.classList.toggle('on', o > 0.5); obj.visible = o > 0.01;
   obj.scale.setScalar(C3 * (obj.userData.k || 1) * (0.92 + 0.08 * o));
+  const g = obj.userData.ground; if (!g) return;
+  if (!g.w && e.offsetWidth) { g.w = e.offsetWidth * C3 * (obj.userData.k || 1); g.h = e.offsetHeight * C3 * (obj.userData.k || 1); }
+  const p = obj.position, lift = p.y - g.h / 2 - g.floor; // how high the card's foot is off the floor
+  g.shadow.visible = o > 0.01 && g.w > 0; g.shadow.position.set(p.x, g.floor + 0.012, p.z); g.shadow.rotation.set(-Math.PI / 2, 0, obj.rotation.y);
+  g.shadow.scale.set(g.w * (1.5 + lift * 0.2), 0.8 + lift * 0.15, 1); g.shadow.material.opacity = o * Math.max(0.18, 0.6 - lift * 0.12); // softer and wider the higher it floats
+  if (g.wall) { g.wall.visible = g.shadow.visible; const d = g.wall.userData.d; g.wall.scale.set(g.w * (1.5 + d * 0.15), g.h * (1.5 + d * 0.15), 1); g.wall.material.opacity = o * Math.max(0.22, 0.6 - d * 0.1); }
+  if (g.ref) { g.ref.visible = obj.visible; g.ref.position.set(p.x, 2 * g.floor - p.y, p.z); g.ref.rotation.copy(obj.rotation); g.ref.scale.set(obj.scale.x, -obj.scale.y, obj.scale.z); g.ref.element.style.opacity = o * 0.32; }
 }
+let sitO = 0;
 function cards(p) {
   const m = rail.moveAt(p), si = env.site.findIndex((f) => f > 0.3), u = (p - m.s0) / (m.s1 - m.s0);
   if (hidden.opened >= 0 && m !== SHELF_HOLD) hidden.open(-1); // the book goes back when the walk moves on
@@ -503,9 +532,11 @@ function cards(p) {
   for (const c of chooseCards) show3d(c, flatCards ? 0 : oc);
   const ocf = flatCards ? oc : 0;
   chooser.style.opacity = ocf; chooser.classList.toggle('on', ocf > 0.5);
-  const canSit = !state.seat && env.tv.ch >= 0 && p < TV_SPAN[1] && !steps.travelling;
-  sitBtn.classList.toggle('on', flatCards && canSit); show3d(sit3d, flatCards ? 0 : canSit ? 1 : 0);
-  sit3d.rotation.y = Math.atan2(camera.position.x - sit3d.position.x, camera.position.z - sit3d.position.z);
+  const canSit = !state.seat && p > TV_SPAN[0] - 15 && p < TV_SPAN[1] - 5; // the whole TV stretch, moving or resting: it never blinks between channels
+  sitO += ((canSit ? 1 : 0) - sitO) * 0.06;
+  sitBtn.classList.toggle('on', flatCards && canSit); show3d(sit3d, flatCards ? 0 : sitO);
+  const turn = Math.atan2(camera.position.x - sit3d.position.x, camera.position.z - sit3d.position.z) - sit3d.rotation.y;
+  sit3d.rotation.y += Math.atan2(Math.sin(turn), Math.cos(turn)) * 0.04; // turns slowly to whoever walks round the sofa, so it never snaps
   startBtn.classList.toggle('on', m === lastMove && u > 0.45); who.classList.toggle('on', m === lastMove && u > 0.45);
 }
 for (const pl of PLANS) {
@@ -624,7 +655,7 @@ sitBtn.onclick = () => sit(true);
 const sit3d = (() => {
   const box = el('button', null, 'c3 sit'); box.append(el('b', '▶'), el('span', 'Sit & watch'), el('small', 'Scrollstory TV · 4 channels', 'mono'));
   box.onclick = () => sit(true);
-  const obj = new CSS3DObject(box); obj.position.set(TV[0], H.home + 2.85, TV[2] + 0.3); obj.userData.k = 2.4; obj.scale.setScalar(C3); cssScene.add(obj); return obj; // over the set, turned to the viewer each frame
+  const obj = new CSS3DObject(box); obj.position.set(TV[0] + 1.35, H.home + 1.05, TV[2] + 0.35); obj.rotation.y = 0.3; obj.userData.k = 1.2; obj.scale.setScalar(C3); cssScene.add(obj); ground(obj); return obj; // beside the set, at the height of its screen, clear of the caption
 })();
 remoteBar.querySelector('.prev').onclick = () => remote(state.seat.ch - 1);
 remoteBar.querySelector('.next').onclick = () => remote(state.seat.ch + 1);
@@ -820,7 +851,7 @@ gsap.ticker.add((time, deltaMs) => {
   }
 }
 
-if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, renderer, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
+if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, cssScene, renderer, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console
 
 // Stop drawing when the tab is hidden.
 document.addEventListener('visibilitychange', () => (document.hidden && !pinned ? gsap.ticker.sleep() : gsap.ticker.wake())); // a headless capture counts as hidden

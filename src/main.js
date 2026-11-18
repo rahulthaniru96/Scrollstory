@@ -331,13 +331,13 @@ function speedLimit(p, zone, lag) {
 
 // ---------- captions: one story, told in order (STORYBOARD.md). Ground floor: what we make. Stairs and Landing: where it comes from. Upstairs: how we work, one chapter a room. Roof: yours next ----------
 const COPY = {
-  'Arrival hold': ['Scrollstory Studio · Secunderabad', 'Every business has a story.', "Come in, we'll show you ours."],
+  'Arrival hold': ['Scrollstory · A website studio, Secunderabad', 'We design and build websites', "that tell your business's story. Come in."],
   'Lobby push in': ['The founder', 'Rahul Thaniru', 'built this building to show how we work.'],
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
   'Renovation hold': ['Room 03 · The renovation', 'Already have a site?', 'Walk through the line.'],
   'Renovated': ['Room 03 · A made-up café', 'Same café, a new site.', 'Move the cursor to compare.'],
   'Worth it hold': ['Room 04 · Worth it', 'What you pay for.', ''],
-  'Workshop hold': ['Room 05 · The workshop', 'Three plans.', 'One for where you are now.'],
+  'Workshop hold': ['Room 05 · The workshop', 'Three ways to get online.', 'One for where you are now.'],
   'Look up': ['The stairs', "That's what we make.", 'Upstairs: how we make it.'],
   'Landing hold': ['The landing · How we work', 'How we work, in five books.', 'Click one to read it.'],
   'Bridge to HOME': ['Chapter 1 · Story', 'Stories used to live on TV.', 'Now they live on your website.'],
@@ -430,9 +430,9 @@ function focus(p) {
 // ---------- room cards: what each shop and counter means, in HTML over the canvas ----------
 // Plans and launch prices are from the rate card of 13 Nov 2026 (business-and-pricing.md).
 const PLANS = [
-  { price: '₹15,000', line: '1 to 3 pages with one signature animation, Call and WhatsApp buttons, Google Maps and basic SEO.', bullets: ['1 to 3 pages', 'One signature animation', 'Call and WhatsApp buttons, Google Maps'] },
-  { price: '₹40,000', line: "Your business's story across 5 to 7 pages, with one custom 3D moment, an enquiry form and legal pages.", bullets: ['Story concept, 5 to 7 pages', 'One custom 3D moment', 'Enquiry form, SEO, legal pages, domain and hosting setup'] },
-  { price: '₹65,000', line: 'Everything in Signature, plus an admin panel for enquiries or appointments, content editing and staff login.', bullets: ['Everything in Signature', 'Admin panel for enquiries or appointments', 'Content editing and staff login'] },
+  { for: 'For a shop or practice that needs to be found and called.', price: '₹15,000', line: '1 to 3 pages with one signature animation, Call and WhatsApp buttons, Google Maps and basic SEO.', bullets: ['1 to 3 pages', 'One signature animation', 'Call and WhatsApp buttons, Google Maps'] },
+  { for: 'For a business with a story to tell. Our recommendation.', pick: true, price: '₹40,000', line: "Your business's story across 5 to 7 pages, with one custom 3D moment, an enquiry form and legal pages.", bullets: ['Story concept, 5 to 7 pages', 'One custom 3D moment', 'Enquiry form, SEO, legal pages, domain and hosting setup'] },
+  { for: 'For a business that takes bookings or enquiries every day.', price: '₹65,000', line: 'Everything in Signature, plus an admin panel for enquiries or appointments, content editing and staff login.', bullets: ['Everything in Signature', 'Admin panel for enquiries or appointments', 'Content editing and staff login'] },
 ].map((pl, i) => ({ ...pl, name: SHOPS[i].name }));
 const WORTH = [
   ['Made for you, not a template', 'Your story, your design,', 'built around how your customers think.'],
@@ -446,7 +446,8 @@ COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i
 { const live = SITES.filter((s) => s.live), demos = SITES.filter((s) => !s.live); SITES.forEach((s, i) => { INFO['site' + i] = s.live
   ? { label: s.best ? 'Live project · our best piece' : `Live project 0${live.indexOf(s) + 1} of 0${live.length}`, h: s.name, lines: [s.line], link: ['Visit the live site ↗', s.url] }
   : { label: `Concept demo 0${demos.indexOf(s) + 1} of 0${demos.length} · a made-up business`, h: s.name, lines: [s.line], link: ['Open the demo ↗', s.url] }; }); }
-EXTRAS.forEach((e) => { INFO[`Extra: ${e.name}`] = { label: 'Now boarding · try it', h: e.title, lines: [e.line], act: ['Get my demo on WhatsApp', () => window.open(`https://wa.me/919949088659?text=${encodeURIComponent(`Hi Rahul, I'd like a live demo of my website in 30 minutes.\nMy business: ${signText}`)}`, '_blank', 'noopener')] }; });
+function askDemo() { window.open(`https://wa.me/919949088659?text=${encodeURIComponent(`Hi Rahul, I'd like a live demo of my website in 30 minutes.\nMy business: ${signText}`)}`, '_blank', 'noopener'); }
+EXTRAS.forEach((e) => { INFO[`Extra: ${e.name}`] = { label: 'Now boarding · try it', h: e.title, lines: [e.line], act: ['Get my demo on WhatsApp', askDemo] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type it, and the desk wears it in neon.'], sign: true };
 let signText = '';
@@ -513,16 +514,18 @@ const chooseCards = [];
   const cm = byName['Choose one'], s = lerp(cm.s0, cm.s1, 0.6), p = rail.pos(s), yr = THREE.MathUtils.degToRad(rail.yaw(s));
   const f = new THREE.Vector3(-Math.sin(yr), 0, -Math.cos(yr)), r = new THREE.Vector3(Math.cos(yr), 0, -Math.sin(yr));
   PLANS.forEach((pl, k) => {
-    const box = el('article', null, 'c3 plan'), ul = el('ul'), b = el('button', `Choose ${pl.name}`, 'pill solid');
+    const box = el('article', null, 'c3 plan'), ul = el('ul'), b = el('button', `Start with ${pl.name}`, 'pill solid');
     box.style.setProperty('--plan', '#' + SHOPS[k].color.toString(16).padStart(6, '0'));
     for (const t of pl.bullets) ul.append(el('li', t));
     b.onclick = () => openForm(pl.name);
-    box.append(el('div', `Plan 0${k + 1} of 03`, 'label mono'), el('h2', pl.name), el('div', pl.price, 'price'), ul, b);
-    const obj = new CSS3DObject(box), at = new THREE.Vector3(p[0], 1.75, p[2]).addScaledVector(f, 3.1).addScaledVector(r, (k - 1) * 1.28).addScaledVector(f, -Math.abs(k - 1) * 0.35);
+    box.append(el('div', `Plan 0${k + 1} of 03`, 'label mono'), el('h2', pl.name), el('p', pl.for, 'for'), el('div', pl.price, 'price'), ul, b); if (pl.pick) box.append(el('span', 'Recommended', 'badge'));
+    const obj = new CSS3DObject(box), at = new THREE.Vector3(p[0], 1.85, p[2]).addScaledVector(f, 3.1).addScaledVector(r, (k - 1) * 1.28).addScaledVector(f, pl.pick ? -0.35 : 0); // the recommended one stands forward, nearer the visitor
     obj.position.copy(at); obj.rotation.y = Math.atan2(p[0] - at.x, p[2] - at.z); obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj); ground(obj);
   });
-  const head = el('div', null, 'c3 head'); head.append(el('h2', 'Choose one'), el('p', 'Launch prices, for the first 5 clients', 'mono'));
-  const obj = new CSS3DObject(head); obj.position.set(p[0], 2.75, p[2]).addScaledVector(f, 3.2); obj.rotation.y = yr; obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj);
+  const head = el('div', null, 'c3 head'); head.append(el('h2', 'Get your business online'), el('p', 'Pick a plan · launch prices for the first 5 clients', 'mono'));
+  const obj = new CSS3DObject(head); obj.position.set(p[0], 2.72, p[2]).addScaledVector(f, 3.2); obj.rotation.y = yr; obj.scale.setScalar(C3); cssScene.add(obj); chooseCards.push(obj);
+  const unsure = el('div', null, 'c3 unsure'), q = el('p'); q.append(el('b', 'Not sure yet? '), 'See a live demo of your own site in 30 minutes.'); const db = el('button', 'Get my demo on WhatsApp', 'pill'); db.onclick = askDemo; unsure.append(q, db);
+  const uo = new CSS3DObject(unsure); uo.position.set(p[0], 1.08, p[2]).addScaledVector(f, 2.85).addScaledVector(r, 0.25); uo.rotation.y = yr; uo.scale.setScalar(C3); cssScene.add(uo); chooseCards.push(uo); // under the three plans
 }
 function show3d(obj, o) { // fade in, rise a little, tilt up into place
   const e = obj.element; e.style.opacity = o; e.classList.toggle('on', o > 0.5); obj.visible = o > 0.01;
@@ -566,11 +569,13 @@ function cards(p) {
   const end = flatCards && m === lastMove && u > 0.45; startBtn.classList.toggle('on', end); who.classList.toggle('on', end); // on a desktop they are on the desk's card
 }
 for (const pl of PLANS) {
-  const card = el('article'), ul = el('ul'), b = el('button', `Choose ${pl.name}`, 'pill solid');
+  const card = el('article'), ul = el('ul'), b = el('button', `Start with ${pl.name}`, 'pill solid');
   for (const t of pl.bullets) ul.append(el('li', t));
   b.onclick = () => openForm(pl.name);
-  card.append(el('h3', pl.name), el('div', pl.price, 'price'), ul, b); chooser.querySelector('.cards').append(card);
+  card.style.setProperty('--plan', '#' + SHOPS[PLANS.indexOf(pl)].color.toString(16).padStart(6, '0')); if (pl.pick) { card.classList.add('pick'); card.append(el('span', 'Recommended', 'badge')); }
+  card.append(el('h3', pl.name), el('p', pl.for, 'for'), el('div', pl.price, 'price'), ul, b); chooser.querySelector('.cards').append(card);
 }
+chooser.querySelector('.unsure .demo').onclick = askDemo;
 
 // ---------- the front desk's application form. Nothing is stored: submit only opens WhatsApp with the answers filled in. ----------
 const formBox = document.getElementById('form'), form = formBox.querySelector('form'), startBtn = document.getElementById('startBtn'), who = document.getElementById('who');

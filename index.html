@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scrollstory Studio · by Rahul Thaniru</title>
+<title>Scrollstory · Website design and development studio, Secunderabad</title>
+<meta name="description" content="Scrollstory Studio designs and builds websites for businesses in Hyderabad and Secunderabad. Walk through the studio to see how.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Martian+Mono:wght@300..600&display=swap" rel="stylesheet">
@@ -85,7 +86,14 @@
   #chooser { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(900px, 92vw); max-height: 78vh; overflow: auto; }
   #chooser > h2, #chooser > .note { color: var(--cream); text-shadow: 0 2px 18px rgba(20, 32, 29, 0.8); text-align: center; margin: 0 0 12px; }
   #chooser > h2 { font-family: var(--display); font-weight: 380; letter-spacing: -0.02em; font-size: clamp(30px, 4vw, 48px); line-height: 1; }
-  #chooser > .note { margin: 10px 0 0; }
+  #chooser > .note { margin: 10px 0 0; } #chooser > .note.top { margin: -4px 0 14px; }
+  #chooser article { position: relative; } #chooser article.pick { box-shadow: inset 0 6px 0 var(--plan), 0 18px 40px rgba(20, 32, 29, 0.35); }
+  #chooser .for, .c3.plan .for { margin: 0 0 6px; font-size: 14px; opacity: 0.8; } .c3.plan .for { font-size: 17px; }
+  .badge { position: absolute; top: -12px; right: 14px; background: var(--plan, var(--ink)); color: var(--cream); font: 600 11px var(--label); letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+  .c3.plan .badge { font-size: 14px; top: -16px; right: 22px; }
+  #chooser .unsure, .c3.unsure { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(30, 42, 38, 0.88); color: var(--cream); }
+  #chooser .unsure p, .c3.unsure p { margin: 0; } #chooser .unsure .pill, .c3.unsure .pill { background: var(--butter); color: var(--ink); border-color: var(--butter); }
+  .c3.unsure { width: 760px; font-size: 20px; padding: 18px 24px; margin: 0; } /* no margin on a 3D card: CSS3D carries it thousands of pixels off */ .c3.unsure::before, .c3.unsure::after { display: none; }
   #chooser .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   #chooser article { background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; align-items: flex-start; }
   #chooser h3 { font-size: 28px; margin-top: 0; }
@@ -152,7 +160,7 @@
   #nogl { display: none; position: fixed; inset: 0; z-index: 9; background: var(--cream); padding: 15vh 8vw; }
   @media (pointer: coarse) { html, body { touch-action: none; } #chooser, #plan, dialog { touch-action: pan-y; } #plan, dialog { overscroll-behavior: contain; } } /* a swipe in the form or the floor plan never carries on into the walk behind it */ /* the finger moves the walk through Lenis only: a native scroll starting first is what flung the walk far past a stop */
   @media (max-width: 640px) { #hint, #who { display: none; } #startBtn { bottom: 84px; } body:has(#info.on) #caption { opacity: 0 !important; } #sitBtn { top: 150px; bottom: auto; right: 16px; } #remote { bottom: 84px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: 92vw; border-radius: 20px; } }
-  @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 140px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 8px; } #chooser article { padding: 10px 14px; } #chooser h3 { font-size: 22px; margin-bottom: 2px; } #chooser ul { margin: 6px 0 10px; font-size: 13px; }
+  @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 140px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 12px; } #chooser article { padding: 10px 14px; display: grid; grid-template-columns: 1fr auto; column-gap: 10px; align-items: center; } #chooser article > * { grid-column: 1; } #chooser article .price { grid-column: 2; grid-row: 1; font-size: 18px; } #chooser article .pill { grid-column: 1 / -1; margin-top: 6px; padding: 8px 14px; font-size: 14px; justify-self: start; } #chooser h3 { font-size: 22px; margin: 0; } #chooser .for { font-size: 13px; margin: 2px 0 0; } #chooser ul { display: none; } #chooser .unsure { padding: 10px 12px; font-size: 14px; } #chooser > .note { font-size: 10px; } /* a phone: name, price, who it is for and the button; the details are on the plan's shop card */
     header { padding: 14px 16px; } header nav { display: flex; gap: 6px; } header nav .pill { padding: 7px 10px; font-size: 10px; } #nudge { white-space: normal; width: max-content; max-width: calc(100vw - 32px); text-align: center; border-radius: 16px; top: 64px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 9px; top: 64px; } .brand { font-size: 21px; } .brand small { display: block; margin: 2px 0 0; font-size: 9px; } #level { top: auto; bottom: 62px; font-size: 9px; } #who { font-size: 9px; } #caption .num { opacity: 0.3; } }
 </style>
 </head>
@@ -162,7 +170,7 @@
 <div id="track"></div>
 
 <header>
-  <div class="brand">scrollstory <small class="mono">studio · by <b>Rahul Thaniru</b></small></div>
+  <div class="brand">scrollstory <small class="mono">website studio · by <b>Rahul Thaniru</b></small></div>
   <nav>
     <button class="pill mono" id="soundBtn" aria-pressed="false" title="Sound (M)">Sound off</button>
     <button class="pill mono" id="planBtn" aria-expanded="false" aria-controls="plan">Floor plan</button>
@@ -176,9 +184,11 @@
 </div>
 <aside id="info" aria-live="polite"></aside>
 <section id="chooser" aria-label="Choose a plan">
-  <h2>Choose one</h2>
+  <h2>Get your business online</h2>
+  <p class="note mono top">Pick a plan · launch prices for the first 5 clients</p>
   <div class="cards"></div>
-  <p class="note mono">Launch prices, for the first 5 clients</p>
+  <div class="unsure"><p><b>Not sure yet?</b> See a live demo of your own site in 30 minutes.</p><button class="pill demo">Get my demo on WhatsApp</button></div>
+  <p class="note mono">Pay 40% to start, 40% when you approve the design, 20% at launch</p>
 </section>
 <button id="startBtn" class="pill solid mono">Start your project</button>
 <button id="sitBtn" class="pill solid mono">Sit to view</button>

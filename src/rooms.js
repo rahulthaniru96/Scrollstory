@@ -538,9 +538,10 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     prop('front_desk', 15, y, 7.5, { ry: Math.PI }); // its panelled front faces the visitor
     // The three plans, hovering over the desk in their shop colours.
     for (const [i, s] of SHOPS.entries()) {
-      const card = mesh(new THREE.PlaneGeometry(0.72, 0.96), basic(0xffffff, { ...both, map: canvasTex(108, 144, (x, w, h) => {
-        x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h); x.fillStyle = css(s.color); x.fillRect(0, 0, w, 46);
-        x.fillStyle = '#8c8a82'; for (let k = 0; k <= i + 2; k++) x.fillRect(12, 62 + k * 15, w - 24 - (k % 2) * 16, 5);
+      const card = mesh(new THREE.PlaneGeometry(0.72, 0.96), basic(0xffffff, { ...both, map: canvasTex(216, 288, (x, w, h) => {
+        x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h); x.fillStyle = css(s.color); x.fillRect(0, 0, w, 70);
+        x.fillStyle = '#1e2a26'; x.font = '500 30px Fraunces, Georgia, serif'; x.textAlign = 'center'; for (const [k, l] of (i === 2 ? ['Signature', '+ Admin'] : [s.name]).entries()) x.fillText(l, w / 2, 112 + k * 34);
+        x.fillStyle = '#8c8a82'; for (let k = 0; k <= i + 2; k++) x.fillRect(22, 180 + k * 18, w - 44 - (k % 2) * 24, 6);
       }) }), 14 + i, y + 2.05, 7.5);
       card.rotation.y = Math.PI; hover(card, 0.08, 0.45, 0.05, 0.3);
     }
@@ -558,7 +559,14 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       sign.draw('');
       const m = mesh(new THREE.PlaneGeometry(2.9, 0.62), basic(0xffffff, { map: tex }), 15, y + 0.6, 6.96); m.rotation.y = Math.PI; // on the desk's front, facing the visitor
       document.fonts?.ready.then(() => sign.draw(sign.last));
-      const draw = sign.draw; sign.draw = (t) => { sign.last = t; draw(t); };
+      let lit = -1, flick = -9; // when the tube came on, and when a letter last changed
+      const draw = sign.draw; sign.draw = (t) => { sign.last = t; draw(t); flick = performance.now() / 1000; };
+      tick.push((t) => { // a neon tube warming up: dark, two stutters, then on; a new letter makes it stutter once
+        const now = performance.now() / 1000, near = camera.position.distanceTo(m.position) < 9;
+        if (near && lit < 0) lit = now; if (!near) lit = -1;
+        const a = lit < 0 ? 9 : now - lit, b = now - flick, on = a < 0.25 ? 0.15 : a < 0.35 ? 1 : a < 0.5 ? 0.2 : a < 0.62 ? 0.9 : a < 0.7 ? 0.35 : 1;
+        m.material.color.setScalar(on * (b < 0.08 ? 0.45 : 1));
+      });
     }
     prop('water_tank', 20, y, 9);
     hover(prop('water_tank', 18.2, y + 0.42, 9.4, { s: 0.75 }), 0.07, 0.3, 0.05); // this one has come loose

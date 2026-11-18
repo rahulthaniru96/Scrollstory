@@ -41,6 +41,11 @@
   #caption h1 em { display: block; color: var(--accent); font-weight: 340; transition: color 0.8s; }
   #caption h1.small { font-size: clamp(21px, 2.7vw, 36px); line-height: 1.16; letter-spacing: -0.015em; max-width: 24em; }
   #caption h1 .w { display: inline-block; }
+  #caption.in3d { left: auto; bottom: auto; width: 560px; max-width: none; padding: 30px 36px 32px; color: var(--ink); text-shadow: none; overflow: hidden; }
+  #caption.in3d h1 { font-size: 50px; } #caption.in3d h1.small { font-size: 30px; max-width: none; } #caption.in3d .label { opacity: 0.75; } #caption.in3d h1 em { color: color-mix(in srgb, var(--accent) 60%, var(--ink)); }
+  .c3 input.sign { width: 100%; box-sizing: border-box; font: 400 22px var(--text); padding: 14px 18px; border: 1.5px solid var(--ink); border-radius: 14px; margin: 10px 0 14px; background: #fffaf0; }
+  .c3 .who { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; margin: 14px 0 0; } .c3 .who a { color: inherit; white-space: nowrap; }
+  #caption.in3d .num { left: auto; right: 14px; bottom: -0.12em; font-size: 210px; opacity: 0.32; } #caption.in3d::before, #caption.in3d::after { display: none; }
   #caption .num { position: absolute; left: -0.05em; bottom: -0.2em; z-index: -1; font: 300 clamp(150px, 25vw, 340px)/0.8 var(--display); letter-spacing: -0.05em; color: transparent; -webkit-text-stroke: 2px var(--accent); opacity: 0.7; text-shadow: none; font-variation-settings: 'SOFT' 100, 'WONK' 1; }
   #caption .cta { display: flex; gap: 10px; margin-top: 18px; text-shadow: none; }
   #caption .cta[hidden] { display: none; }

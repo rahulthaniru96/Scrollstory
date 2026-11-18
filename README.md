@@ -130,3 +130,12 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Story: the captions follow STORYBOARD.md in one order. The four parts are the ground floor (what we make), the stairs and Landing (where it comes from), upstairs (the five chapters of How we work: Story, Design, Build, Launch, Care, one a room) and the roof (the ask). Lines said twice are said once now: the Drafting page and pinboard no longer repeat the arrival line, the book summaries no longer repeat the room captions, Worth it and the founder no longer repeat their counters and label, and each demo site card says what that business needs instead of the same line.
 - Not checked: real phone touch scroll; real trackpad feel of the slow-down; the new copy has not been reviewed by Rahul.
 
+## Sixth round of feedback (18 Nov 2026)
+
+- Intro: the dusk lifts in the first 1.4 s, so the building is seen rising out of the water. It plays every time the walk opens at its start (the page no longer restores an old scroll position), and its first 3.5 s cannot be skipped or scrolled away.
+- Renovation: the cursor compares old and new only after the walk has crossed the line.
+- TV: one channel for the seat and the scroll. The remote moves the walk to that channel's stop, the wheel changes channel while seated, scrolling out of the room stands up, and standing up keeps the channel.
+- Captions: on a desktop each caption is a card standing in the room, 2.6 m ahead of where it is read and a little to the left, beside what it talks about, with a soft shadow; it turns slowly to the reader. Phones keep the caption at the bottom.
+- Rooftop: the desk's card is a 3D card like the others and holds the ending: the name field, Start your project, and Rahul's number. The neon warms up with two stutters as the walk arrives and flickers on each new letter. The plan cards over the desk carry their names.
+- Not checked: a real phone; how the caption cards sit in every room on a small laptop (some cover part of the room's subject).
+

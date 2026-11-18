@@ -356,16 +356,27 @@ const COPY = {
 const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta'), capNum = cap.querySelector('.num');
 let capWords = [];
 const lastMove = rail.moves[rail.moves.length - 1];
-let capFor = null;
+let capFor = null, cap3d = null;
+// On a desktop the caption is a card standing in the room: 2.6 m ahead of where it is read and a metre to the left, beside what it talks about.
+// A room's caption is placed from its stop; a TV channel's or a milestone's from where the camera is when it starts.
+function placeCaption(name) {
+  if (!cap3d) { cap.classList.add('c3', 'in3d'); cap3d = new CSS3DObject(cap); cap3d.userData.k = 1.05; cap3d.scale.setScalar(C3); cssScene.add(cap3d); }
+  const m = COPY[name] && byName[name], s = m && (m.hold ? lerp(m.s0, m.s1, 0.6) : m.s1 - 1);
+  const at = m ? new THREE.Vector3(...rail.pos(s)) : camera.position.clone(), yr = m ? THREE.MathUtils.degToRad(rail.yaw(s)) : Math.atan2(-camera.getWorldDirection(new THREE.Vector3()).x, -camera.getWorldDirection(new THREE.Vector3()).z);
+  cap3d.position.copy(at).add(new THREE.Vector3(-Math.sin(yr) * 2.6 - Math.cos(yr) * 1.2, -0.32, -Math.cos(yr) * 2.6 + Math.sin(yr) * 1.2));
+  cap3d.rotation.y = Math.atan2(at.x - cap3d.position.x, at.z - cap3d.position.z);
+  const g = cap3d.userData.ground; if (g) { scene.remove(g.shadow); if (g.wall) scene.remove(g.wall); }
+  ground(cap3d, false); // its shadow moves with it
+}
 function caption(p) {
   const m = rail.moveAt(p), tv = env.tv.ch >= 0 && p < TV_SPAN[1]; // in the TV room each channel is its own caption
   // on the stair, the milestone the camera is passing is the caption
   const phi = STAIR.phi0 + ((rail.pos(p)[1] - EYE) * 2 * Math.PI) / STAIR.rise, mi = m.zone === 'stair' ? MILESTONES.findIndex((q) => Math.abs(phi + 0.5 - q.phi) < 0.52) : -1;
   const name = tv ? 'tv' + env.tv.ch : mi >= 0 ? 'ms' + mi : m.name;
   const c = mi >= 0 ? [`Milestone 0${mi + 1} of 0${MILESTONES.length}`, MILESTONES[mi].title, MILESTONES[mi].line] : tv ? (env.tv.ch < TV_BEATS.length ? [`Scrollstory TV · CH 0${env.tv.ch + 1} · Our story`, TV_BEATS[env.tv.ch].full, ''] : [`Scrollstory TV · CH 0${env.tv.ch + 1}`, 'Your story?', "Let's put it on the screen."]) : COPY[name];
-  if (!c || state.secret || hidden.opened >= 0) { cap.style.opacity = 0; cap.classList.remove('on'); return; } // inside a secret, its own card does the talking
+  if (!c || state.secret || hidden.opened >= 0) { if (cap3d) show3d(cap3d, 0); else cap.style.opacity = 0; cap.classList.remove('on'); return; } // inside a secret, its own card does the talking
   if (capFor !== name) {
-    capFor = name; capLabel.textContent = c[0]; capH.replaceChildren(); capWords = [];
+    capFor = name; capLabel.textContent = c[0]; capH.replaceChildren(); capWords = []; if (!flatCards) placeCaption(name);
     const put = (text, into) => { for (const w of text.split(' ')) { const s = el('span', w, 'w'); capWords.push(s); into.append(s, ' '); } }; // one span a word: they arrive one after another
     put(c[1], capH);
     if (c[2]) { const em = document.createElement('em'); capH.append(em); put(c[2], em); }
@@ -377,7 +388,9 @@ function caption(p) {
   const arrive = m === rail.moves[0] ? 1 : Math.min(1, Math.max(0, (u - 0.06) / (tv ? 0.2 : 0.36))), out = m === lastMove || m.name === 'Kites up to the Rooftop' ? 1 : 1 - sstep(tv ? 0.9 : 0.85, 1, u), n = capWords.length;
   for (const [k, w] of capWords.entries()) { const wo = sstep((k / n) * 0.6, (k / n) * 0.6 + 0.4, arrive); w.style.opacity = wo; w.style.transform = `translateY(${(1 - wo) * 0.4}em)`; }
   const o = sstep(0, 0.2, arrive) * out;
-  cap.style.opacity = o; cap.style.transform = `translateY(${(1 - out) * 16}px)`; cap.classList.toggle('on', arrive > 0.6 && out > 0.5);
+  if (cap3d) { show3d(cap3d, o); const turn = Math.atan2(camera.position.x - cap3d.position.x, camera.position.z - cap3d.position.z) - cap3d.rotation.y; cap3d.rotation.y += Math.atan2(Math.sin(turn), Math.cos(turn)) * 0.05; } // it turns slowly to the reader
+  else { cap.style.opacity = o; cap.style.transform = `translateY(${(1 - out) * 16}px)`; }
+  cap.classList.toggle('on', arrive > 0.6 && out > 0.5);
 }
 
 // ---------- what the scroll is pointing at: one shop, one counter, one TV channel ----------
@@ -430,7 +443,7 @@ COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · a made-up business`, h: s.name, lines: [`First on its page: ${s.page[2].join(', ').toLowerCase()}.`, `One button that matters: ${s.page[3]}.`] }; }); // each says what that business needs, not the same line five times
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
-INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };
+INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type it, and the desk wears it in neon.'], sign: true };
 let signText = '';
 SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} of 0${SECRETS.length}`, h: s.name, lines: [s.text], act: ['Back to the walk', () => leaveSecret()] }; });
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
@@ -443,6 +456,7 @@ css.domElement.id = 'cards3d'; document.body.append(css.domElement);
 const C3 = 0.0026; // metres per CSS pixel: a 420 px card is 1.1 m wide
 const ANCHOR = {}; // INFO key: [x, y, z, yaw] where its card stands
 COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x + 1.35, 1.7, -20.4, 0]; }); // right of what floats over the counter
+ANCHOR['Settle on the desk'] = [13.8, H.rooftop + 1.35, 6.2, 2.7]; // right of the desk, turned to the visitor
 SHOPS.forEach((s) => { ANCHOR[`Shop: ${s.name}`] = [10.25, 1.7, s.z + 1.3, -Math.PI / 2]; }); // right of the shop's device
 EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - 1.5) * 1.45, H.extras + 1.15, -20.85, 0]; }); // stepping out of the front of its carriage
 demoCards.forEach((c, i) => { // beside each demo world, on the side away from the page
@@ -455,6 +469,12 @@ function fillCard(box, d) {
   box.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
   if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); box.append(b); }
   if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; box.append(b); }
+  if (d.sign) {
+    const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); };
+    const b = el('button', 'Start your project', 'pill solid'); b.onclick = () => openForm();
+    const w = el('p', null, 'mono who'); w.append('Rahul Thaniru · Founder · '); const a = el('a', '+91 99490 88659'); a.href = 'tel:+919949088659'; w.append(a);
+    box.append(i, b, w);
+  }
 }
 function getCard(key) {
   if (card3d[key]) return card3d[key];
@@ -469,10 +489,10 @@ const shadowTex = (() => { // a soft-edged card shape, not a round blob: it read
   x.filter = 'blur(18px)'; x.fillStyle = 'rgba(20,32,29,0.85)'; x.beginPath(); x.roundRect(44, 44, 168, 168, 18); x.fill(); return new THREE.CanvasTexture(c);
 })();
 const shadowGeo = new THREE.PlaneGeometry(1, 1);
-function ground(obj) {
+function ground(obj, mirror = true) {
   const p = obj.position, floor = floorAt(p.x, p.y, p.z), g = { floor, w: 0, shadow: new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0 })) };
   g.shadow.renderOrder = -1; scene.add(g.shadow); // drawn before the glows, which write depth and would hide it
-  if (floor < 0.5) { g.ref = new CSS3DObject(obj.element.cloneNode(true)); g.ref.element.classList.add('reflect'); g.ref.element.removeAttribute('id'); cssScene.add(g.ref); } // only the water mirrors
+  if (mirror && floor < 0.5) { g.ref = new CSS3DObject(obj.element.cloneNode(true)); g.ref.element.classList.add('reflect'); g.ref.element.removeAttribute('id'); cssScene.add(g.ref); } // only the water mirrors
   // and its shadow on the wall behind it, if there is one within reach: that is the one the eye sees from the walk
   const back = new THREE.Vector3(-Math.sin(obj.rotation.y), 0, -Math.cos(obj.rotation.y)), cast = new THREE.Raycaster(p.clone(), back, 0.2, 4); cast.camera = camera;
   const seen = (o) => { for (; o; o = o.parent) if (!o.visible) return false; return true; }; // hidden colliders are not walls you can see
@@ -539,7 +559,7 @@ function cards(p) {
   sitBtn.classList.toggle('on', flatCards && canSit); show3d(sit3d, flatCards ? 0 : sitO);
   const turn = Math.atan2(camera.position.x - sit3d.position.x, camera.position.z - sit3d.position.z) - sit3d.rotation.y;
   sit3d.rotation.y += Math.atan2(Math.sin(turn), Math.cos(turn)) * 0.04; // turns slowly to whoever walks round the sofa, so it never snaps
-  startBtn.classList.toggle('on', m === lastMove && u > 0.45); who.classList.toggle('on', m === lastMove && u > 0.45);
+  const end = flatCards && m === lastMove && u > 0.45; startBtn.classList.toggle('on', end); who.classList.toggle('on', end); // on a desktop they are on the desk's card
 }
 for (const pl of PLANS) {
   const card = el('article'), ul = el('ul'), b = el('button', `Choose ${pl.name}`, 'pill solid');

@@ -338,7 +338,6 @@ const COPY = {
   'Workshop hold': ['Room 05 · The workshop', 'Three shops.', 'One for where you are now.'],
   'Look up': ['The stairs', 'Keep climbing.', 'The best view is upstairs.'],
   'Landing hold': ['The landing · core memory', '', ''],
-  'Bookshelf hold': ['The landing · How we work', 'Five volumes.', 'Pull one out.'],
   'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
   'Drafting hold': ['Room 06 · The drafting room', 'You see every screen', 'before a line of code.'],
   'The page, painted': ['Room 06 · The drafting room', 'Wireframe first, then colour.', 'Then it moves.'],
@@ -425,7 +424,7 @@ PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} o
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
 SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
-BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['The shelf moves. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
+BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };
 let signText = '';
 SECRETS.forEach((s, i) => { INFO['secret:' + s.id] = { label: `Secret 0${i + 1} of 0${SECRETS.length}`, h: s.name, lines: [s.text], act: ['Back to the walk', () => leaveSecret()] }; });
@@ -511,7 +510,7 @@ function show3d(obj, o) { // fade in, rise a little, tilt up into place
 let sitO = 0;
 function cards(p) {
   const m = rail.moveAt(p), si = env.site.findIndex((f) => f > 0.3), u = (p - m.s0) / (m.s1 - m.s0);
-  if (hidden.opened >= 0 && m !== SHELF_HOLD) hidden.open(-1); // the book goes back when the walk moves on
+  if (hidden.opened >= 0 && m !== BOOK_HOLD) hidden.open(-1); // the book goes back when the walk moves on
   const pinnedCard = state.secret ? 'secret:' + state.secret.id : hidden.opened >= 0 ? 'book' + hidden.opened : null, key = pinnedCard || (si >= 0 ? 'site' + si : m.name), d = INFO[key];
   if (d && infoFor !== key) {
     infoFor = key;
@@ -567,7 +566,7 @@ for (const b of formBox.querySelectorAll('.close')) b.onclick = () => formBox.cl
 startBtn.onclick = () => openForm();
 const deskBox = new THREE.Box3(new THREE.Vector3(13.4, H.rooftop, 7), new THREE.Vector3(16.6, H.rooftop + 2.6, 8)); // the desk and the plan cards over it
 // ---------- secrets: side trips off the walk. The camera fades into each and back to the same spot. What was found is kept in this browser only. ----------
-const SHELF_HOLD = byName['Bookshelf hold'], foundIds = new Set();
+const BOOK_HOLD = byName['Landing hold'], foundIds = new Set(); // the books are read from the Landing hold
 try { for (const id of JSON.parse(localStorage.getItem('secrets') || '[]')) if (SECRETS.some((s) => s.id === id)) foundIds.add(id); } catch { /* private mode: nothing is kept */ }
 const foundBox = document.getElementById('found');
 function showFound() {
@@ -669,7 +668,7 @@ addEventListener('pointermove', (e) => { // a book under the cursor slides half 
   const r3 = room3(); if (r3) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = r3.m.over(ray) ? 'pointer' : ''; return; }
   if (state.secret && !state.secret.flip) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = hidden.over(ray, state.secret.id) ? 'pointer' : ''; return; }
   if (!state.secret && state.body > EX0.s0 - 5 && state.body < EX_END.s0 + 5) { ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera); canvas.style.cursor = carAt(ray) >= 0 ? 'pointer' : ''; return; }
-  if (rail.moveAt(state.body) !== SHELF_HOLD || state.secret) return hidden.hover(-1);
+  if (rail.moveAt(state.body) !== BOOK_HOLD || state.secret) return hidden.hover(-1);
   ray.setFromCamera(new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2), camera);
   const hit = hidden.pick(ray); hidden.hover(hit?.book ?? -1); canvas.style.cursor = hit ? 'pointer' : '';
 });
@@ -680,7 +679,7 @@ addEventListener('click', (e) => {
   const r3 = room3(); if (r3?.m.pick(ray)) { sfx.blip(); return; }
   const hit = hidden.pick(ray);
   if (hit?.secret) return enterSecret(hit.secret);
-  if (hit && rail.moveAt(state.body) === SHELF_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }
+  if (hit && rail.moveAt(state.body) === BOOK_HOLD) { hidden.open(hidden.opened === hit.book ? -1 : hit.book); sfx.page(); return; }
   if (state.seat) { const hit = ray.intersectObjects(seat.tiles)[0]; if (hit) remote(hit.object.userData.ch); return; }
   const car = carAt(ray); // the Extras train: a click on a carriage goes to that add-on's stop, and its card steps out of it
   if (car >= 0) { const m = byName[`Extra: ${EXTRAS[car].name}`]; steps.goto(rail.stops.findIndex((s) => s >= m.s0 - 1 && s <= m.s1 + 1)); sfx.blip(); return; }

@@ -2,7 +2,6 @@
 // things hover, turn, come apart and drift, slowly. Their space is declared in world.js so the rail check covers it.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { BOOKS } from './secrets.js';
 import { holoEdges, holoFill } from './holo.js';
 import { EXTRAS, BOARD, SHOPS, COUNTERS, SHOP_ROOM, COUNTER_ROOM, LONE_DOOR, FANS, COLLIDERS, DEBRIS, UNDERSIDES, STAIR, H, WINDOW } from './world.js';
 
@@ -292,7 +291,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       }`,
   });
 
-  // ---------- Landing: core memory. Sun through crystal glass, dust in the beam, pages from How we work drifting through it toward the shelf ----------
+  // ---------- Landing: core memory. Sun through crystal glass, dust in the beam, the five How we work books open in it (secrets.js) ----------
   {
     const L = H.landing;
     const tiles = canvasTex(256, 256, (x) => {
@@ -336,32 +335,6 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: 0.05, map: glowTexture, color: 0xfff3d6, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
     scene.add(dust);
     tick.push((t, dt, env) => { dust.position.set(Math.sin(env.air * 0.1) * 0.12, Math.sin(env.air * 0.17) * 0.08, Math.cos(env.air * 0.13) * 0.1); });
-
-    // Loose pages from the How we work books, drifting out of the beam toward the shelf. Each loops: fade in, drift, fade out near the shelf.
-    const sheets = BOOKS.map((b, i) => canvasTex(252, 336, (x, w, h) => {
-      x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h);
-      x.fillStyle = '#1e2a26'; x.font = '500 13px "Martian Mono", monospace'; x.fillText(`HOW WE WORK · VOL 0${i + 1}`, 18, 30);
-      x.fillStyle = '#9e3b2c'; x.fillRect(18, 40, 60, 3);
-      x.fillStyle = '#1e2a26'; x.font = '500 48px Fraunces, Georgia, serif'; x.fillText(b.title, 18, 100);
-      x.font = '400 16px "Familjen Grotesk", Arial'; let ln = '', k = 0; for (const wd of b.line.split(' ')) { if (ln && x.measureText(ln + ' ' + wd).width > 210) { x.fillText(ln, 18, 132 + k++ * 20); ln = wd; } else ln = ln ? ln + ' ' + wd : wd; } x.fillText(ln, 18, 132 + k * 20);
-      x.fillStyle = 'rgba(30,42,38,0.28)'; for (let k = 0; k < 6; k++) x.fillRect(18, 200 + k * 18, k % 3 === 2 ? 120 : w - 36, 2);
-      x.fillStyle = '#1e2a26'; x.font = '500 13px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText(String(i * 7 + 3), w / 2, h - 16);
-    }));
-    const pageGeo = new THREE.PlaneGeometry(0.42, 0.56, 6, 1), pp = pageGeo.attributes.position;
-    for (let v = 0; v < pp.count; v++) pp.setZ(v, pp.getX(v) * pp.getX(v) * 1.4); // a slight curl
-    const spawn = [[-9.6, 0.3, 2.3], [-8.9, 0.75, 3.1], [-8.2, 1.35, 2.5], [-9.3, 1.2, 4.3], [-8.5, 0.45, 4.7], [-7.8, 0.9, 3.9], [-9.9, 1.9, 3.4], [-8.9, 2.3, 3.9]];
-    const drift = spawn.slice(0, lowQuality ? 5 : 8).map(([sx, sy, sz], i, a) => {
-      const m = mesh(pageGeo, lit(0xffffff, { map: sheets[i % 5], roughness: 0.9, transparent: true, ...both }), sx, L + sy, sz);
-      return { m, sx, sy, sz, i, T: 20 + ((i * 7) % 11), off: i / a.length };
-    });
-    tick.push((t, dt, env) => {
-      for (const d of drift) {
-        const p = (env.air / d.T + d.off) % 1, q = p * p * (3 - 2 * p), a = env.air;
-        d.m.position.set(d.sx + (-10.4 - d.sx) * q, L + d.sy + 0.25 * q + Math.sin(a * 0.4 + d.i * 1.3) * 0.07, d.sz + (1.2 - d.sz) * q);
-        d.m.rotation.set(Math.sin(a * 0.2 + d.i) * 0.3, p * 1.2 + d.i, Math.cos(a * 0.17 + d.i * 2) * 0.3);
-        d.m.material.opacity = Math.min(1, p / 0.12, (1 - p) / 0.2);
-      }
-    });
 
     const f = at('ceiling fan'); fan(f.x, f.y, f.z, 1.25); // a ceiling fan with no ceiling
     prop('steel_trunk', -10.1, L, 9.35);

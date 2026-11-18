@@ -195,7 +195,7 @@ box('landing window head', -11 - W, -11, H.landing + 3.1, H.landing + 4, 1.6, 5.
 box('landing south wall', -11, -4, H.landing, H.landing + 3.2, 10, 10 + W);
 export const WINDOW = { x: -11, y: H.landing + 2, z: 3.5 }; // crystal-glass window centre
 export const SUN_PATCH = [-9, H.landing + 0.9, 3.6]; // what the hold frame looks at
-box('tiles rising in the sun beam', -10.7, -7.2, H.landing, H.landing + 3, 1.8, 5.2, 'floating', HID);
+box('How we work books in the sun beam', -10.7, -7.0, H.landing + 0.9, H.landing + 2.7, 1.4, 4.4, 'floating', HID);
 box('landing trunk', -10.6, -9.6, H.landing, H.landing + 0.5, 8.9, 9.8, 'furniture', HID);
 air('landing stool and newspaper', -8, H.landing + 0.8, 9.1, 0.6);
 

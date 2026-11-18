@@ -1,9 +1,9 @@
-// The Landing's bookshelf ("How we work" in five volumes), and the three v1 secrets: The Lab behind volume five,
+// The Landing's five open books ("How we work"), and the three v1 secrets: The Lab behind volume five,
 // Door 201, and the mirror in the Lobby's water. The secret rooms are built far under the lake; main.js fades the
 // camera in and out of them, so the walk's rail stays one line.
 import * as THREE from 'three';
 import { holoEdges, holoFill } from './holo.js';
-import { H, HUB } from './world.js';
+import { H, HUB, EYE, SUN_PATCH } from './world.js';
 import renders from '../blender/renders/all-components.jpg';
 
 // From the brief (world-v3-changes.md, item 12).
@@ -32,7 +32,7 @@ SECRETS.push(
   { id: 'seal', egg: true, clue: 'In the Drafting Room, one blueprint is sealed with red wax.', name: 'The sealed blueprint', text: 'Ideas that get dropped on the way to a good page, and why.' },
   { id: 'keyhole', egg: true, clue: 'Low on the clock tower, seen from the map, there is a keyhole. It opens once you have found six others.', name: "The watchmaker's keyhole", text: 'Every story has moving parts. Thanks for finding them all.' },
 );
-export const SHELF = { x: -11, z: -1.68 }, PUDDLE = [-3.4, 0.03, 7.0], DOOR = { x: -11, z: 0.75 };
+export const PUDDLE = [-3.4, 0.03, 7.0], DOOR = { x: -11, z: 0.75 };
 
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
@@ -45,32 +45,33 @@ export function secrets({ scene, camera, lowQuality }) {
   const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
   const tick = [];
 
-  // ---------- the shelf and its five volumes, on the Landing's west wall ----------
-  const COLORS = [0x9e3b2c, 0x3f6e68, 0x2f5fa8, 0xc98b5a, 0x6b4a7a];
-  box(0.5, 0.06, 2.1, lit(0x6b4a32), SHELF.x + 0.25, L + 1.12, SHELF.z); box(0.5, 0.06, 2.1, lit(0x6b4a32), SHELF.x + 0.25, L + 2.3, SHELF.z);
-  for (const s of [-1, 1]) box(0.5, 1.24, 0.06, lit(0x6b4a32), SHELF.x + 0.25, L + 1.71, SHELF.z + s * 1.05);
-  const books = BOOKS.map((b, i) => {
-    const spine = canvasTex(96, 448, (x, w, h) => {
-      x.fillStyle = '#' + COLORS[i].toString(16).padStart(6, '0'); x.fillRect(0, 0, w, h);
-      x.fillStyle = '#f2d98b'; x.fillRect(10, 22, w - 20, 4); x.fillRect(10, h - 26, w - 20, 4);
-      x.textAlign = 'center'; x.font = '500 54px Fraunces, Georgia, serif'; x.fillText(String(i + 1), w / 2, 92);
-      x.save(); x.translate(w / 2 + 14, 270); x.rotate(Math.PI / 2); x.font = '500 44px Fraunces, Georgia, serif'; x.fillText(b.title, 0, 0); x.restore();
-    });
-    const cover = lit(COLORS[i]), paper = lit(0xf3ead6);
-    const z = SHELF.z - 0.76 + i * 0.38, home = SHELF.x + 0.29;
-    const m = mesh(new THREE.BoxGeometry(0.5, 1.02, 0.24), [basic(0xffffff, { map: spine }), cover, paper, cover, cover, cover], home, L + 1.66, z);
-    m.rotation.z = i === 3 ? -0.05 : 0; // one leans a little
-    return { m, home, pull: 0, want: 0, z };
-  });
-  // The open book. A click pulls the volume right out, its neighbours lean into the gap, it flies to the reader turning
-  // spine first, opens, and a few leaves turn before its two pages settle. Closing runs the same path backwards.
-  const READ = new THREE.Vector3(SHELF.x + 2.0, L + 1.5, SHELF.z + 1.23); // 1.6 m in front of the Bookshelf hold, left of the HTML card
-  const open = new THREE.Group(); open.visible = false; scene.add(open);
-  const coverMats = COLORS.map((c) => lit(c, { side: THREE.DoubleSide })), leafGeo = new THREE.PlaneGeometry(0.5, 0.72).translate(0.25, 0, 0);
-  const coverGeo = new THREE.PlaneGeometry(0.57, 0.82).translate(0.285, 0, 0);
+  // ---------- the five volumes, floating open in the Landing's sun beam, a page turning in each. They face the Landing hold, where they are read ----------
+  const COLORS = [0x9e3b2c, 0x3f6e68, 0x2f5fa8, 0xc98b5a, 0x6b4a7a], hex = (i) => '#' + COLORS[i].toString(16).padStart(6, '0');
+  const leafGeo = new THREE.PlaneGeometry(0.5, 0.72).translate(0.25, 0, 0);
   const leafTex = canvasTex(160, 230, (x, w, h) => { x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = '#d9cfbd'; for (let r = 0; r < 12; r++) x.fillRect(18, 26 + r * 15, r % 4 === 3 ? 70 : 124, 4); });
-  const covers = [-1, 1].map(() => mesh(coverGeo, coverMats[0], 0, 0, 0, open)), leaves = [0, 1, 2].map((k) => mesh(leafGeo, basic(0xffffff, { map: leafTex, side: THREE.DoubleSide }), 0, 0, 0.003 * (k + 1), open));
   const wrap = (x, text, maxW) => { const out = []; let line = ''; for (const w of text.split(' ')) { if (x.measureText(line + w).width > maxW) { out.push(line.trim()); line = ''; } line += w + ' '; } out.push(line.trim()); return out; };
+  const EYE_AT = new THREE.Vector3(-5.4, L + EYE, -0.65), sun = new THREE.Vector3(...SUN_PATCH);
+  const f = sun.clone().sub(EYE_AT).setY(0).normalize(), left = new THREE.Vector3(f.z, 0, -f.x); // left on the screen, seen from the hold
+  const faceYaw = (p) => Math.atan2(EYE_AT.x - p.x, EYE_AT.z - p.z);
+  const HALF = 0.55; // how far from flat each half-open cover stands
+  const pageL = new THREE.PlaneGeometry(0.5, 0.72).rotateY(Math.PI).translate(0.25, 0, 0), pageR = new THREE.PlaneGeometry(0.5, 0.72).translate(0.25, 0, 0);
+  const cg = new THREE.PlaneGeometry(0.57, 0.82).translate(0.285, 0, 0);
+  const books = BOOKS.map((b, i) => {
+    const base = new THREE.Vector3(-8.6, L + [1.5, 2.05, 1.6, 2.15, 1.7][i], 2.8).addScaledVector(left, (2 - i) * 0.7); // volume 1 on the left
+    const g = new THREE.Group(); g.position.copy(base); g.rotation.y = faceYaw(base); g.scale.setScalar(0.7); scene.add(g);
+    const cover = lit(COLORS[i], { side: THREE.DoubleSide });
+    const cl = mesh(cg, cover, 0, 0, 0, g), cr = mesh(cg, cover, 0, 0, 0, g); cl.rotation.y = -(Math.PI - HALF); cr.rotation.y = -HALF;
+    const lt = canvasTex(256, 368, (x, w, h) => { x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.font = '500 15px "Martian Mono", monospace'; x.fillText(`HOW WE WORK · 0${i + 1}`, 22, 40); x.fillStyle = hex(i); x.font = '300 130px Fraunces, Georgia, serif'; x.fillText(String(i + 1), 18, 190); x.fillStyle = '#1e2a26'; x.font = '500 46px Fraunces, Georgia, serif'; x.fillText(b.title, 22, 270); });
+    const rt = canvasTex(256, 368, (x, w, h) => { x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.font = 'italic 400 25px Fraunces, Georgia, serif'; wrap(x, b.line, 210).forEach((l, k) => x.fillText(l, 24, 70 + k * 32)); x.fillStyle = '#d9cfbd'; for (let r = 0; r < 6; r++) x.fillRect(24, 200 + r * 20, r % 3 === 2 ? 100 : 200, 4); });
+    mesh(pageL, basic(0xffffff, { map: lt }), 0, 0, -0.006, cl); mesh(pageR, basic(0xffffff, { map: rt }), 0, 0, 0.006, cr);
+    const turning = mesh(leafGeo, basic(0xffffff, { map: leafTex, side: THREE.DoubleSide }), 0, 0, 0.01, g); // the page that keeps turning
+    return { m: g, base, turning, pull: 0, want: 0 };
+  });
+  // The open book. A click lifts the volume out of the beam; it floats to the reader, opens flat, and a few leaves turn before its two pages settle.
+  const READ = EYE_AT.clone().addScaledVector(f, 1.5).addScaledVector(left, 0.35).setY(L + 1.45); // in front of the Landing hold, left of the HTML card
+  const open = new THREE.Group(); open.visible = false; scene.add(open);
+  const coverMats = COLORS.map((c) => lit(c, { side: THREE.DoubleSide })), coverGeo = new THREE.PlaneGeometry(0.57, 0.82).translate(0.285, 0, 0);
+  const covers = [-1, 1].map(() => mesh(coverGeo, coverMats[0], 0, 0, 0, open)), leaves = [0, 1, 2].map((k) => mesh(leafGeo, basic(0xffffff, { map: leafTex, side: THREE.DoubleSide }), 0, 0, 0.003 * (k + 1), open));
   const spreads = BOOKS.map((b, i) => canvasTex(1024, 700, (x, w, h) => {
     const hex = '#' + COLORS[i].toString(16).padStart(6, '0');
     x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = 'rgba(30,42,38,0.08)'; x.fillRect(w / 2 - 14, 0, 28, h); // the gutter
@@ -86,7 +87,6 @@ export function secrets({ scene, camera, lowQuality }) {
   }));
   const page = mesh(new THREE.PlaneGeometry(1.1, 0.75), basic(0xffffff, { map: spreads[0], transparent: true, opacity: 0 }), 0, 0, 0.075, open);
   let want = -1, shown = -1, openK = 0;
-  const FLY = new THREE.Vector3();
   // ---------- Door 201, on the same wall ----------
   const door = new THREE.Group(); door.position.set(DOOR.x + 0.06, L, DOOR.z + 0.48); scene.add(door); // hinged at its south edge
   const leaf = box(0.07, 2.1, 0.96, lit(0x3f6e68), 0, 1.05, -0.48, door);
@@ -114,7 +114,7 @@ export function secrets({ scene, camera, lowQuality }) {
 
   // ---------- the way in to each: an outline that shows only when the cursor is near, and a few fireflies until it is found ----------
   const ways = [
-    { id: 'lab', at: new THREE.Vector3(SHELF.x + 0.5, L + 1.66, books[4].z), geo: new THREE.BoxGeometry(0.56, 1.1, 0.3), near: 9 },
+    { id: 'lab', at: books[4].base.clone(), geo: new THREE.BoxGeometry(0.75, 0.75, 0.5), near: 9 },
     { id: 'mirror', at: new THREE.Vector3(...PUDDLE).setY(0.25), geo: new THREE.CylinderGeometry(0.6, 0.6, 0.5, 20), near: 9 },
     { id: '201', at: new THREE.Vector3(DOOR.x + 0.1, L + 1.05, DOOR.z), geo: new THREE.BoxGeometry(0.2, 2.14, 1.0), near: 9 },
     { id: 'tile', at: TILE.clone().setY(0.1), geo: new THREE.BoxGeometry(0.86, 0.2, 0.86), near: 9 },
@@ -273,7 +273,7 @@ export function secrets({ scene, camera, lowQuality }) {
     // What a ray from the cursor is on: a book, a secret's way in, or nothing. Only things within reach of the camera count.
     pick(ray) {
       if (want >= 0 && open.visible && ray.intersectObject(open, true).length) return { book: want }; // a click on the open book closes it
-      if (books[0].m.position.distanceTo(camera.position) < 7) { const hit = ray.intersectObjects(books.map((b) => b.m))[0]; if (hit) return { book: books.findIndex((b) => b.m === hit.object) }; } // the nearest one the ray meets
+      if (books[0].m.position.distanceTo(camera.position) < 7) { const hit = ray.intersectObjects(books.map((b) => b.m), true)[0]; if (hit) { let o = hit.object; while (o.parent && !books.some((b) => b.m === o)) o = o.parent; return { book: books.findIndex((b) => b.m === o) }; } } // the nearest one the ray meets
       for (const w of ways) if (w.id !== 'lab' && w.at.distanceTo(camera.position) < w.near && ray.ray.intersectsBox(w.box)) return { secret: w.id };
       return null;
     },
@@ -282,19 +282,20 @@ export function secrets({ scene, camera, lowQuality }) {
       if (want !== shown && openK <= 0.001) { shown = want; if (shown >= 0) { for (const c of covers) c.material = coverMats[shown]; page.material.map = spreads[shown]; } }
       const target = want === shown && shown >= 0 ? 1 : 0;
       openK += Math.max(-dt * 1.5, Math.min(dt * 1.1, target - openK));
-      const out = sstep(0, 0.28, openK), fly = sstep(0.28, 0.62, openK), spread = sstep(0.62, 0.95, openK);
+      const fly = sstep(0, 0.6, openK), spread = sstep(0.4, 0.95, openK);
       for (const [k, b] of books.entries()) {
         b.pull += (b.want - b.pull) * Math.min(1, dt * 9);
-        const d = shown >= 0 ? k - shown : 0, lean = Math.abs(d) === 1 ? out : 0; // the neighbours lean into the gap
-        b.m.position.set(b.home + 0.27 * b.pull + (d === 0 && shown >= 0 ? 0.62 * out : 0), L + 1.66, b.z - Math.sign(d) * 0.07 * lean);
-        b.m.rotation.x = Math.sign(d) * 0.16 * lean; b.m.visible = !(d === 0 && shown >= 0 && fly > 0.02);
+        b.m.position.y = b.base.y + Math.sin(t * 0.6 + k * 1.3) * 0.06 + 0.06 * b.pull; b.m.rotation.z = Math.sin(t * 0.4 + k) * 0.05;
+        b.m.scale.setScalar(0.7 * (1 + 0.12 * b.pull)); b.m.visible = !(k === shown && fly > 0.02);
+        const u = (t * 0.22 + k * 0.37) % 1, turn = sstep(0.55, 0.95, u); // a page turns every few seconds, right to left
+        b.turning.rotation.y = -HALF - (Math.PI - 2 * HALF) * turn; b.turning.visible = turn > 0.01 && turn < 0.99;
       }
       open.visible = shown >= 0 && fly > 0.02;
       if (open.visible) {
-        const b = books[shown]; FLY.set(b.home + 0.62, L + 1.66, b.z);
-        open.position.lerpVectors(FLY, READ, fly); open.position.y += Math.sin(fly * Math.PI) * 0.35 + Math.sin(t * 1.1) * 0.02 * spread; // an arc, then a gentle float
-        open.rotation.set(0, Math.PI / 2 + Math.PI * (1 - fly), Math.sin(fly * Math.PI) * 0.25); open.scale.setScalar(1.05);
-        const th0 = -(Math.PI / 2 + (Math.PI / 2 - 0.12) * spread), th1 = -(Math.PI / 2 - (Math.PI / 2 - 0.12) * spread);
+        const b = books[shown];
+        open.position.lerpVectors(b.m.position, READ, fly); open.position.y += Math.sin(fly * Math.PI) * 0.25 + Math.sin(t * 1.1) * 0.02 * spread; // an arc, then a gentle float
+        open.rotation.set(0, faceYaw(open.position), Math.sin(fly * Math.PI) * 0.15); open.scale.setScalar(0.7 + 0.35 * fly);
+        const a = HALF + (0.12 - HALF) * spread, th0 = -(Math.PI - a), th1 = -a; // from half open to flat
         covers[0].rotation.y = th0; covers[1].rotation.y = th1;
         for (const [k, l] of leaves.entries()) { l.visible = spread > 0.05 && spread < 0.99; l.rotation.y = th1 + (th0 - th1) * sstep(0.15 + k * 0.15, 0.55 + k * 0.15, spread); } // a few leaves turn
         page.material.opacity = sstep(0.85, 1, spread);

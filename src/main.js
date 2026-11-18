@@ -326,30 +326,30 @@ function speedLimit(p, zone, lag) {
   return Math.min(m > 1e-4 ? cap.move / m : 1e4, yaw > 1e-3 ? cap.yaw / yaw : 1e4, pitch > 1e-3 ? cap.pitch / pitch : 1e4, 2000) * boost;
 }
 
-// ---------- captions (words from the design board; rooms without written copy show their label only) ----------
+// ---------- captions: one story, told in order (STORYBOARD.md). Ground floor: what we make. Stairs and Landing: where it comes from. Upstairs: how we work, one chapter a room. Roof: yours next ----------
 const COPY = {
   'Arrival hold': ['Scrollstory Studio · Secunderabad', 'Every business has a story.', "Come in, we'll show you ours."],
-  'Lobby push in': ['The founder', 'Rahul Thaniru', 'Founder, Scrollstory Studio.'],
+  'Lobby push in': ['The founder', 'Rahul Thaniru', 'built this building to show how we work.'],
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
   'Gallery hold': ['Room 02 · The gallery', 'Every door, a site we built.', 'Step into any one.'],
   'Renovation hold': ['Room 03 · The renovation', "Your old site isn't the end of your story.", 'Walk through the line.'],
   'Renovated': ['Room 03 · The renovation', 'Same café, a new site.', 'Move the cursor to compare. The café is made up.'],
-  'Worth it hold': ['Room 04 · Worth it', 'Custom. Secure. Legal.', 'Built to bring you income.'],
-  'Workshop hold': ['Room 05 · The workshop', 'Three shops.', 'One for where you are now.'],
-  'Look up': ['The stairs', 'Keep climbing.', 'The best view is upstairs.'],
-  'Landing hold': ['The landing · core memory', '', ''],
-  'Bridge to HOME': ['Home · Scrollstory TV', 'Stories used to live on TV.', 'Now they live on your website.'],
-  'Drafting hold': ['Room 06 · The drafting room', 'You see every screen', 'before a line of code.'],
-  'The page, painted': ['Room 06 · The drafting room', 'Wireframe first, then colour.', 'Then it moves.'],
-  'Signal Cabin hold': ['Room 07 · The signal cabin', 'Bookings, enquiries and staff,', 'all in one panel.'],
+  'Worth it hold': ['Room 04 · Worth it', 'What you are paying for.', 'Four things, one counter each.'],
+  'Workshop hold': ['Room 05 · The workshop', 'Three plans.', 'One for where you are now.'],
+  'Look up': ['The stairs', "That's what we make.", 'Upstairs: how we make it.'],
+  'Landing hold': ['The landing · How we work', 'Five steps, five open books.', 'Click one. Each room upstairs is a chapter.'],
+  'Bridge to HOME': ['Chapter 1 · Story', 'Stories used to live on TV.', 'Now they live on your website.'],
+  'Drafting hold': ['Room 06 · Chapter 2, Design', 'You see every screen', 'before a line of code.'],
+  'The page, painted': ['Room 06 · Chapter 2, Design', 'Wireframe first, then colour.', 'Then it moves.'],
+  'Signal Cabin hold': ['Room 07 · Chapter 3, Build', 'Behind the page, the systems:', 'bookings, enquiries and staff in one panel.'],
   'Admin panel': ['Room 07 · Pull a lever', 'New becomes booked.', 'Demo data: nothing on this panel is real.'],
-  'Out of the cabin': ['Room 07 · The edge', 'One small step down.', ''],
-  'Extras hold': ['Room 08 · Extras', 'Everything else it takes to go digital.', 'Click a carriage to see what it carries.'],
-  'Map hold': ['Room 08 · Being found', 'On the map, and on your Google Business Profile.', 'Set up in every plan.'],
-  'Greenhouse hold': ['Room 09 · The greenhouse', "We don't launch and leave.", 'We look after it.'],
+  'Out of the cabin': ['Chapter 4 · Launch', 'Next: going live.', ''],
+  'Extras hold': ['Room 08 · Chapter 4, Launch', 'Going live takes more than a site.', 'Click a carriage to see what it carries.'],
+  'Map hold': ['Room 08 · Being found', 'On the map, and on Google.', 'Your Business Profile, set up in every plan.'],
+  'Greenhouse hold': ['Room 09 · Chapter 5, Care', "We don't launch and leave.", 'We look after it.'],
   'Care tools': ['Room 09 · A care plan', 'Hosting, backups, uptime, security updates,', 'and a few small changes a month.'],
-  'Kites up to the Rooftop': ['Room 10 · The rooftop', 'Up on the roof.', 'The desk is one step away.'],
-  'Settle on the desk': ['Room 10 · Rooftop front desk', "Let's build yours.", 'The desk is open.'],
+  'Kites up to the Rooftop': ['Room 10 · The rooftop', 'Five chapters done.', 'The next story is yours.'],
+  'Settle on the desk': ['Room 10 · The front desk', "Let's build yours.", 'Tell Rahul about your business.'],
 };
 const cap = document.getElementById('caption'), capLabel = cap.querySelector('.label'), capH = cap.querySelector('h1'), capCta = cap.querySelector('.cta'), capNum = cap.querySelector('.num');
 let capWords = [];
@@ -422,7 +422,7 @@ const WORTH = [
 const INFO = {};
 PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} of 03`, h: pl.name, lines: [pl.line], plan: pl.name }; });
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
-SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · fictional business`, h: s.name, lines: ['One of five demo sites we built to show the range. The business is made up; the site is real.'] }; });
+SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · a made-up business`, h: s.name, lines: [`First on its page: ${s.page[2].join(', ').toLowerCase()}.`, `One button that matters: ${s.page[3]}.`] }; }); // each says what that business needs, not the same line five times
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type your business name and the desk wears it. Then tell Rahul about it.'], sign: true };

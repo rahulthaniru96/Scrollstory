@@ -15,7 +15,7 @@ function canvas(w, h, draw) {
 
 // Three screens of one made-up business, each drawn twice: as a wireframe with pencil notes, and finished. Tall, so the finished page can scroll.
 export const SCREENS = [
-  { name: 'Home', hero: ['Every business', 'has a story.'], blocks: ['Our story', 'What we do', 'Find us'], cta: 'WhatsApp us' },
+  { name: 'Home', hero: ['Your business,', 'in one line.'], blocks: ['Our story', 'What we do', 'Find us'], cta: 'WhatsApp us' },
   { name: 'Menu', hero: ['What we', 'make, and why.'], blocks: ['Breakfast', 'All day', 'To take home'], cta: 'Order on WhatsApp' },
   { name: 'Book', hero: ['Pick a day.', 'We will be ready.'], blocks: ['Choose a time', 'Tell us who', 'See you then'], cta: 'Book a visit' },
 ];
@@ -90,7 +90,7 @@ export function drafting({ scene, lowQuality }) {
   const pins = [
     ['COLOUR', (x, w, h) => { [OXIDE, TEAL, BUTTER, BLUE, ROSE].forEach((c, k) => { x.fillStyle = c; x.fillRect(16 + k * 46, 40, 40, 110); }); }],
     ['TYPE', (x) => { x.fillStyle = INK; x.font = '400 92px Fraunces, Georgia, serif'; x.fillText('Aa', 30, 120); x.font = '500 20px "Martian Mono", monospace'; x.fillText('Fraunces', 150, 90); x.font = '400 20px "Familjen Grotesk", sans-serif'; x.fillText('Familjen', 150, 120); }],
-    ['THE ONE LINE', (x) => { x.fillStyle = INK; x.font = 'italic 400 30px Fraunces, Georgia, serif'; x.fillText('Every business', 18, 80); x.fillText('has a story.', 18, 118); }],
+    ['THE ONE LINE', (x) => { x.fillStyle = INK; x.font = 'italic 400 30px Fraunces, Georgia, serif'; x.fillText('Your business,', 18, 80); x.fillText('in one line.', 18, 118); }],
     ['A PHONE FIRST', (x) => { x.strokeStyle = INK; x.lineWidth = 4; x.strokeRect(100, 30, 70, 130); for (let k = 0; k < 4; k++) x.fillRect(110, 50 + k * 24, 50, 12); }],
     ['THE ORDER', (x) => { x.fillStyle = INK; x.font = '500 20px "Martian Mono", monospace'; ['1 HELLO', '2 STORY', '3 PROOF', '4 ASK'].forEach((t, k) => x.fillText(t, 20, 56 + k * 32)); }],
   ];

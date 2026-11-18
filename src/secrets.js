@@ -10,10 +10,10 @@ import renders from '../blender/renders/all-components.jpg';
 // Inside each: what the rate card of 13 Nov 2026 (business-and-pricing.md) says about that step. Nothing else is claimed.
 export const BOOKS = [
   { title: 'Story', line: 'We learn your business and find its story.', head: 'Where it starts', facts: ['Signature plans begin with a story concept for your business.', 'Starter: 1 to 3 pages. Signature: 5 to 7.', 'Not sure which? Ask at the rooftop desk.'] },
-  { title: 'Design', line: 'You see every screen before code.', head: 'Before any code', facts: ['You see every screen first.', 'Starter: 2 free revision rounds.', 'Signature plans: 3 free revision rounds.'] },
+  { title: 'Design', line: 'Every screen drawn and agreed first.', head: 'Before any code', facts: ['Every screen is agreed before it is built.', 'Starter: 2 free revision rounds.', 'Signature plans: 3 free revision rounds.'] },
   { title: 'Build', line: 'Hand-checked code, fast on phones.', head: 'In every plan', facts: ['SSL, and fast loading on phones.', 'WhatsApp click-to-chat.', 'Enquiry forms with spam protection.'] },
-  { title: 'Launch', line: 'Domain, hosting, Google profile.', head: 'Going live', facts: ['Deployment and Google Business Profile setup, in every plan.', 'Domain and hosting setup: free with Signature.', 'A Telugu version is an add-on.'] },
-  { title: 'Care', line: 'Backups, updates, small changes.', head: 'After launch', facts: ['30 days of free bug fixes, in every plan.', 'Daily backups with Signature + Admin.', 'Changes after the revision rounds are billed by the hour.'] },
+  { title: 'Launch', line: 'Live, and easy to find.', head: 'Going live', facts: ['Deployment and Google Business Profile setup, in every plan.', 'Domain and hosting setup: free with Signature.', 'A Telugu version is an add-on.'] },
+  { title: 'Care', line: 'Looked after once it is live.', head: 'After launch', facts: ['30 days of free bug fixes, in every plan.', 'Daily backups with Signature + Admin.', 'Changes after the revision rounds are billed by the hour.'] },
 ];
 const DEEP = -60; // the floor of the secret rooms
 // pose: where the camera stands inside. flip: no room, the walk's own view turned upside down.

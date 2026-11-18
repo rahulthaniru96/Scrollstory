@@ -4,13 +4,13 @@ One story, told in order. Each caption says one new thing. Where a point is made
 
 | Act | Stop | The caption says | Why it is here |
 |---|---|---|---|
-| Hook | 00 Arrival | Every business has a story. Come in, we'll show you ours. | The promise of the whole walk. The only place this line is used. |
+| Hook | 00 Arrival | We design and build websites that tell your business's story. Come in. (The loading screen and the band over the door say "website studio" first.) | Who we are and the promise of the walk. |
 | | Lobby, the founder | Rahul Thaniru built this building to show how we work. | Who is telling the story. |
 | 1. What we make | 01 Lobby | We don't just build websites. We tell your story and build its world. | What the studio does differently. |
-| | 02 Gallery | No caption: the sign says Two live sites. Five concept demos. Each screen shows that site's landing page; its card says what the site does and opens it (live site, or the demo hosted with this site). | Proof: two real client projects, then five kinds of business as made-up demos. |
+| | 02 Gallery | No caption: the sign says Two live sites. Five concept demos (G-Thriftz, the best piece, is the last screen). Each screen shows that site's landing page; its card says what the site does and opens it (live site, or the demo hosted with this site). | Proof: two real client projects, then five kinds of business as made-up demos. |
 | | 03 Renovation | Already have a site? Walk through the line. Same café (made up), a new site. | For someone who already has a site. |
 | | 04 Worth it | What you pay for. Each counter says its own point. | The value. Each counter says its own point (custom, safe, legal, customers). |
-| | 05 Workshop | Three plans. One for where you are now. Then Choose one. | The price. |
+| | 05 Workshop | Three ways to get online. One for where you are now. Then Get your business online: three plans (Signature recommended), a live demo in 30 minutes for the unsure, and the 40/40/20 payment split. | The price, and the push to start. |
 | 2. Where it comes from | The stairs | That's what we make. Upstairs: how we make it. | The turn from the offer to the method. |
 | | Milestones | The first website to Scrollstory Studio. | The journey so far. |
 | | Landing | How we work, in five books. Click one to read it. Loose pages blow out of them with one fact each. | The contents page for the rest of the walk. |

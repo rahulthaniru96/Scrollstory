@@ -150,3 +150,18 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Landing books: old brown leather books with a page block, spine and a ribbon in each book's colour; the pages riffle in gusts and a loose page with one fact blows toward the reader.
 - Captions: lines that said what the room already shows are cut (the painted page, the cabin's exit, Worth it's counter count); others are shorter (STORYBOARD.md).
 - Not checked: a real phone and a real GPU (all tests were headless Chrome with software WebGL, phone size emulated); the Lobby's stairwell view, which may be what "Lobby messy" meant.
+
+## Ninth round of feedback (18 Nov 2026)
+
+- Loading screen: "scrollstory / A website studio · Secunderabad" shows at once; behind it the models load and every shader and picture is prepared, then the intro plays. Headless, the 2 s freeze at the start is gone (worst frame after it 0.38 s). Repeat visits use the browser cache (`public/sw.js`); `vercel.json` sets long cache headers for the hashed assets.
+- The walk in stays level: no tilt up to the plaque or the stairwell.
+- Worth it: the counters stand east of the Renovation exit, so the walk turns right along them and on to the Workshop, never back.
+- Gallery: G-Thriftz is the last screen, "our best piece". The live demo offer says 30 minutes everywhere.
+- Windows show bright daylight (soft clouds, a glow for the sun, a washed middle), with a glow on the wall and beams that fade to the floor. The sky is more vivid.
+- Studio identity: page title, header ("website studio"), the band over the door and the arrival caption all say we design and build websites.
+- Plan chooser: "Get your business online", who each plan is for, Signature recommended, "Start with …" buttons, a live-demo strip for the unsure, and the 40/40/20 payment split. Compact on phones.
+- The clock tower's key gives "Achievement unlocked · The Watchmaker"; the rooftop desk card shows the badge or the count of secrets found.
+- Phones: captions and cards are cream cards at the foot of the screen, the header fits, the view is wider in portrait, and the ending is one card.
+- Blender: `blender/components.py` can extrude text in the site's fonts (`blender/fonts`, OFL); `wordmark` and `door_band` replace the flat lettering on the front.
+- Not checked: a real phone, a real GPU, and the service worker on the real host (tested on `vite preview` only).
+

@@ -2,7 +2,7 @@
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
 import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER, RENO, PAGE, BRIDGES, MAP, CABIN } from './world.js';
 
-export const TOTAL_VH = 5721; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 5540; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -74,16 +74,14 @@ export function buildRail() {
   key(0, P(0, 4.6, 34)); look(0, 0, 1);
   hold('Arrival hold', 50, '00 Arrival');
   move('Gate push in', 'room', 110, (a, d) => { look(a, 0, 1); key(a + d, line(0, 20)); look(a + d, 0, 4); });
-  move('Tilt up to the plaque', 'room', 60, (a, d) => { key(a + d, g(0, 19.5)); look(a + d * 0.9, 0, 42); });
   // ---- 01 Lobby ----
   move('Lobby push in', 'room', 140, (a, d) => { // just inside the door the eyes go to the founder's plaque, and the walk rests there
     key(a + d, line(0, 9.2)); look(a + d * 0.35, 0, 2);
     const [y] = aim([0, EYE, 10.8], FOUNDER.at, 0); look(a + d * 0.85, y * 0.7, 0); look(a + d, 0, 0);
   });
-  move('Tilt up the stairwell', 'room', 70, (a, d) => { key(a + d, last()); look(a + d * 0.9, 0, 55); });
   hold('Lobby hold', 50, '01 Lobby');
   move('Look, then turn left', 'room', 130, (a, d) => {
-    look(a, 0, 55);
+    look(a, 0, 0);
     look(a + d * 0.35, 90, 0); // eyes are already west before the body is a third of the way
     key(a + d * 0.55, line(-6.15, 9.2));
     look(a + d * 0.6, 95, 0);
@@ -112,17 +110,17 @@ export function buildRail() {
   // ---- 04 Worth it: the why. Into the south room through the arcade, then along the four counters ----
   move('Out to Worth it', 'room', 120, (a, d) => {
     g(1.2, -11.2); g(1.5, -13.6); key(a + d * 0.75, g(1.5, -16)); key(a + d, g(1.5, -17.6));
-    look(a + d * 0.35, 345, 0); look(a + d * 0.7, 360, 0); look(a + d, 440, 0);
+    look(a + d * 0.35, 345, 0); look(a + d * 0.7, 360, 0); look(a + d, 325, 0); // the row of counters ahead and to the right
   });
   hold('Worth it hold', 50, '04 Worth it');
   for (const [i, c] of COUNTERS.entries()) {
-    move(`To ${c.name}`, 'room', i ? 45 : 95, (a, d) => { key(a + d, line(c.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
+    move(`To ${c.name}`, 'room', 45, (a, d) => { key(a + d, line(c.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
     hold(`Counter: ${c.name}`, 55);
   }
   // ---- 04 Workshop: the price. Round the corner, down the row from its end, a beat at each shop, then step back to choose ----
   const LANE = 7.6;
   move('Corner into Workshop', 'room', 120, (a, d) => {
-    g(7.3, -17.4); key(a + d, g(LANE, -14.6));
+    g(9.4, -16.8); key(a + d, g(LANE, -14.6)); // on round to the right
     look(a + d * 0.45, 300, 0);
     const [y, p] = aim(here(), [11.35, EYE, -5], 200); look(a + d * 0.9, y, p); look(a + d, y, p);
   });
@@ -326,7 +324,7 @@ export function buildRail() {
   const pitchOfS = pchip(lk.map((q) => q.s), lk.map((q) => q.pitch));
 
   // Stops: where the wheel slows and the keys and pips land. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
-  const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Back through to the funicular', 'Funicular to the Signal Cabin', 'Out of the cabin', 'Kites up to the Rooftop'];
+  const END_STOPS = ['Gate push in', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Back through to the funicular', 'Funicular to the Signal Cabin', 'Out of the cabin', 'Kites up to the Rooftop'];
   const stops = [0, TOTAL_VH], siteStops = []; // siteStops: square in front of each Gallery screen but the last
   for (const m of moves) {
     const d = m.s1 - m.s0;

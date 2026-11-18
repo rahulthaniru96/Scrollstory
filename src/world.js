@@ -87,7 +87,7 @@ box('arcade beam N', -6, 6, 3.6, H.wing, -16.25, -15.75, 'pillar');
 // The story runs who, proof, why, price. So the south room is 03 Worth it and the east room is 04 Workshop.
 // rooms.js still builds each room in the frame it was first drawn in (`u` is the place along that wall) and turns the whole room into place.
 // 03 Worth it: four counters on the south room's back wall, facing the courtyard.
-export const COUNTERS = [-11, -7, -3, 1].map((u, i) => ({ u, x: u + 5, z: -21.2, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
+export const COUNTERS = [-3.1, -0.3, 2.5, 5.3].map((u, i) => ({ u, x: u + 5, z: -21.2, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
 export const COUNTER_ROOM = { turn: Math.PI / 2, x: 5, z: -9.85 };
 for (const c of COUNTERS) box(`counter ${c.name}`, c.x - 0.9, c.x + 0.9, 0, 1.1, -22, -20.9, 'furniture', HID); // a terrazzo plinth, drawn by rooms.js
 for (const c of COUNTERS) air(`counter float ${c.name}`, c.x, 1.95, c.z, 0.7); // nothing rests on a counter
@@ -205,10 +205,10 @@ export const TV_CHANNELS = 4; // three beats of the story, then "Your story?"; /
 export const TV = [-6.5, H.home + 1.0, -19];
 
 // Extras fragment.
-// The departure board carries one offer (Rahul, round 8): a live demo of the visitor's site in 15 minutes, asked for on WhatsApp.
+// The departure board carries one offer (Rahul, round 8; 30 minutes from round 9): a live demo of the visitor's site, asked for on WhatsApp.
 // Its four rows are the one message, a row at a time; the train has one carriage, and the map one pin for it.
 export const EXTRAS = [
-  { name: 'LIVE DEMO', title: 'A live demo in 15 minutes', pin: 'Your business', rows: ['LIVE DEMO', 'OF YOUR SITE', 'IN 15 MINUTES', 'ON WHATSAPP'], line: 'Send us your business name on WhatsApp. In 15 minutes, we show you a live demo of its site.' },
+  { name: 'LIVE DEMO', title: 'A live demo in 30 minutes', pin: 'Your business', rows: ['LIVE DEMO', 'OF YOUR SITE', 'IN 30 MINUTES', 'ON WHATSAPP'], line: 'Send us your business name on WhatsApp. In 30 minutes, we show you a live demo of its site.' },
 ];
 export const BOARD = { x: 15, y: H.extras + 2.6, z: -23.84, w: 7.8, h: 2.56, rowY: (r) => H.extras + 3.17 - 0.488 * r }; // the departure board's face, and the height of each row on it
 box('extras slab', 8, 22, H.extras - 1.5, H.extras, -24, -10, 'floor');

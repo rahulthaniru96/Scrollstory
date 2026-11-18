@@ -1,18 +1,18 @@
 // The Gallery: a row of framed screens on the west wall, one per site, each showing that site's real landing page.
 // Two are live client projects; five are concept demos for made-up businesses, hosted with this site (public/demos).
-// The walk goes along the wall and stops square in front of each; the one in front lights up and the others dim.
+// The walk goes along the wall and stops square in front of each; the one in front lights up and the others dim. G-Thriftz, the best piece, is kept for last.
 import * as THREE from 'three';
 
 // `shot` is a still of the landing page (public/shots, 1024 by 640), `url` where its button goes.
 // The demos' lines describe what the demo page does (rahul-context/projects/demo-sites.md); the businesses are made up.
 export const SITES = [
   { name: 'Bhumi Insurance', live: true, shot: 'bhumi', url: 'https://bhumiinsurance.com/', accent: 0xb8202a, line: 'An insurance brokerage in Hyderabad. Its page compares partner insurers and puts one call to an advisor first.' },
-  { name: 'G-Thriftz', live: true, shot: 'gthriftz', url: 'https://g-thriftz.vercel.app/', accent: 0xb86b7e, line: 'An online thrift store you walk into by scrolling.' },
   { name: 'Shutter Café', shot: 'shutter-cafe', url: 'demos/shutter-cafe.html', accent: 0x2f6b4f, line: 'The shutter rolls up as you scroll, onto a letterboard menu. Order on WhatsApp.' },
   { name: 'Round Zero Fitness', shot: 'round-zero-gym', url: 'demos/round-zero-gym.html', accent: 0xc8202a, line: 'A gym as a boxing ring: a round clock and a sliding week of classes. Book a free trial.' },
   { name: 'Little Banyan Preschool', shot: 'little-banyan-preschool', url: 'demos/little-banyan-preschool.html', accent: 0x2f6b3a, line: 'A banyan tree grows as you scroll, and the sun crosses the school day. Book a visit.' },
   { name: 'Axiom Academy', shot: 'axiom-academy', url: 'demos/axiom-academy.html', accent: 0xe0b23a, line: 'Coaching on a chalkboard, equations writing themselves. Book a free demo class.' },
   { name: 'Aaranya Residences', shot: 'aaranya-residences', url: 'demos/aaranya-residences.html', accent: 0xe8a070, line: "Homes in an architect's line drawing, dawn to dusk, windows lighting up. Book a site visit." },
+  { name: 'G-Thriftz', live: true, best: true, shot: 'gthriftz', url: 'https://g-thriftz.vercel.app/', accent: 0xb86b7e, line: 'An online thrift store you walk into by scrolling. Our best piece so far.' },
 ];
 const hex = (c) => '#' + c.toString(16).padStart(6, '0');
 

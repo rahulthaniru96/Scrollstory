@@ -344,7 +344,7 @@ const COPY = {
   'Drafting hold': ['Room 06 · Chapter 2, Design', 'You see every screen', 'before a line of code.'],
   'Signal Cabin hold': ['Room 07 · Chapter 3, Build', 'Behind the page, the systems:', 'bookings, enquiries and staff in one panel.'],
   'Admin panel': ['Room 07 · Pull a lever · demo data', 'New becomes booked.', ''],
-  'Extras hold': ['Room 08 · Chapter 4, Launch', 'See your site live', 'in 15 minutes.'],
+  'Extras hold': ['Room 08 · Chapter 4, Launch', 'See your site live', 'in 30 minutes.'],
   'Map hold': ['Room 08 · Being found', 'On the map, and on Google.', 'Your Business Profile, set up in every plan.'],
   'Greenhouse hold': ['Room 09 · Chapter 5, Care', 'After launch, we maintain your site.', 'Like a gardener keeps a greenhouse.'],
   'Care tools': ['Room 09 · The care plan', 'Hosting care, backups, uptime, updates, small changes.', 'From ₹1,200 a month at launch.'],
@@ -443,10 +443,10 @@ const WORTH = [
 const INFO = {};
 PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} of 03`, h: pl.name, lines: [pl.line], plan: pl.name }; });
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
-{ const LIVE = SITES.filter((s) => s.live).length; SITES.forEach((s, i) => { INFO['site' + i] = s.live
-  ? { label: `Live project 0${i + 1} of 0${LIVE}`, h: s.name, lines: [s.line], link: ['Visit the live site ↗', s.url] }
-  : { label: `Concept demo 0${i + 1 - LIVE} of 0${SITES.length - LIVE} · a made-up business`, h: s.name, lines: [s.line], link: ['Open the demo ↗', s.url] }; }); }
-EXTRAS.forEach((e) => { INFO[`Extra: ${e.name}`] = { label: 'Now boarding · try it', h: e.title, lines: [e.line], act: ['Get my demo on WhatsApp', () => window.open(`https://wa.me/919949088659?text=${encodeURIComponent(`Hi Rahul, I'd like a live demo of my website in 15 minutes.\nMy business: ${signText}`)}`, '_blank', 'noopener')] }; });
+{ const live = SITES.filter((s) => s.live), demos = SITES.filter((s) => !s.live); SITES.forEach((s, i) => { INFO['site' + i] = s.live
+  ? { label: s.best ? 'Live project · our best piece' : `Live project 0${live.indexOf(s) + 1} of 0${live.length}`, h: s.name, lines: [s.line], link: ['Visit the live site ↗', s.url] }
+  : { label: `Concept demo 0${demos.indexOf(s) + 1} of 0${demos.length} · a made-up business`, h: s.name, lines: [s.line], link: ['Open the demo ↗', s.url] }; }); }
+EXTRAS.forEach((e) => { INFO[`Extra: ${e.name}`] = { label: 'Now boarding · try it', h: e.title, lines: [e.line], act: ['Get my demo on WhatsApp', () => window.open(`https://wa.me/919949088659?text=${encodeURIComponent(`Hi Rahul, I'd like a live demo of my website in 30 minutes.\nMy business: ${signText}`)}`, '_blank', 'noopener')] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type it, and the desk wears it in neon.'], sign: true };
 let signText = '';
@@ -460,7 +460,7 @@ const css = new CSS3DRenderer(), cssScene = new THREE.Scene();
 css.domElement.id = 'cards3d'; document.body.append(css.domElement);
 const C3 = 0.0026; // metres per CSS pixel: a 420 px card is 1.1 m wide
 const ANCHOR = {}; // INFO key: [x, y, z, yaw] where its card stands
-COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x + 1.35, 1.7, -20.4, 0]; }); // right of what floats over the counter
+COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x - 1.35, 1.7, -20.4, 0]; }); // left of what floats over the counter: the walk goes on to the right
 ANCHOR['Settle on the desk'] = [13.8, H.rooftop + 1.35, 6.2, 2.7]; // right of the desk, turned to the visitor
 SHOPS.forEach((s) => { ANCHOR[`Shop: ${s.name}`] = [10.25, 1.7, s.z + 1.3, -Math.PI / 2]; }); // right of the shop's device
 EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - (EXTRAS.length - 1) / 2) * 1.45 + 1.6, H.extras + 1.3, -20.6, -0.2]; }); // beside its carriage, the board above it

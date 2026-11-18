@@ -482,10 +482,10 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     mesh(new THREE.PlaneGeometry(BOARD.w, BOARD.h), basic(0xffffff, { map: tex }), BOARD.x, BOARD.y, BOARD.z);
     const rowGlow = glow(0xf2d98b, 5, BOARD.x, BOARD.y, BOARD.z + 0.3, scene, 0);
 
-    // A train of light on the yellow line: one carriage, a stopwatch at 15 in its window.
+    // A train of light on the yellow line: one carriage, a stopwatch at 30 in its window.
     const train = new THREE.Group(); train.position.set(15, y, -21.7); scene.add(train);
-    const ICONS = [ // a stopwatch: its hand a quarter of the way round, 15 minutes
-      (q) => { q.beginPath(); q.arc(64, 70, 42, 0, 7); q.stroke(); q.fillRect(56, 14, 16, 10); q.fillRect(61, 22, 6, 8); q.beginPath(); q.moveTo(64, 70); q.arc(64, 70, 34, -Math.PI / 2, 0); q.closePath(); q.globalAlpha = 0.45; q.fill(); q.globalAlpha = 1; q.font = '700 22px "Martian Mono", monospace'; q.textAlign = 'center'; q.fillText('15', 50, 98); },
+    const ICONS = [ // a stopwatch, half way round: 30 minutes
+      (q) => { q.beginPath(); q.arc(64, 70, 42, 0, 7); q.stroke(); q.fillRect(56, 14, 16, 10); q.fillRect(61, 22, 6, 8); q.beginPath(); q.moveTo(64, 70); q.arc(64, 70, 34, -Math.PI / 2, Math.PI / 2); q.closePath(); q.globalAlpha = 0.45; q.fill(); q.globalAlpha = 1; q.font = '700 22px "Martian Mono", monospace'; q.textAlign = 'center'; q.fillText('30', 50, 98); },
     ];
     const carGeo = new THREE.BoxGeometry(1.32, 1.0, 0.8), carFill = holoFill({ opacity: 0.16 });
     const cars = EXTRAS.map((e, i) => {

@@ -7,7 +7,7 @@ One story, told in order. Each caption says one new thing. Where a point is made
 | Hook | 00 Arrival | Every business has a story. Come in, we'll show you ours. | The promise of the whole walk. The only place this line is used. |
 | | Lobby, the founder | Rahul Thaniru built this building to show how we work. | Who is telling the story. |
 | 1. What we make | 01 Lobby | We don't just build websites. We tell your story and build its world. | What the studio does differently. |
-| | 02 Gallery | Every door, a site we built. Step into any one. Each demo card names what that business needs first and its one button. | Proof: five kinds of business. |
+| | 02 Gallery | No caption: the sign says Two live sites. Five concept demos. Each screen shows that site's landing page; its card says what the site does and opens it (live site, or the demo hosted with this site). | Proof: two real client projects, then five kinds of business as made-up demos. |
 | | 03 Renovation | Your old site isn't the end of your story. Same café, a new site. | For someone who already has a site. |
 | | 04 Worth it | What you are paying for. Four things, one counter each. | The value. Each counter says its own point (custom, safe, legal, customers). |
 | | 05 Workshop | Three plans. One for where you are now. Then Choose one. | The price. |

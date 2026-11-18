@@ -1,10 +1,11 @@
 // 09 The Greenhouse: care plans. "We don't launch and leave. We look after it."
-// A deco glasshouse at the end of a terrace. Five potted plants on the staging, one per demo site, keep growing as the walk goes on.
+// A deco glasshouse at the end of a terrace. Five potted plants on the staging are one site at five ages of care, from week 1 to year 1.
 // The gardener's tools are a care plan's parts (business-and-pricing.md): a watering can that tips by itself (updates), a seed vault that glows (backups),
 // a gauge with a steady heartbeat (uptime), a ledger whose pages turn (a few small changes a month). Click any of them and it does its job.
 import * as THREE from 'three';
 import { GREEN, H } from './world.js';
-import { SITES } from './gallery.js';
+// One site in care, seen at five ages: the longer it is looked after, the bigger it grows.
+const AGES = [['Week 1', 0xc46f4f], ['Month 1', 0xe8a89a], ['Month 3', 0xf2d98b], ['Month 6', 0xcdbbff], ['Year 1', 0x3f6e68]];
 
 const CREAM = '#f7efe2', INK = '#1e2a26', OXIDE = '#9e3b2c', BUTTER = '#f2d98b', TEAL = '#3f6e68';
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -65,22 +66,22 @@ export function greenhouse({ scene, lowQuality }) {
     for (let j = 0; j < (lowQuality ? 3 : 6); j++) { const l = put(new THREE.SphereGeometry(0.07, 8, 6), j % 2 ? leafMat : leaf2, x + Math.cos(j * 2.1) * 0.15, y - 0.08 - j * 0.09, z + Math.sin(j * 2.1) * 0.15); l.scale.set(1, 0.5, 1.6); }
   }
 
-  // ---------- the staging and the five plants, one per demo site. Each grows as the walk goes on, and flowers in its site's colour ----------
+  // ---------- the staging and the five plants: one site at five ages of care. Each is bigger than the one before, and the older ones flower ----------
   for (let s = 0; s < 3; s++) put(new THREE.BoxGeometry(1.8 - s * 0.55, 0.05, 8.4), timber, 34 + s * 0.27, Y + 0.45 + s * 0.42, 1);
   for (const z of [-3.1, 1, 5.1]) put(new THREE.BoxGeometry(1.7, 1.3, 0.06), timber, 34, Y + 0.65, z);
-  const plants = SITES.map((site, i) => {
+  const plants = AGES.map(([age, accent], i) => {
     const z = -2.4 + i * 1.7, step = i % 2 ? 1 : 2, x = 34 + step * 0.27 - 0.1, y = Y + 0.5 + step * 0.42;
     const g = new THREE.Group(); g.position.set(x, y, z); root.add(g);
     put(new THREE.CylinderGeometry(0.24, 0.18, 0.36, 16), std([0x9e3b2c, 0xc46f4f, 0xe8a89a, 0x3f6e68, 0xd8cdb8][i]), 0, 0.18, 0, g);
     put(new THREE.CylinderGeometry(0.22, 0.22, 0.03, 16), std(0x4a3626), 0, 0.35, 0, g);
-    const tag = canvas(256, 96, (x, w, h) => { x.fillStyle = CREAM; x.fillRect(0, 0, w, h); x.fillStyle = INK; x.font = '500 30px Fraunces, Georgia, serif'; x.fillText(site.name, 14, 46); x.fillStyle = '#8c8a82'; x.font = '500 15px "Martian Mono", monospace'; x.fillText('DEMO SITE · FICTIONAL', 14, 80); });
-    const t = put(new THREE.PlaneGeometry(0.42, 0.16), new THREE.MeshStandardMaterial({ map: tag }), -0.25, 0.2, 0, g); t.rotation.y = -Math.PI / 2;
+    const tag = canvas(256, 96, (x, w, h) => { x.fillStyle = CREAM; x.fillRect(0, 0, w, h); x.fillStyle = INK; x.font = '600 40px Fraunces, Georgia, serif'; x.fillText(age, 14, 50); x.fillStyle = '#8c8a82'; x.font = '500 15px "Martian Mono", monospace'; x.fillText('YOUR SITE, IN CARE', 14, 82); });
+    const t = put(new THREE.PlaneGeometry(0.5, 0.19), new THREE.MeshStandardMaterial({ map: tag }), -0.25, 0.2, 0, g); t.rotation.y = -Math.PI / 2;
     const stem = new THREE.Group(); stem.position.y = 0.36; g.add(stem);
     const leaves = [];
     for (let k = 0; k < (lowQuality ? 5 : 9); k++) { const an = k * 2.4, l = put(new THREE.SphereGeometry(0.11, 10, 8), k % 2 ? leafMat : leaf2, Math.cos(an) * 0.12, 0.12 + k * 0.1, Math.sin(an) * 0.12, stem); l.scale.set(1, 0.45, 1.8); l.rotation.set(0.4, an, 0.3); l.userData.k = k; leaves.push(l); }
     put(new THREE.CylinderGeometry(0.015, 0.02, 1.0, 6), std(0x4f6e42), 0, 0.5, 0, stem);
     const bloom = new THREE.Group(); bloom.position.y = 1.05; stem.add(bloom);
-    for (let k = 0; k < 6; k++) { const p = put(new THREE.SphereGeometry(0.07, 10, 8), std(site.accent, { roughness: 0.5, emissive: site.accent, emissiveIntensity: 0.15 }), Math.cos(k) * 0.07, 0, Math.sin(k) * 0.07, bloom); p.scale.set(1, 0.4, 1.5); p.rotation.y = k; }
+    for (let k = 0; k < 6; k++) { const p = put(new THREE.SphereGeometry(0.07, 10, 8), std(accent, { roughness: 0.5, emissive: accent, emissiveIntensity: 0.15 }), Math.cos(k) * 0.07, 0, Math.sin(k) * 0.07, bloom); p.scale.set(1, 0.4, 1.5); p.rotation.y = k; }
     put(new THREE.SphereGeometry(0.04, 8, 6), std(0xf2d98b), 0, 0.02, 0, bloom);
     return { stem, leaves, bloom, ph: i * 1.3 };
   });
@@ -155,9 +156,9 @@ export function greenhouse({ scene, lowQuality }) {
     update(t, dt, grow, tools) { // grow: 0 to 1 as the walk comes in; tools: 0 to 1 at the tools' stop (the vault opens a crack, the ledger turns)
       const now = performance.now() / 1000, fresh = (id) => Math.max(0, 1 - (now - act[id]) / 3);
       plants.forEach((p, i) => {
-        const g = sstep(i * 0.08, 0.6 + i * 0.08, grow);
+        const g = sstep(i * 0.08, 0.6 + i * 0.08, grow) * (0.4 + 0.15 * i); // older in care, bigger
         p.stem.scale.set(0.5 + 0.5 * g, 0.25 + 0.75 * g, 0.5 + 0.5 * g); p.stem.rotation.z = Math.sin(t * 0.6 + p.ph) * 0.04;
-        p.bloom.scale.setScalar(sstep(0.7, 1, g) * (1 + 0.15 * fresh('can')));
+        p.bloom.scale.setScalar(sstep(0.55, 0.9, g) * (1 + 0.15 * fresh('can')));
         p.leaves.forEach((l) => { l.visible = l.userData.k < 3 + g * 6; });
       });
       // the can tips every few seconds by itself, or at once when clicked

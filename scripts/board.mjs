@@ -223,7 +223,7 @@ const dashed = (pts, extra = '') => `<polyline points="${pts.map((q) => f(q[0]) 
     g += rectP(G, c.min[0], c.max[0], c.min[2], c.max[2], fill);
   }
   g += stairPlan(G);
-  for (const c of CARDS) g += rectP(G, c.x - 0.8, c.x + 0.8, c.z - 0.08, c.z + 0.08, '#E8A89A', `stroke="${INK}" stroke-width="0.8"`);
+  for (const c of CARDS) g += rectP(G, c.x - 0.08, c.x + 0.08, c.z - 1, c.z + 1, '#E8A89A', `stroke="${INK}" stroke-width="0.8"`);
   g += lane(G, (q) => q[2] < 2.2 && q[0] < rail.moves.find((m) => m.name === 'Step onto the stair').s1);
   g += tag(G, -3.6, 11.4, '01 LOBBY') + rot(G, -14.7, -2, '02 GALLERY') + tag(G, 0, -6.4, 'WATER COURTYARD', '#F7F1E6') + tag(G, 0, -16.9, '03 WORTH IT') + rot(G, 16, -2, '04 WORKSHOP') + tag(G, 0, 27, 'STREET', MUTED) + tag(G, 0, 19.6, 'GATE', MUTED, 9);
   for (const c of COUNTERS) g += tag(G, c.x, -22.9, c.name.toUpperCase(), MUTED, 8.5);

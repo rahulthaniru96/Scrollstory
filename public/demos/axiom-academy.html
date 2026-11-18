@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Axiom Academy</title>
+</head>
+<body>
+
+<script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('anim')</script>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Kalam:wght@400;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+.mask{display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em}
+.ln{display:block;will-change:transform}
+.ch{display:inline-block}
+.w{display:inline}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[data-marquee]{overflow:hidden;white-space:nowrap}
+[data-marquee]>*{display:inline-flex;width:max-content}
+[data-parallax]{overflow:hidden}
+[data-parallax] img,[data-parallax] .pimg{height:120%;width:100%;object-fit:cover;margin-top:-10%}
+.grain{position:fixed;inset:-50%;pointer-events:none;z-index:80;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation:grain .9s steps(6) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}20%{transform:translate(-6%,3%)}40%{transform:translate(5%,-5%)}60%{transform:translate(-3%,7%)}80%{transform:translate(7%,1%)}}
+.ai-note{font-size:11px;letter-spacing:.02em;opacity:.75}
+:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* world: a classroom blackboard — green slate, chalk white, yellow and blue chalk, a red marking pen on paper */
+:root{--board:#1d3b33;--board-dk:#142a24;--board-lt:#2a4c43;--chalk:#f1f3ee;--chalk-dim:#b9c6bf;--yellow:#f4d35e;--cblue:#8ecae6;--paper:#f5f6f2;--ink:#18221f;--pen:#d64933;--rule:#d9ddd6;
+  --f-d:'Archivo',ui-sans-serif,system-ui,sans-serif;--f-c:'Kalam','Comic Sans MS',cursive;color-scheme:light}
+body{background:var(--paper);color:var(--ink);font:17px/1.6 var(--f-d)}
+main{overflow-x:clip}
+.gut{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-d);font-stretch:125%;font-weight:800;line-height:.98;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:clamp(40px,5.4vw,78px)}
+h3{font-size:clamp(24px,2.2vw,30px);letter-spacing:-.01em}
+p{margin:0}
+.lede{max-width:50ch;font-size:clamp(17px,1.4vw,19px)}
+.chalk{font-family:var(--f-c);font-weight:400;text-shadow:0 0 1px rgba(241,243,238,.6)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;border-radius:6px;font:700 17px/1 var(--f-d);font-stretch:112%;text-decoration:none;border:0;background:var(--yellow);color:var(--ink)}
+.btn:hover{background:#ffe07a}
+.btn--line{background:transparent;color:inherit;box-shadow:inset 0 0 0 2px currentColor}
+.btn--line:hover{background:rgba(255,255,255,.08)}
+.sec{padding-block:clamp(90px,11vw,150px)}
+.head{display:grid;gap:18px;margin-bottom:52px}
+.board{background:radial-gradient(ellipse at 20% 30%,rgba(255,255,255,.06),transparent 55%),radial-gradient(ellipse at 80% 70%,rgba(255,255,255,.05),transparent 50%),var(--board);color:var(--chalk)}
+
+/* header */
+.top{position:fixed;inset:0 0 auto;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px;color:var(--chalk);transition:background .35s}
+.top.solid{background:rgba(20,42,36,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 21px/1 var(--f-d);font-stretch:125%;white-space:nowrap}
+.mark b{font:700 30px/1 var(--f-c);color:var(--yellow)}
+.top nav{display:flex;gap:22px;align-items:center;font-weight:600;font-size:15px}
+.top nav a{text-decoration:none;opacity:.85}.top nav a:hover{opacity:1}
+.top .btn{padding:11px 16px;font-size:15px;opacity:1;white-space:nowrap}
+@media (max-width:780px){.top nav a:not(.btn){display:none}}
+
+/* hero */
+.hero{min-height:100vh;min-height:100svh;display:grid;align-items:center;padding-top:104px;padding-bottom:60px;position:relative;overflow:hidden}
+.hero__grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:48px;align-items:center}
+.hero h1{font-size:clamp(44px,min(6vw,11vh),96px)}
+.hero__exams{font:700 24px/1 var(--f-c);color:var(--yellow);margin-bottom:18px}
+.hero .lede{margin-top:24px;color:var(--chalk-dim)}
+.who{display:inline-flex;margin-top:30px;background:var(--board-dk);border-radius:8px;padding:4px}
+.who button{border:0;background:transparent;color:var(--chalk-dim);padding:10px 16px;border-radius:6px;font:600 15px/1 var(--f-d)}
+.who button[aria-selected="true"]{background:var(--chalk);color:var(--ink)}
+.perks{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-width:720px}
+.perks li b{display:block;font-weight:700;color:var(--chalk)}
+.perks li{font-size:15px;color:var(--chalk-dim);border-top:1px solid rgba(241,243,238,.25);padding-top:10px}
+.perks[hidden]{display:none}
+.hero__cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.eqs{display:grid;gap:26px;position:relative}
+.eq{display:grid;gap:2px}
+.eq small{font:600 13px/1 var(--f-d);color:var(--chalk-dim)}
+.eq .chalk{font-size:clamp(28px,2.8vw,40px);line-height:1.15;display:inline-block;white-space:nowrap}
+.eq:nth-child(1){transform:rotate(-2deg)}.eq:nth-child(2){margin-left:18%;transform:rotate(1deg)}.eq:nth-child(3){transform:rotate(-1deg);margin-left:6%}.eq:nth-child(4){margin-left:22%;transform:rotate(1.5deg)}.eq:nth-child(5){transform:rotate(-1.2deg)}
+.eq .y{color:var(--yellow)}.eq .b{color:var(--cblue)}
+.ul{display:block;height:10px;width:100%;max-width:240px;overflow:visible}
+@media (max-width:900px){.hero__grid{grid-template-columns:minmax(0,1fr)}.perks{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.eqs{gap:16px}}
+@media (max-width:420px){.perks{grid-template-columns:minmax(0,1fr)}}
+
+.exams{background:var(--yellow);color:var(--ink);padding:14px 0;font:800 clamp(22px,2.6vw,32px)/1 var(--f-d);font-stretch:125%}
+.exams div{gap:30px;align-items:center;padding-right:30px}
+.exams i{font:700 30px/1 var(--f-c);font-style:normal}
+
+/* courses — panels wipe over each other */
+#courses{background:var(--paper)}
+.stack{position:relative}
+.panel{border-radius:18px;padding:clamp(28px,4vw,56px);display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:40px;align-items:end;margin-bottom:18px}
+.panel h3{font-size:clamp(40px,5.6vw,84px);line-height:.95;letter-spacing:-.03em}
+.panel .lvl{font:700 26px/1 var(--f-c);margin-bottom:14px;display:block}
+.panel p{margin-top:18px;max-width:42ch;font-size:18px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:0;list-style:none}
+.tags li{border:1.5px solid currentColor;border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600}
+.facts{display:grid;gap:0;border-top:2px solid currentColor}
+.facts div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid currentColor;font-size:16px}
+.facts b{font-stretch:112%}
+.p1{background:var(--board);color:var(--chalk)}.p2{background:var(--yellow);color:var(--ink)}.p3{background:var(--cblue);color:var(--ink)}.p4{background:var(--ink);color:var(--chalk)}
+.p1 .lvl,.p4 .lvl{color:var(--yellow)}
+@media (min-width:0px){
+  .anim .stack{min-height:360px}
+  .anim .panel{position:absolute;inset:0;margin:0}
+  .anim #courses.sec{padding-block:0}
+  .anim #courses .wrap{min-height:100vh;min-height:100svh;display:grid;grid-template-rows:auto 1fr;padding-top:96px;padding-bottom:24px;gap:22px}
+  .anim #courses .head{margin:0}
+  .anim #courses .head .lede{display:none}
+}
+@media (max-width:860px){.panel{grid-template-columns:minmax(0,1fr);gap:22px;align-content:space-between}.panel p{font-size:16px;margin-top:12px}}
+.c-note{font-size:15px;color:#4f5c57;margin-top:10px}
+
+/* method loop */
+#method{position:relative}
+.loopwrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:center}
+.steps{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:4px}
+.steps li{display:grid;grid-template-columns:44px 1fr;gap:4px 14px;padding:14px 0;border-top:1px solid rgba(241,243,238,.18);opacity:.45;transition:opacity .3s}
+.steps li.on{opacity:1}
+.steps li span{grid-row:span 2;font:700 28px/1 var(--f-c);color:var(--yellow)}
+.steps li p{font-size:15px;color:var(--chalk-dim)}
+.loop{position:relative;width:min(100%,520px);margin:0 auto;aspect-ratio:1}
+.loop svg{width:100%;height:100%;overflow:visible}
+.loop__mid{position:absolute;inset:27%;display:grid;place-content:center;text-align:center;gap:8px}
+.loop__mid .chalk{font-size:clamp(26px,3vw,40px);color:var(--yellow);line-height:1.05}
+.loop__mid p{font-size:15px;color:var(--chalk-dim)}
+.loop text{font:700 26px var(--f-c);fill:var(--chalk)}
+html:not(.anim) .loop{display:none}
+@media (min-width:0px){.anim #method.sec{padding-block:0}.anim #method .loopwrap{min-height:100vh;min-height:100svh;padding-block:90px 30px}}
+@media (max-width:900px){.loopwrap{grid-template-columns:minmax(0,1fr);gap:16px}.anim .steps{display:none}.loop{width:min(100%,380px)}.anim #method .head .lede{display:none}}
+
+/* parents */
+.par{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:60px;align-items:center}
+.ticks{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:14px}
+.ticks li{display:grid;grid-template-columns:30px 1fr;gap:12px;font-size:18px}
+.ticks li::before{content:"✓";font:700 26px/1 var(--f-c);color:var(--pen)}
+.phone-stage{perspective:1400px;display:grid;justify-items:center}
+.phone{width:min(100%,320px);border-radius:42px;background:#0e1513;padding:12px;box-shadow:0 40px 80px rgba(20,42,36,.35);transform-style:preserve-3d}
+.screen{background:var(--paper);border-radius:32px;padding:28px 20px 22px;display:grid;gap:14px;font-size:14px}
+.screen .who2{display:flex;justify-content:space-between;align-items:baseline}
+.screen .who2 b{font-size:18px;font-stretch:112%}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpis div{background:#fff;border-radius:16px;padding:12px}
+.kpis strong{display:block;font-size:30px;font-stretch:118%;line-height:1;font-variant-numeric:tabular-nums}
+.kpis small{color:#5c6763}
+.bars{background:#fff;border-radius:16px;padding:12px 12px 8px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;height:130px}
+.bars i{display:block;background:var(--board-lt);border-radius:4px 4px 0 0;transform-origin:50% 100%}
+.bars i:last-of-type{background:var(--pen)}
+.bars span{font-size:11px;text-align:center;color:#5c6763;grid-row:2}
+.tnote{background:#fff7d6;border-radius:16px;padding:12px;font:400 17px/1.3 var(--f-c)}
+.sample{font-size:14px;color:#5c6763;margin-top:14px;text-align:center}
+@media (max-width:900px){.par{grid-template-columns:minmax(0,1fr)}}
+
+/* batches */
+#batches{background:var(--board-dk);color:var(--chalk)}
+.batches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.batch{background:var(--board);border-radius:14px;padding:26px;display:grid;gap:12px;align-content:start}
+.batch p{color:var(--chalk-dim);font-size:15px}
+.seats{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:8px}
+.seats i{aspect-ratio:1;border:1.5px solid rgba(241,243,238,.4);border-radius:3px}
+.seats i.t{background:var(--yellow);border-color:var(--yellow)}
+.left{font:700 24px/1 var(--f-c);color:var(--yellow)}
+@media (max-width:900px){.batches{grid-template-columns:minmax(0,1fr)}}
+
+/* final */
+#visit{text-align:center}
+#visit h2{font-size:clamp(48px,7.4vw,112px);max-width:13ch;margin:0 auto}
+#visit .lede{margin:22px auto 0}
+.reach{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;margin-top:34px}
+.reach .num{font:700 30px/1 var(--f-c);color:var(--yellow);user-select:all}
+.copy-ok{font-size:14px;color:var(--chalk-dim)}
+footer{background:var(--board-dk);color:var(--chalk-dim);font-size:14px;padding-block:28px calc(28px + env(safe-area-inset-bottom,0px))}
+footer p+p{margin-top:6px}
+</style>
+
+<div class="grain" aria-hidden="true"></div>
+<header class="top gut" id="top">
+  <a class="mark" href="#home"><b>∀</b>Axiom Academy</a>
+  <nav aria-label="Main"><a href="#courses">Courses</a><a href="#method">Method</a><a href="#parents">Parents</a><a href="#batches">Batches</a><a class="btn" href="#visit" data-magnetic=".25">Free demo class</a></nav>
+</header>
+
+<main>
+<section class="hero board gut" id="home">
+  <div class="wrap hero__grid">
+    <div>
+      <p class="hero__exams" data-in>JEE, EAMCET and NEET coaching in Dilsukhnagar</p>
+      <h1 data-hero-title>Understand it once. Remember it in the exam.</h1>
+      <p class="lede" data-in>Small batches of 30, teachers who explain the “why”, a test every Sunday and a doubt clinic every evening. No 200-student halls.</p>
+      <div data-in>
+        <div class="who" role="tablist" aria-label="Show details for"><button role="tab" aria-selected="true" aria-controls="for-s" id="t-s">I'm a student</button><button role="tab" aria-selected="false" aria-controls="for-p" id="t-p">I'm a parent</button></div>
+        <ul class="perks" id="for-s" role="tabpanel" aria-labelledby="t-s"><li><b>Concept-first classes</b>Every chapter starts from a real problem.</li><li><b>Sunday tests</b>Full-length, with a rank and solutions.</li><li><b>Doubt clinic</b>6–8 pm daily, one-on-one.</li></ul>
+        <ul class="perks" id="for-p" role="tabpanel" aria-labelledby="t-p" hidden><li><b>Weekly report</b>Marks, attendance and a teacher note.</li><li><b>Parent app</b>See tests and attendance any time.</li><li><b>Monthly meeting</b>15 minutes with the class teacher.</li></ul>
+      </div>
+      <div class="hero__cta" data-in><a class="btn" href="#visit" data-magnetic=".3">Book a free demo class</a><a class="btn btn--line" href="#courses">See courses</a></div>
+    </div>
+    <div class="eqs" aria-label="Sample problems on the board">
+      <div class="eq"><small>Maths, calculus</small><span class="chalk" data-write>∫₀¹ x² dx = <span class="y">1/3</span></span></div>
+      <div class="eq"><small>Physics, kinematics</small><span class="chalk" data-write>v = u + at</span><svg class="ul" viewBox="0 0 240 10" preserveAspectRatio="none" aria-hidden="true"><path data-ul d="M2 6C60 2 140 9 236 4" stroke="#f4d35e" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="eq"><small>Chemistry, organic</small><span class="chalk b" data-write>CH₃–CH₂–OH</span></div>
+      <div class="eq"><small>Biology, genetics</small><span class="chalk" data-write>Aa × Aa → <span class="y">1 : 2 : 1</span></span></div>
+      <div class="eq"><small>Physics, optics</small><span class="chalk" data-write>1/f = 1/v − 1/u</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="exams" data-marquee="28" aria-label="JEE Main, TS EAMCET, NEET, Intermediate boards, Olympiad, Foundation"><div><span>JEE Main</span><i>✓</i><span>TS EAMCET</span><i>✓</i><span>NEET</span><i>✓</i><span>Intermediate boards</span><i>✓</i><span>Olympiad</span><i>✓</i><span>Foundation</span><i>✓</i></div></div>
+
+<section class="sec gut" id="courses">
+  <div class="wrap">
+    <div class="head"><h2 data-lines>Pick the track, we'll pace it</h2><p class="lede">Every course has the same backbone — concept class, practice sheet, Sunday test, doubt clinic — just tuned to the exam.</p></div>
+    <div class="stack">
+      <article class="panel p1"><div><span class="lvl">Class 8–10</span><h3>Foundation</h3><p>Maths and science done properly early, so Intermediate doesn't feel like a cliff.</p><ul class="tags"><li>2 yrs</li><li>Evenings</li><li>Olympiad prep</li></ul></div><div class="facts"><div><span>Batch size</span><b>30</b></div><div><span>Starts</span><b>4 pm</b></div><div><span>Tests</span><b>Saturdays</b></div></div></article>
+      <article class="panel p2"><div><span class="lvl">Inter MPC</span><h3>JEE Main + EAMCET</h3><p>Two-year integrated programme alongside the board syllabus. Mock JEE every month.</p><ul class="tags"><li>2 yrs</li><li>Morning batch</li><li>Weekly tests</li></ul></div><div class="facts"><div><span>Batch size</span><b>30</b></div><div><span>Starts</span><b>6:30 am</b></div><div><span>Tests</span><b>Sundays</b></div></div></article>
+      <article class="panel p3"><div><span class="lvl">Inter BiPC</span><h3>NEET + EAMCET</h3><p>Biology-heavy schedule with NCERT line-by-line revision and diagram practice.</p><ul class="tags"><li>2 yrs</li><li>Evening batch</li><li>NCERT drills</li></ul></div><div class="facts"><div><span>Batch size</span><b>30</b></div><div><span>Starts</span><b>4 pm</b></div><div><span>Tests</span><b>Sundays</b></div></div></article>
+      <article class="panel p4"><div><span class="lvl">After Inter</span><h3>Long-term &amp; crash</h3><p>One-year repeater batch, and a 60-day crash course before EAMCET.</p><ul class="tags"><li>1 yr / 60 days</li><li>Full day</li><li>Daily tests</li></ul></div><div class="facts"><div><span>Batch size</span><b>40</b></div><div><span>Starts</span><b>9 am</b></div><div><span>Tests</span><b>Daily</b></div></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec board gut" id="method">
+  <div class="wrap loopwrap">
+    <div>
+      <div class="head" style="margin:0"><h2 data-lines>Same loop, every week</h2><p class="lede" style="color:var(--chalk-dim)">Students stop cramming when the rhythm is predictable.</p></div>
+      <ol class="steps">
+        <li class="on"><span>1</span><h3>Concept class</h3><p>Start from a problem, build the idea, then the formula.</p></li>
+        <li><span>2</span><h3>Practice sheet</h3><p>Graded questions — easy, exam-level, then tricky.</p></li>
+        <li><span>3</span><h3>Sunday test</h3><p>Exam pattern, timed, with a rank and full solutions.</p></li>
+        <li><span>4</span><h3>Doubt clinic</h3><p>Every mistake from the test gets fixed one-on-one.</p></li>
+      </ol>
+    </div>
+    <div class="loop" aria-hidden="true">
+      <svg viewBox="0 0 500 500">
+        <circle cx="250" cy="250" r="190" fill="none" stroke="rgba(241,243,238,.25)" stroke-width="3" stroke-dasharray="3 12" stroke-linecap="round"/>
+        <circle data-arc cx="250" cy="250" r="190" fill="none" stroke="#f4d35e" stroke-width="5" stroke-linecap="round" pathLength="1" transform="rotate(-90 250 250)"/>
+        <g data-nodes></g>
+        <circle data-dot r="11" fill="#f4d35e"/>
+      </svg>
+      <div class="loop__mid"><span class="chalk" data-mid-t>Concept class</span><p data-mid-p>Start from a problem, build the idea, then the formula.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="parents">
+  <div class="wrap par">
+    <div>
+      <h2 data-lines>Know how they're doing before the results.</h2>
+      <ul class="ticks"><li>Weekly marks and attendance on the parent app</li><li>An SMS if your child misses a class</li><li>Monthly 15-minute meeting with the class teacher</li><li>Fee receipts and timetable in one place</li></ul>
+    </div>
+    <div class="phone-stage">
+      <div class="phone"><div class="screen">
+        <div class="who2"><b>Ravi, MPC-A</b><span>Week 14</span></div>
+        <div class="kpis"><div><strong data-count="92" data-suf="%">92%</strong><small>Attendance</small></div><div><strong><span data-count="148">148</span><small style="font-size:14px">/180</small></strong><small>Last test</small></div></div>
+        <div class="bars"><i style="height:52%"></i><i style="height:60%"></i><i style="height:57%"></i><i style="height:68%"></i><i style="height:74%"></i><i style="height:82%"></i><span>W9</span><span>W10</span><span>W11</span><span>W12</span><span>W13</span><span>W14</span></div>
+        <p class="tnote">Teacher note: Strong in mechanics, needs practice in organic reactions — extra sheet sent.</p>
+      </div></div>
+      <p class="sample">App screen is a sample — numbers are illustrative.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="batches">
+  <div class="wrap">
+    <div class="head"><h2 data-lines>Batches for 2026–27. Seats are limited.</h2><p class="lede" style="color:var(--chalk-dim)">Each square is a seat. Filled ones are taken (sample).</p></div>
+    <div class="batches">
+      <article class="batch"><h3>MPC, morning</h3><p>JEE Main + EAMCET, Mon–Sat 6:30 – 9:30 am</p><div class="seats" data-seats="30" data-taken="22"></div><span class="left" data-left></span></article>
+      <article class="batch"><h3>BiPC, evening</h3><p>NEET + EAMCET, Mon–Sat 4:00 – 7:00 pm</p><div class="seats" data-seats="30" data-taken="17"></div><span class="left" data-left></span></article>
+      <article class="batch"><h3>Foundation, weekend</h3><p>Class 8–10 Maths &amp; Science, Sat–Sun 10 am</p><div class="seats" data-seats="30" data-taken="11"></div><span class="left" data-left></span></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec board gut" id="visit">
+  <div class="wrap">
+    <h2 data-lines>Sit in a class. Then decide.</h2>
+    <p class="lede" style="color:var(--chalk-dim)">Book a free demo class for your track — bring a doubt from school and see how we solve it.</p>
+    <div class="reach"><span class="num" data-num>+91 90000 00000</span><button class="btn" data-copy data-magnetic=".25">Copy number</button><span class="copy-ok" data-copy-ok aria-live="polite"></span></div>
+    <p class="c-note" style="color:var(--chalk-dim)">Call or WhatsApp to book — demo number.</p>
+  </div>
+</section>
+</main>
+<footer class="gut"><div class="wrap"><p>Axiom Academy, Dilsukhnagar, Hyderabad.</p><p>Demo concept for a fictional institute — no real results, names or fees shown.</p></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>/* Demo motion core — GSAP 3.12.5 + ScrollTrigger + Lenis 1.1.13. Our own code, patterns from Rebuild Recipe Part 1. */
+(function () {
+  const W = window, D = document, H = D.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ok = !!(W.gsap && W.ScrollTrigger) && !reduce;
+  const M = (W.MOTION = { ok, reduce, lenis: null });
+  if (!ok) { H.classList.remove('anim'); return; }
+  gsap.registerPlugin(ScrollTrigger);
+  H.classList.add('anim');
+
+  // R1 — smooth scroll on one clock
+  if (W.Lenis && !matchMedia('(hover: none)').matches) {
+    const lenis = new Lenis(Object.assign({ lerp: 0.12, wheelMultiplier: 1.05 }, W.LENIS_OPTS || {}));
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+    M.lenis = lenis;
+    D.addEventListener('click', e => {
+      const a = e.target.closest('a[href^="#"]'); if (!a) return;
+      const t = D.querySelector(a.getAttribute('href')); if (!t) return;
+      e.preventDefault(); lenis.scrollTo(t, { offset: -10, duration: 1.4 });
+    });
+  }
+
+  // R2 — split into masked lines
+  M.splitLines = function (el) {
+    if (el._lines) return el._lines;
+    const words = el.textContent.trim().split(/\s+/);
+    el.setAttribute('aria-label', el.textContent.trim());
+    el.innerHTML = words.map(w => `<span class="w">${w}</span>`).join(' ');
+    const rows = []; let top = null;
+    el.querySelectorAll('.w').forEach(w => {
+      if (Math.abs(w.offsetTop - (top ?? -99)) > 2) { rows.push([]); top = w.offsetTop; }
+      rows[rows.length - 1].push(w.textContent);
+    });
+    el.innerHTML = rows.map(r => `<span class="mask" aria-hidden="true"><span class="ln">${r.join(' ')}</span></span>`).join('');
+    return (el._lines = el.querySelectorAll('.ln'));
+  };
+  M.splitChars = function (el) {
+    const t = el.textContent; el.setAttribute('aria-label', t.trim());
+    el.innerHTML = [...t].map(c => c === ' ' ? ' ' : `<span class="ch" aria-hidden="true">${c}</span>`).join('');
+    return el.querySelectorAll('.ch');
+  };
+
+  // reveal helpers — opt-in per element
+  M.lines = function (sel, o = {}) {
+    gsap.utils.toArray(sel).forEach(el => {
+      const ls = M.splitLines(el);
+      gsap.from(ls, Object.assign({ yPercent: 115, duration: 1.1, ease: 'expo.out', stagger: 0.08,
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true } }, o));
+    });
+  };
+  M.blur = function (sel, o = {}) {
+    gsap.utils.toArray(sel).forEach(el => gsap.from(el.children.length ? el.children : el, Object.assign({
+      opacity: 0, filter: 'blur(10px)', y: 16, duration: 0.6, ease: 'power2.out', stagger: 0.1,
+      scrollTrigger: { trigger: el, start: 'top 85%', once: true } }, o)));
+  };
+
+  // R13 — magnetic
+  M.magnetic = function (sel = '[data-magnetic]') {
+    if (matchMedia('(hover: none)').matches) return;
+    D.querySelectorAll(sel).forEach(b => {
+      const k = +b.dataset.magnetic || 0.3;
+      const x = gsap.quickTo(b, 'x', { duration: 0.6, ease: 'power3' }), y = gsap.quickTo(b, 'y', { duration: 0.6, ease: 'power3' });
+      b.addEventListener('pointermove', e => { const r = b.getBoundingClientRect(); x((e.clientX - r.left - r.width / 2) * k); y((e.clientY - r.top - r.height / 2) * k); });
+      b.addEventListener('pointerleave', () => { x(0); y(0); });
+    });
+  };
+
+  // R12 — scramble to final text
+  M.scramble = function (el, dur = 0.7, glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') {
+    const final = el.dataset.text ??= el.textContent; const st = { p: 0 };
+    el.setAttribute('aria-label', final);
+    return gsap.to(st, { p: 1, duration: dur, ease: 'none', onUpdate() {
+      const n = Math.floor(st.p * final.length);
+      el.textContent = final.slice(0, n) + [...final.slice(n)].map(c => c === ' ' ? ' ' : glyphs[Math.random() * glyphs.length | 0]).join('');
+    }, onComplete() { el.textContent = final; } });
+  };
+
+  // R10 — inner image parallax
+  M.parallax = function (sel = '[data-parallax]') {
+    gsap.utils.toArray(sel).forEach(box => {
+      const img = box.querySelector('img, .pimg'); if (!img) return;
+      const a = +box.dataset.parallax || 10;
+      gsap.fromTo(img, { yPercent: -a }, { yPercent: a, ease: 'none',
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } });
+    });
+  };
+
+  // R11 — marquee that follows scroll direction
+  M.marquee = function (sel = '[data-marquee]') {
+    gsap.utils.toArray(sel).forEach(m => {
+      const tr = m.firstElementChild; tr.innerHTML += tr.innerHTML; tr.lastElementChild && [...tr.children].slice(tr.children.length / 2).forEach(c => c.setAttribute('aria-hidden', 'true'));
+      const loop = gsap.to(tr, { xPercent: -50, duration: +m.dataset.marquee || 30, ease: 'none', repeat: -1 });
+      ScrollTrigger.create({ trigger: m, start: 'top bottom', end: 'bottom top', onUpdate: s => gsap.to(loop, { timeScale: s.direction * (1 + Math.min(Math.abs(s.getVelocity()) / 900, 3)), duration: 0.3, overwrite: true, onComplete: () => gsap.to(loop, { timeScale: s.direction, duration: 0.8 }) }) });
+    });
+  };
+
+  // run page setup once fonts are in (line splits depend on metrics), never wait more than 1.2s
+  M.ready = function (fn) {
+    let done = false; const go = () => { if (done) return; done = true; fn(); ScrollTrigger.refresh(); };
+    (D.fonts && D.fonts.ready ? D.fonts.ready : Promise.resolve()).then(go); setTimeout(go, 1200);
+  };
+  addEventListener('load', () => ScrollTrigger.refresh());
+  if (D.fonts && D.fonts.ready) D.fonts.ready.then(() => ScrollTrigger.refresh());
+})();
+</script>
+<script>
+(function(){
+  // student / parent switch
+  const tabs=document.querySelectorAll('.who button');
+  tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(o=>{const on=o===t;o.setAttribute('aria-selected',on);document.getElementById(o.getAttribute('aria-controls')).hidden=!on;});
+    if(window.MOTION&&MOTION.ok)gsap.from('#'+t.getAttribute('aria-controls')+' li',{y:14,opacity:0,stagger:.06,duration:.4,ease:'power2.out'});}));
+  // seats
+  document.querySelectorAll('[data-seats]').forEach(g=>{const n=+g.dataset.seats,t=+g.dataset.taken;g.setAttribute('role','img');g.setAttribute('aria-label',`${t} of ${n} seats taken`);
+    g.innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<t?'t':''}"></i>`).join('');g.parentElement.querySelector('[data-left]').textContent=`${n-t} seats left`;});
+  const b=document.querySelector('[data-copy]'),ok=document.querySelector('[data-copy-ok]'),num=document.querySelector('[data-num]');
+  b.addEventListener('click',()=>{const sel=()=>{const r=document.createRange();r.selectNodeContents(num);const s=getSelection();s.removeAllRanges();s.addRange(r);ok.textContent='Selected — press copy';};
+    try{navigator.clipboard.writeText(num.textContent).then(()=>ok.textContent='Copied',sel)}catch(e){sel()}});
+  const top=document.getElementById('top');const solid=()=>top.classList.toggle('solid',scrollY>40);addEventListener('scroll',solid,{passive:true});solid();
+})();
+const M=window.MOTION;
+if(M.ok) M.ready(()=>{
+  const mm=gsap.matchMedia();
+  // hero: the teacher writes on the board, line by line
+  const title=M.splitLines(document.querySelector('[data-hero-title]'));
+  const ul=document.querySelector('[data-ul]'),ulL=ul.getTotalLength();gsap.set(ul,{strokeDasharray:ulL,strokeDashoffset:ulL});
+  const tl=gsap.timeline({delay:.15});
+  tl.from(title,{yPercent:110,duration:1,ease:'expo.out',stagger:.1})
+    .from('[data-in]',{y:20,opacity:0,duration:.7,ease:'power3.out',stagger:.08},.35)
+    .from('.eq small',{opacity:0,duration:.4,stagger:.35},.5);
+  gsap.utils.toArray('[data-write]').forEach((w,i)=>tl.fromTo(w,{clipPath:'inset(-20% 100% -20% 0)'},{clipPath:'inset(-20% 0% -20% 0)',duration:.75,ease:'steps(14)'},.55+i*.35));
+  tl.to(ul,{strokeDashoffset:0,duration:.5,ease:'power2.out'},'>-0.2');
+
+  // courses: each track wipes up over the last, like turning to a clean board
+  const panels=gsap.utils.toArray('.panel');
+  const ct=gsap.timeline({scrollTrigger:{trigger:'#courses',start:'top top',end:'+='+(panels.length-1)*90+'%',pin:true,scrub:.6}});
+  panels.forEach((p,i)=>gsap.set(p,{zIndex:i+1}));
+  panels.forEach((p,i)=>{if(!i)return;gsap.set(p,{clipPath:'inset(100% 0% 0% 0% round 18px)'});
+    ct.to(p,{clipPath:'inset(0% 0% 0% 0% round 18px)',duration:1,ease:'power2.inOut'},i-1)
+      .to(panels[i-1],{scale:.95,yPercent:-3,duration:1,ease:'power2.inOut'},i-1);});
+  ct.to({},{duration:.25});
+
+  // method: a chalk dot goes round the weekly loop
+  const steps=document.querySelectorAll('.steps li'),N=steps.length,nodes=document.querySelector('[data-nodes]'),dot=document.querySelector('[data-dot]'),arc=document.querySelector('[data-arc]');
+  const P=a=>[250+190*Math.cos(a),250+190*Math.sin(a)];
+  steps.forEach((s,i)=>{const a=-Math.PI/2+i*Math.PI*2/N,[x,y]=P(a);nodes.insertAdjacentHTML('beforeend',`<circle cx="${x}" cy="${y}" r="26" fill="#1d3b33" stroke="#f1f3ee" stroke-width="2.5"/><text x="${x}" y="${y+9}" text-anchor="middle">${i+1}</text>`);});
+  const nodeC=nodes.querySelectorAll('circle'),mt=document.querySelector('[data-mid-t]'),mp=document.querySelector('[data-mid-p]');
+  gsap.set(arc,{strokeDasharray:1,strokeDashoffset:1});
+  let cur=0;const setStep=i=>{if(i===cur)return;cur=i;steps.forEach((s,k)=>s.classList.toggle('on',k===i));nodeC.forEach((c,k)=>c.setAttribute('fill',k<=i?'#f4d35e':'#1d3b33'));
+    mt.textContent=steps[i].querySelector('h3').textContent;mp.textContent=steps[i].querySelector('p').textContent;gsap.fromTo('.loop__mid',{opacity:0,scale:.92},{opacity:1,scale:1,duration:.45,ease:'back.out(2)'});};
+  nodeC[0].setAttribute('fill','#f4d35e');
+  ScrollTrigger.create({trigger:'#method',start:'top top',end:'+=300%',pin:true,scrub:true,onUpdate(s){const p=s.progress,a=-Math.PI/2+p*Math.PI*2,[x,y]=P(a);
+    gsap.set(dot,{attr:{cx:x,cy:y}});arc.style.strokeDashoffset=1-p;setStep(Math.min(N-1,Math.floor(p*N*1.0001)));}});
+  gsap.set(dot,{attr:{cx:250,cy:60}});
+
+  // parents: phone turns to face you, the week fills in
+  gsap.fromTo('.phone',{rotateY:-28,rotateX:12,y:60},{rotateY:0,rotateX:0,y:0,ease:'none',scrollTrigger:{trigger:'#parents',start:'top 85%',end:'center 55%',scrub:1}});
+  gsap.from('.bars i',{scaleY:0,duration:.8,ease:'power3.out',stagger:.08,scrollTrigger:{trigger:'.phone',start:'top 65%',once:true}});
+  document.querySelectorAll('[data-count]').forEach(el=>{const v=+el.dataset.count,suf=el.dataset.suf||'',o={v:0};
+    gsap.to(o,{v,duration:1.3,ease:'power3.out',scrollTrigger:{trigger:'.phone',start:'top 65%',once:true},onUpdate(){el.textContent=Math.round(o.v)+suf}});});
+  gsap.from('.ticks li',{x:-20,opacity:0,stagger:.1,duration:.6,ease:'power2.out',scrollTrigger:{trigger:'.ticks',start:'top 80%',once:true}});
+
+  // batches: seats fill in, one student at a time
+  document.querySelectorAll('.seats').forEach(g=>gsap.from(g.querySelectorAll('i.t'),{scale:0,duration:.35,ease:'back.out(3)',stagger:.035,scrollTrigger:{trigger:g,start:'top 80%',once:true}}));
+  document.querySelectorAll('[data-left]').forEach(el=>M.scramble&&ScrollTrigger.create({trigger:el,start:'top 85%',once:true,onEnter:()=>M.scramble(el,.8,'0123456789')}));
+
+  M.lines('[data-lines]');M.marquee();M.magnetic();
+});
+</script>
+
+</body>
+</html>

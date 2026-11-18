@@ -8,7 +8,7 @@ import { stepper } from './stepper.js';
 import { dress } from './dress.js';
 import { holoEdges } from './holo.js';
 import { membranes } from './membrane.js';
-import { gallery, SITES } from './gallery.js';
+import { gallery, SITES, siteTexture } from './gallery.js';
 import { deskSign, seat } from './rooms.js';
 import { secrets, BOOKS, SECRETS } from './secrets.js';
 import { sound } from './sound.js';
@@ -99,16 +99,6 @@ const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.posit
 const drift = []; // floating things: [mesh, home y, phase]
 const demoCards = []; // the Gallery's demo sites
 const shell = []; // the ground building's blockout meshes, which the intro builds
-const cardTexture = (() => {
-  const c = document.createElement('canvas'); c.width = 320; c.height = 200;
-  const x = c.getContext('2d');
-  x.fillStyle = '#F7EFE2'; x.fillRect(0, 0, 320, 200);
-  x.fillStyle = '#1E2A26'; x.fillRect(0, 0, 320, 22);
-  x.fillStyle = '#E8A89A'; x.fillRect(24, 44, 272, 78);
-  x.fillStyle = '#8C8A82'; x.fillRect(24, 138, 150, 10); x.fillRect(24, 158, 96, 10);
-  x.fillStyle = '#9E3B2C'; x.font = '500 20px "Martian Mono", monospace'; x.fillText('DEMO', 232, 166);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-})();
 
 for (const c of COLLIDERS) {
   if (c.hidden) continue; // drawn by dress.js
@@ -125,10 +115,10 @@ for (const c of COLLIDERS) {
     geo.rotateX(-Math.PI / 2);
     const m = add(geo, mats[c.kind] || mats.floor, 0, c.min[1], 0); if (c.min[1] < 14) shell.push(m);
   } else if (c.t === 'sph' && c.shape === 'card') { // the other floating things are drawn by rooms.js
-    // A demo site appears out of thin air as the scroll reaches it: motes, then an outline and a ghost, then the page itself.
-    const geo = new THREE.PlaneGeometry(1.6, 1.0), r = { value: 1 }, line = { value: 0 };
+    // A site's screen appears out of thin air as the walk comes up to it: motes, then an outline and a ghost, then the page itself.
+    const geo = new THREE.PlaneGeometry(2.0, 1.25), r = { value: 1 }, line = { value: 0 };
     const m = add(geo, new THREE.ShaderMaterial({
-      side: THREE.DoubleSide, transparent: true, uniforms: { map: { value: cardTexture }, uR: r, uK: { value: 1 } },
+      side: THREE.DoubleSide, transparent: true, uniforms: { map: { value: siteTexture(demoCards.length) }, uR: r, uK: { value: 1 } },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: `uniform sampler2D map; uniform float uR, uK; varying vec2 vUv;
         void main(){ float k = (1.0 - smoothstep(0.5, 0.95, uR)) * 0.035; // the ghost's colours sit apart, then close up
@@ -137,14 +127,13 @@ for (const c of COLLIDERS) {
           #include <colorspace_fragment>
         }`,
     }), c.x, c.y, c.z);
-    m.rotation.y = Math.atan2(-9 - c.x, -3); // faces the spot on the walk 3 m past it, where the camera rests
+    m.rotation.y = Math.PI / 2; // on the west wall, facing the walk
     m.add(holoEdges(geo, { everywhere: true, fade: line }));
     const n = 40, at = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) at.set([(Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, (Math.random() - 0.5) * 0.3], i * 3);
+    for (let i = 0; i < n; i++) at.set([(Math.random() - 0.5) * 2.0, (Math.random() - 0.5) * 1.25, Math.random() * 0.3], i * 3);
     const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(at, 3)), new THREE.PointsMaterial({ size: 0.045, color: 0xd9c8ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     m.add(motes);
     demoCards.push({ m, r, line, motes, z: c.z });
-    drift.push([m, c.y, drift.length * 1.7]);
   }
 }
 
@@ -179,7 +168,7 @@ for (const b of BRIDGES.filter((q) => q.ride === 'doors')) { // the rides draw t
 }
 
 const dressing = dress({ scene, camera, lowQuality });
-const expand = gallery({ scene, cards: demoCards, lowQuality, camera });
+const expand = gallery({ scene, cards: demoCards });
 const hidden = secrets({ scene, camera, lowQuality }), sfx = sound();
 const withRoot = (m) => Object.assign(m, { root: scene.children[scene.children.length - 1] }); // each of these adds one group to the scene, last
 const reno = withRoot(renovation({ scene, lowQuality }));
@@ -229,7 +218,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const SKY = SKY_BY_HEIGHT.map(([h, c]) => [h, new THREE.Color(c)]);
 const DAY = { hemi: new THREE.Color(0xfff4e4), sun: new THREE.Color(0xffe2b8) }, DUSK = { hemi: new THREE.Color(0xd9cdf0), sun: new THREE.Color(0xf6c66a) };
-const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, wipe: -99, page: 0, cards: 0, levers: 0, map: 0, grow: 0, tools: 0, seated: 0, dusk: 0, site: [0, 0, 0, 0, 0], extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
+const env = { h: 0, dark: 1, fogColor: new THREE.Color(), fogDensity: 0.004, wind: 1, air: 0, pointer: null, shop: [0, 0, 0], counter: [0, 0, 0, 0], tv: { ch: -1, f: 1 }, wipe: -99, page: 0, cards: 0, levers: 0, map: 0, grow: 0, tools: 0, seated: 0, dusk: 0, site: SITES.map(() => 0), extra: { u: EXTRAS.map(() => -1), lit: -1, train: 0, leave: 0 }, tint: new THREE.Color(1, 1, 1) };
 function atmosphere(h) {
   let i = 0; while (i < SKY.length - 2 && h > SKY[i + 1][0]) i++;
   env.fogColor.lerpColors(SKY[i][1], SKY[i + 1][1], Math.min(1, Math.max(0, (h - SKY[i][0]) / (SKY[i + 1][0] - SKY[i][0]))));
@@ -333,7 +322,6 @@ const COPY = {
   'Arrival hold': ['Scrollstory Studio · Secunderabad', 'Every business has a story.', "Come in, we'll show you ours."],
   'Lobby push in': ['The founder', 'Rahul Thaniru', 'built this building to show how we work.'],
   'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
-  'Gallery hold': ['Room 02 · The gallery', 'Every door, a site we built.', 'Step into any one.'],
   'Renovation hold': ['Room 03 · The renovation', "Your old site isn't the end of your story.", 'Walk through the line.'],
   'Renovated': ['Room 03 · The renovation', 'Same café, a new site.', 'Move the cursor to compare. The café is made up.'],
   'Worth it hold': ['Room 04 · Worth it', 'What you are paying for.', 'Four things, one counter each.'],
@@ -403,7 +391,7 @@ const byName = Object.fromEntries(rail.moves.map((m) => [m.name, m]));
 const beat = (name, p, pad = 22) => { const m = byName[name]; return sstep(m.s0 - pad, m.s0 + 4, p) * (1 - sstep(m.s1 - 4, m.s1 + pad, p)); };
 const GALLERY = byName['Gallery, walking backwards'], HAT = byName['Through the hat'];
 const TV_SPAN = [byName['HOME partial orbit'].s0, byName['HOME hold'].s1], CHANNELS = TV_CHANNELS; // the last channel is "Your story?"
-const SITE_STOPS = demoCards.map((c, i) => (i < 4 ? GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (10 - c.z)) / 17 : lerp(byName['Gallery hold'].s0, byName['Gallery hold'].s1, 0.6))); // where the walk rests in front of each demo site
+const SITE_STOPS = [...rail.siteStops, lerp(byName['Gallery hold'].s0, byName['Gallery hold'].s1, 0.6)]; // where the walk rests in front of each site
 const EX = EXTRAS.map((e) => byName[`Extra: ${e.name}`]), EX0 = byName['Extras hold'], EX_END = byName['To the map'], CANAL = byName['Sky canal to the Greenhouse']; // the train stays while the board is read, and leaves with the boat
 const LINE = byName['Through the line'], RENO_SPAN = [byName['Renovation hold'].s0 - 30, byName['Renovated'].s1 + 30];
 const PAGE_MOVE = byName['Through the page'], INTO_CABIN = byName['Into the cabin'], TO_PANEL = byName['To the admin panel'];
@@ -445,7 +433,9 @@ const WORTH = [
 const INFO = {};
 PLANS.forEach((pl, i) => { INFO[`Shop: ${pl.name}`] = { label: `Shop 0${i + 1} of 03`, h: pl.name, lines: [pl.line], plan: pl.name }; });
 COUNTERS.forEach((c, i) => { INFO[`Counter: ${c.name}`] = { label: `Counter 0${i + 1} · ${c.name}${c.name === 'Income' ? ' · the ledger' : ''}`, h: WORTH[i][0], lines: WORTH[i].slice(1) }; });
-SITES.forEach((s, i) => { INFO['site' + i] = { label: `Demo 0${i + 1} of 0${SITES.length} · a made-up business`, h: s.name, lines: [`First on its page: ${s.page[2].join(', ').toLowerCase()}.`, `One button that matters: ${s.page[3]}.`] }; }); // each says what that business needs, not the same line five times
+{ const LIVE = SITES.filter((s) => s.live).length; SITES.forEach((s, i) => { INFO['site' + i] = s.live
+  ? { label: `Live project 0${i + 1} of 0${LIVE}`, h: s.name, lines: [s.line], link: ['Visit the live site ↗', s.url] }
+  : { label: `Concept demo 0${i + 1 - LIVE} of 0${SITES.length - LIVE} · a made-up business`, h: s.name, lines: [s.line], link: ['Open the demo ↗', s.url] }; }); }
 EXTRAS.forEach((e, i) => { INFO[`Extra: ${e.name}`] = { label: `Add-on 0${i + 1} of 0${EXTRAS.length} · ask at the desk`, h: e.title, lines: [e.line] }; });
 BOOKS.forEach((b, i) => { INFO['book' + i] = { label: `How we work · volume 0${i + 1} of 0${BOOKS.length}`, h: b.title, lines: [b.line], act: i === BOOKS.length - 1 ? ['Its last page is a door. Step in', () => enterSecret('lab')] : ['Put it back', () => { hidden.open(-1); sfx.page(); }] }; });
 INFO['Settle on the desk'] = { label: 'Room 10 · Rooftop · try it', h: 'Your name, in lights', lines: ['Type it, and the desk wears it in neon.'], sign: true };
@@ -464,15 +454,12 @@ COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x + 1.35, 1.7, -20.4
 ANCHOR['Settle on the desk'] = [13.8, H.rooftop + 1.35, 6.2, 2.7]; // right of the desk, turned to the visitor
 SHOPS.forEach((s) => { ANCHOR[`Shop: ${s.name}`] = [10.25, 1.7, s.z + 1.3, -Math.PI / 2]; }); // right of the shop's device
 EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - 1.5) * 1.45, H.extras + 1.15, -20.85, 0]; }); // stepping out of the front of its carriage
-demoCards.forEach((c, i) => { // beside each demo world, on the side away from the page
-  const y = c.m.rotation.y, side = new THREE.Vector3(Math.cos(y), 0, -Math.sin(y)), toward = new THREE.Vector3(Math.sin(y), 0, Math.cos(y));
-  const at = c.m.position.clone().addScaledVector(side, 1.75).addScaledVector(toward, 0.7); ANCHOR['site' + i] = [at.x, c.m.position.y + 0.05, at.z, y];
-});
-const BIG = { site0: 1.45, site1: 1.45, site2: 1.45, site3: 1.45, site4: 1.45 }; // the demo worlds are seen from further away
+demoCards.forEach((c, i) => { ANCHOR['site' + i] = [c.m.position.x + 0.3, 0.95, c.m.position.z, c.m.rotation.y]; }); // under its screen, a little in front of the wall
 const card3d = {}; // key: { obj, box }
 function fillCard(box, d) {
   box.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
   if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); box.append(b); }
+  if (d.link) box.append(linkPill(d.link));
   if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; box.append(b); }
   if (d.sign) {
     const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); };
@@ -481,10 +468,11 @@ function fillCard(box, d) {
     box.append(i, b, w);
   }
 }
+function linkPill([text, href]) { const a = el('a', text, 'pill solid'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; return a; }
 function getCard(key) {
   if (card3d[key]) return card3d[key];
   const box = el('article', null, 'c3'); fillCard(box, INFO[key]);
-  const obj = new CSS3DObject(box), [x, y, z, yaw] = ANCHOR[key]; obj.position.set(x, y, z); obj.rotation.y = yaw; obj.userData.k = BIG[key] || 1; obj.scale.setScalar(C3); cssScene.add(obj); ground(obj);
+  const obj = new CSS3DObject(box), [x, y, z, yaw] = ANCHOR[key]; obj.position.set(x, y, z); obj.rotation.y = yaw; obj.userData.k = 1; obj.scale.setScalar(C3); cssScene.add(obj); ground(obj);
   return (card3d[key] = { obj, box });
 }
 const flatCards = lowQuality; // phones: the flat card
@@ -546,6 +534,7 @@ function cards(p) {
     infoFor = key;
     info.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
     if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
+    if (d.link) info.append(linkPill(d.link));
     if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; info.append(b); }
     if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; info.append(i); }
   }
@@ -841,7 +830,7 @@ gsap.ticker.add((time, deltaMs) => {
   theme(state.body); atmosphere(pos[1]);
   focus(state.body);
   for (const c of demoCards) { // each card arrives as the backward walk brings it into the frame, and leaves the same way on the way back
-    const from = GALLERY.s0 + ((GALLERY.s1 - GALLERY.s0) * (8 - c.z)) / 17 - 4; // the walk runs from z = 7 to z = -10; a card shows once the camera is 1 m past it
+    const from = SITE_STOPS[demoCards.indexOf(c)] - 55; // a screen has shown itself a little before the walk stops in front of it
     const r = Math.min(1, Math.max(0, (state.body - from) / 36)), u = Math.max(0, (r - 0.8) / 0.2);
     c.r.value = r; c.line.value = sstep(0.22, 0.3, r) * (0.6 + 0.4 * sstep(0.5, 0.6, r)) * (1 - sstep(0.82, 1, r));
     c.motes.material.opacity = sstep(0.02, 0.12, r) * (1 - sstep(0.3, 0.5, r)); c.motes.visible = c.motes.material.opacity > 0.01;
@@ -852,7 +841,7 @@ gsap.ticker.add((time, deltaMs) => {
   reno.update(time, dt, env.wipe); draft.update(time, dt, env.page); clock.keyhole.material.emissiveIntensity = [...foundIds].filter((q) => q !== 'keyhole').length >= 6 ? 1.2 + Math.sin(time * 3) * 0.6 : 0; cabin.update(time, dt, env.cards, env.levers); atlas.update(time, dt, env.extra.u, env.map); garden.update(time, dt, env.grow, env.tools);
   const KM = byName['Kites up to the Rooftop'], kite = state.body < KM.s0 ? -1 : state.body > KM.s1 ? 2 : (state.body - KM.s0) / (KM.s1 - KM.s0);
   rides.update(time, dt, railAt.set(...pos), kite); // the car, the boat and the kites carry the walk, not the cursor's lean clock.update(time, dt, state.body / rail.total, env.dusk);
-  expand(env.site, env.air); hidden.update(time, dt, pointer); if (!free) nudge(time);
+  expand(env.site); hidden.update(time, dt, pointer); if (!free) nudge(time);
   if (env.tv.ch !== sfxWas.ch) { sfxWas.ch = env.tv.ch; if (env.tv.ch >= 0) sfx.blip(); }
   dressing.update(time, dt, env);
   for (const [m, y0, ph] of drift) m.position.y = y0 + Math.sin(env.air * 1.3 + ph) * 0.04;

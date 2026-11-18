@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aaranya Residences</title>
+</head>
+<body>
+
+<script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('anim')</script>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+.mask{display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em}
+.ln{display:block;will-change:transform}
+.ch{display:inline-block}
+.w{display:inline}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[data-marquee]{overflow:hidden;white-space:nowrap}
+[data-marquee]>*{display:inline-flex;width:max-content}
+[data-parallax]{overflow:hidden}
+[data-parallax] img,[data-parallax] .pimg{height:120%;width:100%;object-fit:cover;margin-top:-10%}
+.grain{position:fixed;inset:-50%;pointer-events:none;z-index:80;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation:grain .9s steps(6) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}20%{transform:translate(-6%,3%)}40%{transform:translate(5%,-5%)}60%{transform:translate(-3%,7%)}80%{transform:translate(7%,1%)}}
+.ai-note{font-size:11px;letter-spacing:.02em;opacity:.75}
+:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* world: an architect's drawing of two towers around a garden; the sky behind it moves from dawn to dusk as you read */
+:root{--sand:#d8c3a5;--sand-lt:#efe5d6;--paper:#f7f2ea;--sage:#8a9a7b;--sage-dk:#5f7552;--ink:#24302b;--ink-2:#4a5650;--dusk:#2b2d55;--dusk-2:#1c1e3c;--lamp:#ffcf73;
+  --sky-a:#f6dcc6;--sky-b:#e6edf0;
+  --f-d:'Marcellus',Georgia,serif;--f-b:'Manrope',ui-sans-serif,system-ui,sans-serif;color-scheme:light}
+body{background:var(--paper);color:var(--ink);font:17px/1.65 var(--f-b)}
+main{overflow-x:clip;position:relative;z-index:1}
+.sky{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,var(--sky-a) 0%,var(--sky-b) 100%);pointer-events:none}
+.sun{position:absolute;right:8%;top:16vh;width:min(22vw,180px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff3dc 0%,#ffd9a0 55%,rgba(255,217,160,0) 72%)}
+.stars{position:absolute;inset:0 0 40%;opacity:0;background-image:radial-gradient(1.5px 1.5px at 12% 20%,#fff,transparent),radial-gradient(1px 1px at 28% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 46% 30%,#fff,transparent),radial-gradient(1px 1px at 63% 8%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 24%,#fff,transparent),radial-gradient(1px 1px at 90% 14%,#fff,transparent),radial-gradient(1px 1px at 36% 40%,#fff,transparent),radial-gradient(1px 1px at 70% 44%,#fff,transparent)}
+html:not(.anim) .sky{display:none}
+.gut{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1220px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-d);font-weight:400;line-height:1.04;margin:0;text-wrap:balance;letter-spacing:-.005em}
+h2{font-size:clamp(40px,5.4vw,76px)}
+h3{font-size:clamp(24px,2vw,30px)}
+p{margin:0}
+.lede{max-width:52ch;font-size:clamp(17px,1.4vw,19px);color:var(--ink-2)}
+.kicker{font-weight:600;font-size:15px;color:var(--sage-dk);margin-bottom:16px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;border-radius:999px;font:600 16px/1 var(--f-b);text-decoration:none;border:0;background:var(--ink);color:var(--paper)}
+.btn:hover{background:#34433c}
+.sec{padding-block:clamp(100px,12vw,170px)}
+.head{display:grid;gap:18px;margin-bottom:56px}
+.small{font-size:14px;color:var(--ink-2)}
+
+/* header */
+.top{position:fixed;inset:0 0 auto;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px;transition:background .35s,color .35s}
+.top.solid{background:rgba(247,242,234,.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.top.night{background:rgba(28,30,60,.88);color:var(--paper)}
+.mark{font:400 26px/1 var(--f-d);text-decoration:none;letter-spacing:.04em}
+.top nav{display:flex;gap:24px;align-items:center;font-weight:500;font-size:15px}
+.top nav a{text-decoration:none}
+.top .btn{padding:11px 18px;font-size:14px;white-space:nowrap}
+.top.night .btn{background:var(--lamp);color:var(--dusk-2)}
+@media (max-width:800px){.top nav a:not(.btn){display:none}}
+
+/* hero */
+.hero{min-height:100vh;min-height:100svh;display:grid;grid-template-rows:auto 1fr;padding-top:120px;text-align:center;background:linear-gradient(180deg,var(--sky-a),var(--sky-b))}
+.anim .hero{background:none}
+.hero h1{font-size:clamp(54px,9vw,148px);line-height:.98}
+.hero .lede{margin:22px auto 0}
+.draw{width:auto;max-width:100%;height:min(54vh,600px);margin:20px auto 0;align-self:end;overflow:visible}
+
+/* intro */
+.intro h2{max-width:16ch}
+.fill{font:400 clamp(26px,2.9vw,40px)/1.3 var(--f-d);max-width:30ch;margin-top:34px;color:rgba(36,48,43,.18)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:70px;border-top:1px solid rgba(36,48,43,.25);padding-top:26px}
+.stats strong{display:block;font:400 clamp(52px,6vw,92px)/1 var(--f-d);font-variant-numeric:tabular-nums}
+.stats span{color:var(--ink-2)}
+@media (max-width:640px){.stats{grid-template-columns:minmax(0,1fr)}}
+
+/* amenities */
+.am-band{font:400 clamp(56px,8vw,120px)/1 var(--f-d);padding-block:6px;color:var(--ink)}
+.am-band div{gap:40px;padding-right:40px;align-items:center}
+.am-band i{width:16px;height:22px;border-radius:8px 8px 0 0;background:var(--sage);display:inline-block}
+.am-band.rev{color:transparent;-webkit-text-stroke:1px var(--ink)}
+.am-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:56px;list-style:none;padding:0;border-top:1px solid rgba(36,48,43,.25)}
+.am-list li{padding:16px 0;border-bottom:1px solid rgba(36,48,43,.25);font-weight:500;display:flex;gap:10px;align-items:center}
+.am-list li::before{content:"";width:9px;height:12px;border-radius:5px 5px 0 0;background:var(--sage)}
+@media (max-width:800px){.am-list{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+
+/* floor plans */
+#plans .card{background:var(--paper);border-radius:28px;padding:clamp(22px,3.4vw,48px);box-shadow:0 30px 60px rgba(36,48,43,.12)}
+.tabs{display:inline-flex;background:var(--sand-lt);border-radius:999px;padding:4px;margin-bottom:28px}
+.tabs button{border:0;background:transparent;padding:10px 22px;border-radius:999px;font:600 15px/1 var(--f-b);color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.planwrap{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:44px;align-items:center}
+.plan svg{width:100%;height:auto}
+.plan rect{fill:var(--paper);stroke:var(--ink);stroke-width:3;transition:fill .25s}
+.plan g:hover rect,.plan g.hl rect{fill:var(--sand-lt)}
+.plan text{font:600 14px var(--f-b);fill:var(--ink);pointer-events:none}
+.plan text.d{font-weight:500;font-size:12px;fill:var(--ink-2)}
+.plan[hidden]{display:none}
+.spec dl{display:grid}
+.spec div{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid rgba(36,48,43,.2)}
+.spec dt{color:var(--ink-2)}.spec dd{margin:0;font-weight:600;text-align:right}
+.spec h3{font-size:clamp(34px,3.6vw,52px);margin-bottom:10px}
+@media (max-width:860px){.planwrap{grid-template-columns:minmax(0,1fr)}}
+
+/* progress */
+.prog{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center}
+.build{width:100%;max-width:420px;height:auto;margin:0 auto;display:block;overflow:visible}
+.miles{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.miles li{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:18px 0;border-top:1px solid rgba(36,48,43,.25);transition:opacity .3s}
+.miles b{font:400 26px/1.1 var(--f-d)}
+.miles small{display:block;color:var(--ink-2);font-size:14px;margin-top:4px}
+.anim .miles li{opacity:.35}.anim .miles li.on{opacity:1}
+@media (min-width:0px){.anim #progress.sec{padding-block:0}.anim #progress .prog{min-height:100vh;min-height:100svh;padding-block:90px 30px}}
+@media (max-width:860px){.prog{grid-template-columns:minmax(0,1fr);gap:20px}.build{max-width:180px}.miles li{grid-template-columns:110px 1fr;padding:10px 0;font-size:15px}.miles b{font-size:21px}.anim #progress h2{font-size:36px}}
+
+/* location */
+.loc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.loc article{border-top:2px solid var(--ink);padding-top:20px;display:grid;gap:10px}
+.loc svg{width:44px;height:44px}
+@media (max-width:800px){.loc{grid-template-columns:minmax(0,1fr)}}
+
+/* visit */
+#visit{background:var(--dusk);color:var(--paper)}
+.anim #visit{background:transparent}
+#visit .lede{color:#cfd0e6}
+#visit .kicker{color:var(--lamp)}
+.night-draw{width:100%;max-width:1100px;height:auto;display:block;margin:0 auto 60px}
+.visit{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:56px;align-items:start}
+form{display:grid;gap:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:28px}
+label{display:grid;gap:6px;font-weight:600;font-size:14px;color:#cfd0e6}
+input,select{font:500 17px/1.3 var(--f-b);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(10,12,30,.35);color:var(--paper)}
+select option{color:#111}
+input::placeholder{color:#9a9cbd}
+form .btn{background:var(--lamp);color:var(--dusk-2);justify-content:center;margin-top:6px}
+.formmsg{font-size:15px;color:var(--lamp);min-height:1.4em}
+@media (max-width:860px){.visit{grid-template-columns:minmax(0,1fr)}}
+footer{background:var(--dusk-2);color:#b9bbd6;font-size:14px;padding-block:28px calc(28px + env(safe-area-inset-bottom,0px));position:relative;z-index:1}
+footer p+p{margin-top:6px}
+</style>
+
+<div class="sky" aria-hidden="true"><div class="stars"></div><div class="sun"></div></div>
+<header class="top gut" id="top">
+  <a class="mark" href="#home">Aaranya</a>
+  <nav aria-label="Main"><a href="#intro">Homes</a><a href="#plans">Floor plans</a><a href="#progress">Progress</a><a href="#location">Location</a><a class="btn" href="#visit" data-magnetic=".25">Book a site visit</a></nav>
+</header>
+
+<main>
+<section class="hero gut" id="home" data-sky="#f6dcc6,#e6edf0">
+  <div class="wrap">
+    <p class="kicker" data-in>3 &amp; 4 BHK residences in Medipally</p>
+    <h1 data-hero-title>The art of slow living</h1>
+    <p class="lede" data-in>Two towers, one acre of green between them.</p>
+  </div>
+  <svg class="draw" viewBox="0 0 1200 580" role="img" aria-label="Line drawing of two residential towers around a garden"><path data-draw d="M300 560V140H470V560" fill="none" stroke="#24302b" stroke-width="2.2"/><path data-draw d="M294 140H476" stroke="#24302b" stroke-width="2.2"/><rect data-win x="314.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 530H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 500H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 470H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 440H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 410H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 380H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 350H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 320H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 290H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 260H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 230H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 200H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="179" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="179" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="179" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="179" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M300 170H470" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="314.0" y="149" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="354.0" y="149" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="394.0" y="149" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="434.0" y="149" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-draw d="M730 560V200H900V560" fill="none" stroke="#24302b" stroke-width="2.2"/><path data-draw d="M724 200H906" stroke="#24302b" stroke-width="2.2"/><rect data-win x="744.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="539" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 530H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="509" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 500H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="479" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 470H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="449" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 440H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="419" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 410H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="389" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 380H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="359" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 350H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="329" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 320H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="299" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 290H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="269" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 260H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="239" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><path data-floor d="M730 230H900" stroke="#24302b" stroke-width=".8" opacity=".5"/><rect data-win x="744.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="784.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="824.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><rect data-win x="864.0" y="209" width="22" height="13" fill="none" stroke="#24302b" stroke-width="1"/><circle data-draw cx="520" cy="520" r="26" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M520 546V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="575" cy="505" r="34" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M575 539V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="635" cy="522" r="24" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M635 546V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="685" cy="510" r="28" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M685 538V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="110" cy="520" r="30" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M110 550V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="170" cy="530" r="20" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M170 550V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="1000" cy="515" r="32" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M1000 547V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="1070" cy="528" r="22" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M1070 550V560" stroke="#5f7552" stroke-width="2"/><circle data-draw cx="1120" cy="520" r="18" fill="none" stroke="#5f7552" stroke-width="2"/><path data-draw d="M1120 538V560" stroke="#5f7552" stroke-width="2"/><path data-path d="M470 560C540 546 660 546 730 560" fill="none" stroke="#8a9a7b" stroke-width="1.5" stroke-dasharray="4 6"/><path data-draw d="M40 560H1160" stroke="#24302b" stroke-width="2.5"/></svg>
+</section>
+
+<section class="sec gut intro" id="intro" data-sky="#dfe9ec,#f4f1ea">
+  <div class="wrap">
+    <h2 data-lines>Fewer homes, more sky between them.</h2>
+    <p class="fill" data-fill>Two towers set apart around a one-acre garden, so every home looks out at trees instead of a neighbour's window. East-facing living rooms, cross-ventilation in every bedroom.</p>
+    <div class="stats">
+      <div><strong data-to="2.4" data-d="1">2.4</strong><span>acres</span></div>
+      <div><strong data-to="168">168</strong><span>homes</span></div>
+      <div><strong data-to="72" data-suf="%">72%</strong><span>open space</span></div>
+    </div>
+    <p class="small" style="margin-top:16px">Demo project — all figures are placeholders.</p>
+  </div>
+</section>
+
+<section class="sec" id="amenities" data-sky="#e3ece6,#f4efe4">
+  <div class="gut"><div class="wrap head"><p class="kicker" style="margin:0">Amenities</p><h2 data-lines>A clubhouse, and then some</h2></div></div>
+  <div class="am-band" data-marquee="40" aria-hidden="true"><div><span>Lap pool</span><i></i><span>Clubhouse</span><i></i><span>Central garden</span><i></i><span>Amphitheatre</span><i></i><span>Gym</span><i></i><span>Kids' play</span><i></i></div></div>
+  <div class="am-band rev" data-marquee="46" data-rev aria-hidden="true"><div><span>Co-work lounge</span><i></i><span>Jogging track</span><i></i><span>Party hall</span><i></i><span>Indoor games</span><i></i><span>Terrace garden</span><i></i></div></div>
+  <div class="gut"><ul class="wrap am-list"><li>Lap pool</li><li>Clubhouse</li><li>Central garden</li><li>Amphitheatre</li><li>Gym</li><li>Kids' play</li><li>Co-work lounge</li><li>Jogging track</li><li>Party hall</li><li>Indoor games</li><li>Terrace garden</li></ul></div>
+</section>
+
+<section class="sec gut" id="plans" data-sky="#f1e3cc,#f6efe2">
+  <div class="wrap">
+    <div class="head"><p class="kicker" style="margin:0">Floor plans</p><h2 data-lines>Every room gets a window.</h2></div>
+    <div class="card">
+      <div class="tabs" role="tablist" aria-label="Choose a home"><button role="tab" aria-selected="true" aria-controls="p3" id="t3">3 BHK</button><button role="tab" aria-selected="false" aria-controls="p4" id="t4">4 BHK</button></div>
+      <div class="plan" id="p3" role="tabpanel" aria-labelledby="t3"><div class="planwrap">
+        <svg viewBox="0 0 600 420" role="img" aria-label="3 BHK floor plan: master bed, bed 2, bed 3, living and dining, kitchen, utility, balcony">
+          <g><rect x="20" y="20" width="200" height="170"/><text x="36" y="48">Master bed</text><text class="d" x="36" y="66">14′ × 12′</text></g>
+          <g><rect x="20" y="190" width="200" height="130"/><text x="36" y="218">Bed 2</text><text class="d" x="36" y="236">12′ × 11′</text></g>
+          <g><rect x="20" y="320" width="120" height="80"/><text x="32" y="348">Kitchen</text></g>
+          <g><rect x="140" y="320" width="80" height="80"/><text x="150" y="348">Utility</text></g>
+          <g><rect x="220" y="20" width="220" height="380"/><text x="236" y="48">Living · dining</text><text class="d" x="236" y="66">24′ × 14′</text></g>
+          <g><rect x="440" y="20" width="140" height="190"/><text x="454" y="48">Bed 3</text><text class="d" x="454" y="66">11′ × 11′</text></g>
+          <g><rect x="440" y="210" width="140" height="190"/><text x="454" y="238">Balcony</text></g>
+        </svg>
+        <div class="spec"><h3>3 BHK</h3><dl style="margin:0"><div><dt>Size</dt><dd>1,680 – 1,820 sq.ft</dd></div><div><dt>Facing</dt><dd>East &amp; North</dd></div><div><dt>Baths</dt><dd>3, all with windows</dd></div><div><dt>Parking</dt><dd>2 covered</dd></div></dl></div>
+      </div></div>
+      <div class="plan" id="p4" role="tabpanel" aria-labelledby="t4" hidden><div class="planwrap">
+        <svg viewBox="0 0 600 420" role="img" aria-label="4 BHK floor plan: master bed, three more bedrooms, living, dining, family lounge, kitchen, deck">
+          <g><rect x="20" y="20" width="180" height="170"/><text x="34" y="48">Master bed</text><text class="d" x="34" y="66">15′ × 13′</text></g>
+          <g><rect x="20" y="190" width="180" height="130"/><text x="34" y="218">Bed 2</text></g>
+          <g><rect x="20" y="320" width="180" height="80"/><text x="34" y="348">Kitchen</text></g>
+          <g><rect x="200" y="20" width="200" height="200"/><text x="214" y="48">Living</text><text class="d" x="214" y="66">20′ × 16′</text></g>
+          <g><rect x="200" y="220" width="200" height="100"/><text x="214" y="248">Family lounge</text></g>
+          <g><rect x="200" y="320" width="200" height="80"/><text x="214" y="348">Dining</text></g>
+          <g><rect x="400" y="20" width="180" height="150"/><text x="414" y="48">Bed 3</text></g>
+          <g><rect x="400" y="170" width="180" height="130"/><text x="414" y="198">Bed 4</text></g>
+          <g><rect x="400" y="300" width="180" height="100"/><text x="414" y="328">Deck</text></g>
+        </svg>
+        <div class="spec"><h3>4 BHK</h3><dl style="margin:0"><div><dt>Size</dt><dd>2,350 – 2,600 sq.ft</dd></div><div><dt>Facing</dt><dd>East</dd></div><div><dt>Baths</dt><dd>4 + powder room</dd></div><div><dt>Parking</dt><dd>3 covered</dd></div></dl></div>
+      </div></div>
+      <p class="small" style="margin-top:18px">Sample layouts and room sizes for the demo — not to scale.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="progress" data-sky="#f2c79c,#f7e3c8">
+  <div class="wrap prog">
+    <svg class="build" viewBox="0 0 220 460" aria-hidden="true">
+      <path d="M0 450H220" stroke="#24302b" stroke-width="3"/>
+      <rect data-stage="1" x="30" y="420" width="160" height="30" fill="#8a9a7b"/>
+      <g data-stage="2"><rect x="40" y="70" width="140" height="350" fill="#d8c3a5" stroke="#24302b" stroke-width="2"/></g>
+      <g data-stage="3" fill="#f7f2ea"></g>
+      <g data-stage="4"><path d="M110 40v-30M95 28l15-18 15 18" stroke="#24302b" stroke-width="2" fill="none"/><circle cx="168" cy="436" r="9" fill="none" stroke="#24302b" stroke-width="2"/><path d="M176 436h22v8" stroke="#24302b" stroke-width="2" fill="none"/></g>
+    </svg>
+    <div>
+      <div class="head" style="margin-bottom:28px"><p class="kicker" style="margin:0">Construction progress</p><h2 data-lines>Built in the open</h2></div>
+      <ol class="miles">
+        <li class="on"><b>Launch<small>Q1</small></b><p>Plans approved, site cleared and a mock flat open to visit.</p></li>
+        <li><b>Foundation<small>Q3</small></b><p>Foundation poured for both towers.</p></li>
+        <li><b>Structure<small>Q2, year 2</small></b><p>Tower A topped out at 14 floors.</p></li>
+        <li><b>Finishing<small>Q4, year 2</small></b><p>Windows, plaster, lifts and the garden going in.</p></li>
+        <li><b>Handover<small>Q2, year 3</small></b><p>Keys, with a 12-month snag list we fix ourselves.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="location" data-sky="#e8a77c,#f3d3b0">
+  <div class="wrap">
+    <div class="head"><p class="kicker" style="margin:0;color:var(--ink)">Location</p><h2 data-lines>Close to everything, quiet at night.</h2></div>
+    <div class="loc">
+      <article><svg viewBox="0 0 44 44" aria-hidden="true"><rect x="10" y="6" width="24" height="26" rx="6" fill="none" stroke="#24302b" stroke-width="2.5"/><path d="M10 22h24M16 38l-4 4M28 38l4 4" stroke="#24302b" stroke-width="2.5"/><circle cx="16" cy="28" r="1.8" fill="#24302b"/><circle cx="28" cy="28" r="1.8" fill="#24302b"/></svg><h3>Metro</h3><p>A short drive to the nearest station (placeholder).</p></article>
+      <article><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M6 18L22 8l16 10v20H6z" fill="none" stroke="#24302b" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 38V28h8v10" fill="none" stroke="#24302b" stroke-width="2.5"/></svg><h3>Schools</h3><p>Several CBSE &amp; state schools nearby (placeholder).</p></article>
+      <article><svg viewBox="0 0 44 44" aria-hidden="true"><rect x="6" y="6" width="32" height="32" rx="6" fill="none" stroke="#24302b" stroke-width="2.5"/><path d="M22 14v16M14 22h16" stroke="#24302b" stroke-width="3"/></svg><h3>Hospitals</h3><p>Multi-speciality care within minutes (placeholder).</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="visit" data-sky="#2b2d55,#5d4a6a">
+  <div class="wrap">
+    <svg class="night-draw" viewBox="0 0 1200 580" aria-hidden="true"><rect x="300" y="140" width="170" height="420" fill="#1c1e3c"/><rect x="294" y="132" width="182" height="8" fill="#1c1e3c"/><rect data-win x="314.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="179" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="179" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="179" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="179" width="22" height="13" fill="#34365f"/><rect data-win x="314.0" y="149" width="22" height="13" fill="#34365f"/><rect data-win x="354.0" y="149" width="22" height="13" fill="#34365f"/><rect data-win x="394.0" y="149" width="22" height="13" fill="#34365f"/><rect data-win x="434.0" y="149" width="22" height="13" fill="#34365f"/><rect x="730" y="200" width="170" height="360" fill="#1c1e3c"/><rect x="724" y="192" width="182" height="8" fill="#1c1e3c"/><rect data-win x="744.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="539" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="509" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="479" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="449" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="419" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="389" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="359" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="329" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="299" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="269" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="239" width="22" height="13" fill="#34365f"/><rect data-win x="744.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="784.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="824.0" y="209" width="22" height="13" fill="#34365f"/><rect data-win x="864.0" y="209" width="22" height="13" fill="#34365f"/><circle cx="520" cy="520" r="26" fill="#24264a"/><path d="M520 540V560" stroke="#24264a" stroke-width="4"/><circle cx="575" cy="505" r="34" fill="#24264a"/><path d="M575 533V560" stroke="#24264a" stroke-width="4"/><circle cx="635" cy="522" r="24" fill="#24264a"/><path d="M635 540V560" stroke="#24264a" stroke-width="4"/><circle cx="685" cy="510" r="28" fill="#24264a"/><path d="M685 532V560" stroke="#24264a" stroke-width="4"/><circle cx="110" cy="520" r="30" fill="#24264a"/><path d="M110 544V560" stroke="#24264a" stroke-width="4"/><circle cx="170" cy="530" r="20" fill="#24264a"/><path d="M170 544V560" stroke="#24264a" stroke-width="4"/><circle cx="1000" cy="515" r="32" fill="#24264a"/><path d="M1000 541V560" stroke="#24264a" stroke-width="4"/><circle cx="1070" cy="528" r="22" fill="#24264a"/><path d="M1070 544V560" stroke="#24264a" stroke-width="4"/><circle cx="1120" cy="520" r="18" fill="#24264a"/><path d="M1120 532V560" stroke="#24264a" stroke-width="4"/><path d="M40 560H1160" stroke="#1c1e3c" stroke-width="2.5"/></svg>
+    <div class="visit">
+      <div>
+        <p class="kicker">Site visits daily, 10 am – 6 pm</p>
+        <h2 data-lines>Walk through the sample home.</h2>
+        <p class="lede" style="margin-top:20px">Tell us when you'd like to come. We'll keep a car at the gate and the coffee ready.</p>
+      </div>
+      <form data-form novalidate>
+        <label>Name<input name="name" autocomplete="name" placeholder="Your name" required></label>
+        <label>Phone<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="10-digit mobile" required></label>
+        <label>Interested in<select name="type"><option>3 BHK</option><option>4 BHK</option><option>Not sure yet</option></select></label>
+        <button class="btn" type="submit" data-magnetic=".2">Book a site visit</button>
+        <p class="formmsg" data-msg aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="gut"><div class="wrap"><p>Aaranya Residences, Medipally, Hyderabad.</p><p>RERA registration number shown here on the live site.</p><p>Demo concept for a fictional project — all names, figures and plans are placeholders.</p></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>window.LENIS_OPTS={lerp:0.085};</script>
+<script>/* Demo motion core — GSAP 3.12.5 + ScrollTrigger + Lenis 1.1.13. Our own code, patterns from Rebuild Recipe Part 1. */
+(function () {
+  const W = window, D = document, H = D.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ok = !!(W.gsap && W.ScrollTrigger) && !reduce;
+  const M = (W.MOTION = { ok, reduce, lenis: null });
+  if (!ok) { H.classList.remove('anim'); return; }
+  gsap.registerPlugin(ScrollTrigger);
+  H.classList.add('anim');
+
+  // R1 — smooth scroll on one clock
+  if (W.Lenis && !matchMedia('(hover: none)').matches) {
+    const lenis = new Lenis(Object.assign({ lerp: 0.12, wheelMultiplier: 1.05 }, W.LENIS_OPTS || {}));
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+    M.lenis = lenis;
+    D.addEventListener('click', e => {
+      const a = e.target.closest('a[href^="#"]'); if (!a) return;
+      const t = D.querySelector(a.getAttribute('href')); if (!t) return;
+      e.preventDefault(); lenis.scrollTo(t, { offset: -10, duration: 1.4 });
+    });
+  }
+
+  // R2 — split into masked lines
+  M.splitLines = function (el) {
+    if (el._lines) return el._lines;
+    const words = el.textContent.trim().split(/\s+/);
+    el.setAttribute('aria-label', el.textContent.trim());
+    el.innerHTML = words.map(w => `<span class="w">${w}</span>`).join(' ');
+    const rows = []; let top = null;
+    el.querySelectorAll('.w').forEach(w => {
+      if (Math.abs(w.offsetTop - (top ?? -99)) > 2) { rows.push([]); top = w.offsetTop; }
+      rows[rows.length - 1].push(w.textContent);
+    });
+    el.innerHTML = rows.map(r => `<span class="mask" aria-hidden="true"><span class="ln">${r.join(' ')}</span></span>`).join('');
+    return (el._lines = el.querySelectorAll('.ln'));
+  };
+  M.splitChars = function (el) {
+    const t = el.textContent; el.setAttribute('aria-label', t.trim());
+    el.innerHTML = [...t].map(c => c === ' ' ? ' ' : `<span class="ch" aria-hidden="true">${c}</span>`).join('');
+    return el.querySelectorAll('.ch');
+  };
+
+  // reveal helpers — opt-in per element
+  M.lines = function (sel, o = {}) {
+    gsap.utils.toArray(sel).forEach(el => {
+      const ls = M.splitLines(el);
+      gsap.from(ls, Object.assign({ yPercent: 115, duration: 1.1, ease: 'expo.out', stagger: 0.08,
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true } }, o));
+    });
+  };
+  M.blur = function (sel, o = {}) {
+    gsap.utils.toArray(sel).forEach(el => gsap.from(el.children.length ? el.children : el, Object.assign({
+      opacity: 0, filter: 'blur(10px)', y: 16, duration: 0.6, ease: 'power2.out', stagger: 0.1,
+      scrollTrigger: { trigger: el, start: 'top 85%', once: true } }, o)));
+  };
+
+  // R13 — magnetic
+  M.magnetic = function (sel = '[data-magnetic]') {
+    if (matchMedia('(hover: none)').matches) return;
+    D.querySelectorAll(sel).forEach(b => {
+      const k = +b.dataset.magnetic || 0.3;
+      const x = gsap.quickTo(b, 'x', { duration: 0.6, ease: 'power3' }), y = gsap.quickTo(b, 'y', { duration: 0.6, ease: 'power3' });
+      b.addEventListener('pointermove', e => { const r = b.getBoundingClientRect(); x((e.clientX - r.left - r.width / 2) * k); y((e.clientY - r.top - r.height / 2) * k); });
+      b.addEventListener('pointerleave', () => { x(0); y(0); });
+    });
+  };
+
+  // R12 — scramble to final text
+  M.scramble = function (el, dur = 0.7, glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') {
+    const final = el.dataset.text ??= el.textContent; const st = { p: 0 };
+    el.setAttribute('aria-label', final);
+    return gsap.to(st, { p: 1, duration: dur, ease: 'none', onUpdate() {
+      const n = Math.floor(st.p * final.length);
+      el.textContent = final.slice(0, n) + [...final.slice(n)].map(c => c === ' ' ? ' ' : glyphs[Math.random() * glyphs.length | 0]).join('');
+    }, onComplete() { el.textContent = final; } });
+  };
+
+  // R10 — inner image parallax
+  M.parallax = function (sel = '[data-parallax]') {
+    gsap.utils.toArray(sel).forEach(box => {
+      const img = box.querySelector('img, .pimg'); if (!img) return;
+      const a = +box.dataset.parallax || 10;
+      gsap.fromTo(img, { yPercent: -a }, { yPercent: a, ease: 'none',
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } });
+    });
+  };
+
+  // R11 — marquee that follows scroll direction
+  M.marquee = function (sel = '[data-marquee]') {
+    gsap.utils.toArray(sel).forEach(m => {
+      const tr = m.firstElementChild; tr.innerHTML += tr.innerHTML; tr.lastElementChild && [...tr.children].slice(tr.children.length / 2).forEach(c => c.setAttribute('aria-hidden', 'true'));
+      const loop = gsap.to(tr, { xPercent: -50, duration: +m.dataset.marquee || 30, ease: 'none', repeat: -1 });
+      ScrollTrigger.create({ trigger: m, start: 'top bottom', end: 'bottom top', onUpdate: s => gsap.to(loop, { timeScale: s.direction * (1 + Math.min(Math.abs(s.getVelocity()) / 900, 3)), duration: 0.3, overwrite: true, onComplete: () => gsap.to(loop, { timeScale: s.direction, duration: 0.8 }) }) });
+    });
+  };
+
+  // run page setup once fonts are in (line splits depend on metrics), never wait more than 1.2s
+  M.ready = function (fn) {
+    let done = false; const go = () => { if (done) return; done = true; fn(); ScrollTrigger.refresh(); };
+    (D.fonts && D.fonts.ready ? D.fonts.ready : Promise.resolve()).then(go); setTimeout(go, 1200);
+  };
+  addEventListener('load', () => ScrollTrigger.refresh());
+  if (D.fonts && D.fonts.ready) D.fonts.ready.then(() => ScrollTrigger.refresh());
+})();
+</script>
+<script>
+(function(){
+  // windows for the building-progress tower
+  const g=document.querySelector('[data-stage="3"]');let h='';for(let f=0;f<14;f++)for(let k=0;k<4;k++)h+=`<rect x="${52+k*32}" y="${84+f*24}" width="20" height="12"/>`;g.innerHTML=h;
+  // floor plan tabs
+  const tabs=document.querySelectorAll('.tabs button');
+  tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(o=>{const on=o===t;o.setAttribute('aria-selected',on);document.getElementById(o.getAttribute('aria-controls')).hidden=!on;});
+    if(window.MOTION&&MOTION.ok){const rs=document.querySelectorAll('#'+t.getAttribute('aria-controls')+' rect');rs.forEach(r=>{const l=r.getTotalLength();gsap.fromTo(r,{strokeDasharray:l,strokeDashoffset:l},{strokeDashoffset:0,duration:.9,ease:'power2.inOut',stagger:.05})});
+      gsap.from('#'+t.getAttribute('aria-controls')+' text, #'+t.getAttribute('aria-controls')+' .spec div',{opacity:0,y:8,duration:.4,stagger:.03,delay:.3});}}));
+  // site visit form (demo: nothing is sent)
+  const f=document.querySelector('[data-form]'),msg=document.querySelector('[data-msg]');
+  f.addEventListener('submit',e=>{e.preventDefault();const n=f.name.value.trim(),p=f.phone.value.replace(/\D/g,'');
+    if(!n){msg.textContent='Add your name so we know who to expect.';f.name.focus();return;}
+    if(p.length<10){msg.textContent='Enter a 10-digit mobile number.';f.phone.focus();return;}
+    msg.textContent=`Thanks, ${n}. This is a demo form — nothing was sent.`;f.reset();});
+  const top=document.getElementById('top');const solid=()=>top.classList.toggle('solid',scrollY>40);addEventListener('scroll',solid,{passive:true});solid();
+})();
+const M=window.MOTION;
+if(M.ok) M.ready(()=>{
+  const root=document.documentElement;
+  // hero: the architect's drawing inks itself in
+  const paths=gsap.utils.toArray('.draw [data-draw]');paths.forEach(p=>{const l=p.getTotalLength();gsap.set(p,{strokeDasharray:l,strokeDashoffset:l})});
+  const title=M.splitLines(document.querySelector('[data-hero-title]'));
+  gsap.timeline({delay:.15})
+    .from(title,{yPercent:110,duration:1.3,ease:'expo.out',stagger:.1})
+    .from('[data-in]',{y:16,opacity:0,duration:.8,ease:'power3.out',stagger:.1},.3)
+    .to(paths,{strokeDashoffset:0,duration:1.8,ease:'power2.inOut',stagger:.04},.2)
+    .from('.draw [data-floor]',{scaleX:0,transformOrigin:'0 50%',duration:.5,stagger:.015},.9)
+    .from('.draw [data-win]',{opacity:0,duration:.3,stagger:{amount:1,from:'random'}},1.2)
+    .from('.draw [data-path]',{opacity:0,duration:.8},1.6);
+  gsap.to('.draw',{yPercent:-8,ease:'none',scrollTrigger:{trigger:'#home',start:'top top',end:'bottom top',scrub:true}});
+
+  // intro: the paragraph inks itself in as you read
+  const p=document.querySelector('[data-fill]');p.setAttribute('aria-label',p.textContent);
+  p.innerHTML=p.textContent.split(' ').map(w=>`<span aria-hidden="true">${w}</span>`).join(' ');
+  gsap.to(p.children,{color:'#24302b',stagger:.05,ease:'none',scrollTrigger:{trigger:p,start:'top 78%',end:'bottom 45%',scrub:1}});
+  document.querySelectorAll('[data-to]').forEach(el=>{const v=+el.dataset.to,d=+(el.dataset.d||0),suf=el.dataset.suf||'',o={v:0};
+    gsap.to(o,{v,duration:1.6,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%',once:true},onUpdate(){el.textContent=o.v.toFixed(d)+suf}});});
+
+  // amenities: two bands drift in opposite directions
+  M.marquee();
+  gsap.from('.am-list li',{opacity:0,y:14,stagger:.04,duration:.5,scrollTrigger:{trigger:'.am-list',start:'top 85%',once:true}});
+
+  // floor plan: walls drawn when the card arrives
+  gsap.from('#plans .card',{y:80,opacity:0,duration:1.2,ease:'expo.out',scrollTrigger:{trigger:'#plans .card',start:'top 85%',once:true}});
+  ScrollTrigger.create({trigger:'#plans .card',start:'top 70%',once:true,onEnter(){const rs=document.querySelectorAll('#p3 rect');rs.forEach(r=>{const l=r.getTotalLength();gsap.fromTo(r,{strokeDasharray:l,strokeDashoffset:l},{strokeDashoffset:0,duration:1.1,ease:'power2.inOut',stagger:.06})});}});
+
+  // progress: the tower goes up stage by stage as you scroll the timeline
+  const miles=document.querySelectorAll('.miles li'),wins=document.querySelectorAll('[data-stage="3"] rect');
+  gsap.set('[data-stage="1"]',{scaleY:0,transformOrigin:'50% 100%'});gsap.set('[data-stage="2"]',{clipPath:'inset(100% 0 0 0)'});gsap.set(wins,{opacity:0});gsap.set('[data-stage="4"]',{opacity:0});
+  const bt=gsap.timeline({scrollTrigger:{trigger:'#progress',start:'top top',end:'+=320%',pin:true,scrub:.6,
+    onUpdate(s){const i=Math.min(miles.length-1,Math.floor(s.progress*miles.length));miles.forEach((m,k)=>m.classList.toggle('on',k<=i&&k>=i))}}});
+  bt.to('[data-stage="1"]',{scaleY:1,duration:1})
+    .to('[data-stage="2"]',{clipPath:'inset(0% 0 0 0)',duration:2,ease:'none'})
+    .to(wins,{opacity:1,duration:1,stagger:{amount:1}})
+    .to(wins,{fill:'#ffcf73',duration:.6,stagger:{amount:.6,from:'random'}})
+    .to('[data-stage="4"]',{opacity:1,duration:.4});
+
+  // location
+  gsap.from('.loc article',{clipPath:'inset(0 0 100% 0)',y:30,duration:1,ease:'expo.out',stagger:.12,scrollTrigger:{trigger:'.loc',start:'top 80%',once:true}});
+
+  // dusk: the windows come on, one home at a time
+  const nw=gsap.utils.shuffle(gsap.utils.toArray('.night-draw [data-win]'));
+  gsap.to(nw.slice(0,Math.round(nw.length*.7)),{fill:'#ffcf73',ease:'none',stagger:.02,scrollTrigger:{trigger:'.night-draw',start:'top 80%',end:'bottom 50%',scrub:true}});
+
+  // the sky (created after the pins so positions include them): each section brings its own time of day; the sun sinks as you go
+  const secs=gsap.utils.toArray('[data-sky]');let prev=secs[0].dataset.sky.split(',');
+  root.style.setProperty('--sky-a',prev[0]);root.style.setProperty('--sky-b',prev[1]);
+  secs.slice(1).forEach(s=>{const c=s.dataset.sky.split(',');
+    gsap.fromTo(root,{'--sky-a':prev[0],'--sky-b':prev[1]},{'--sky-a':c[0],'--sky-b':c[1],ease:'none',immediateRender:false,scrollTrigger:{trigger:s,start:'top 85%',end:'top 25%',scrub:true}});prev=c;});
+  gsap.to('.sun',{y:()=>innerHeight*.95,scale:1.25,ease:'none',scrollTrigger:{trigger:'main',start:'top top',end:()=>'bottom bottom',scrub:true}});
+  gsap.to('.stars',{opacity:1,ease:'none',scrollTrigger:{trigger:'#visit',start:'top 70%',end:'top 20%',scrub:true}});
+  ScrollTrigger.create({trigger:'#visit',start:'top 60px',end:'bottom top',onToggle:s=>document.getElementById('top').classList.toggle('night',s.isActive)});
+
+  M.lines('[data-lines]');M.magnetic();
+});
+</script>
+
+</body>
+</html>

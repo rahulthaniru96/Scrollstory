@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Banyan Preschool</title>
+</head>
+<body>
+
+<script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('anim')</script>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+.mask{display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em}
+.ln{display:block;will-change:transform}
+.ch{display:inline-block}
+.w{display:inline}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[data-marquee]{overflow:hidden;white-space:nowrap}
+[data-marquee]>*{display:inline-flex;width:max-content}
+[data-parallax]{overflow:hidden}
+[data-parallax] img,[data-parallax] .pimg{height:120%;width:100%;object-fit:cover;margin-top:-10%}
+.grain{position:fixed;inset:-50%;pointer-events:none;z-index:80;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation:grain .9s steps(6) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}20%{transform:translate(-6%,3%)}40%{transform:translate(5%,-5%)}60%{transform:translate(-3%,7%)}80%{transform:translate(7%,1%)}}
+.ai-note{font-size:11px;letter-spacing:.02em;opacity:.75}
+:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* world: a banyan tree in a schoolyard — pale sky, leaf green, turmeric sun, clay-red figs */
+:root{--sky:#e4f0f6;--sky-2:#d2e6f0;--leaf:#2f7d4f;--leaf-dk:#1d5434;--leaf-lt:#5bb370;--sun:#f2b631;--blue:#3f86c0;--clay:#de7f6c;--bark:#8a5a3b;--ink:#1f2d33;--paper:#fffdf7;--warm:#fbe7c6;
+  --f-d:'Baloo 2',ui-rounded,'Trebuchet MS',sans-serif;--f-b:'Atkinson Hyperlegible',ui-sans-serif,system-ui,sans-serif;color-scheme:light}
+body{background:var(--sky);color:var(--ink);font:18px/1.6 var(--f-b)}
+main{overflow-x:clip}
+.gut{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1200px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-d);font-weight:800;line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:clamp(40px,5.6vw,76px)}
+h3{font-size:28px;font-weight:700}
+p{margin:0}
+.lede{max-width:48ch;font-size:clamp(18px,1.5vw,20px)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;border-radius:999px;font:700 19px/1 var(--f-d);text-decoration:none;border:0;background:var(--leaf);color:#fff;box-shadow:0 5px 0 var(--leaf-dk);transition:transform .15s,box-shadow .15s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--leaf-dk)}
+.btn--sun{background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #c58c12}
+.btn--line{background:transparent;color:var(--leaf-dk);box-shadow:inset 0 0 0 2.5px var(--leaf)}
+.sec{padding-block:clamp(90px,11vw,150px)}
+.head{display:grid;gap:18px;margin-bottom:52px}
+
+/* header */
+.top{position:fixed;inset:0 0 auto;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px;transition:background .35s,box-shadow .35s}
+.top.solid{background:rgba(228,240,246,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 1px 0 rgba(31,45,51,.08)}
+.mark{display:flex;align-items:center;gap:8px;text-decoration:none;font:800 24px/1 var(--f-d);color:var(--leaf-dk);white-space:nowrap}
+.mark svg{width:34px;height:34px}
+.top nav{display:flex;gap:22px;align-items:center;font-weight:700;font-size:16px}
+.top nav a{text-decoration:none;color:var(--ink)}
+.top nav a:hover{color:var(--leaf)}
+.top .btn{padding:11px 18px;font-size:17px;box-shadow:0 4px 0 #c58c12}
+@media (max-width:760px){.top nav a:not(.btn){display:none}}
+
+/* hero */
+.hero{min-height:100vh;min-height:100svh;display:grid;align-items:center;padding-top:96px;padding-bottom:40px;position:relative}
+.hero__grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:24px;align-items:center}
+.hero h1{font-size:clamp(54px,7.6vw,112px);color:var(--leaf-dk)}
+.hero__place{font:700 18px/1 var(--f-d);color:var(--clay);margin-bottom:16px}
+.hero .lede{margin-top:22px}
+.hero__cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;padding:0;list-style:none}
+.chips li{background:var(--paper);border-radius:999px;padding:8px 15px;font-size:15px;font-weight:700;display:flex;gap:8px;align-items:center}
+.chips li::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--leaf-lt)}
+.tree{width:100%;height:auto;overflow:visible}
+.swing{transform-origin:432px 262px;animation:swing 3.2s ease-in-out infinite alternate}
+@keyframes swing{from{transform:rotate(7deg)}to{transform:rotate(-7deg)}}
+.seed{position:absolute;border-radius:50%;pointer-events:none;opacity:.55;animation:bob 6s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-26px)}}
+@media (max-width:860px){.hero__grid{grid-template-columns:minmax(0,1fr)}.tree{max-width:460px;margin:0 auto;order:-1}.hero{padding-top:84px}}
+
+.ribbon{background:var(--sun);padding:13px 0;font:800 clamp(22px,2.6vw,32px)/1 var(--f-d);color:var(--ink)}
+.ribbon div{gap:26px;padding-right:26px;align-items:center}
+.ribbon i{width:14px;height:14px;border-radius:50%;background:var(--clay);display:inline-block}
+
+/* a day — the signature */
+#day{position:relative;background:var(--sky)}
+#day h2{font-size:clamp(36px,4.4vw,60px)}
+.day__stage{display:grid;gap:14px;align-content:center;text-align:center;justify-items:center}
+.day__stage .lede{margin:0 auto}
+.arc{width:min(100%,920px);height:auto;max-height:34vh;overflow:visible;margin-top:8px}
+.arc text{font:700 22px var(--f-d);fill:var(--ink)}
+.times{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:2px 0 6px}
+.times button{border:0;background:var(--paper);border-radius:999px;padding:7px 13px;font:700 16px/1 var(--f-d);color:var(--ink)}
+.times button.on{background:var(--ink);color:var(--paper)}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;width:100%;max-width:1100px;text-align:left}
+.act{background:var(--paper);border-radius:28px;padding:24px 26px;display:grid;grid-template-columns:72px 1fr;gap:6px 18px;align-items:start;box-shadow:0 10px 30px rgba(31,45,51,.08)}
+.act svg{grid-row:span 3;width:72px;height:72px}
+.act time{font:800 20px/1 var(--f-d);color:var(--clay)}
+.act p{font-size:17px}
+@media (min-width:0px){
+  .anim .acts{display:block;position:relative;max-width:620px;height:210px}
+  .anim .act{position:absolute;inset:0;visibility:hidden}
+  .anim .act:first-child{visibility:visible}
+  .anim #day.sec{padding-block:0}
+  .anim .day__stage{min-height:100vh;min-height:100svh;padding-top:84px;padding-bottom:30px}
+}
+@media (max-width:600px){.anim .acts{height:250px}.act{grid-template-columns:56px 1fr;padding:20px}.act svg{width:56px;height:56px}.arc text{font-size:30px}}
+.hint{font-size:15px;color:#4d5d64}
+@media (max-width:600px){.times{gap:5px}.times button{padding:6px 8px;font-size:15px}}
+
+/* programs — a growth chart */
+#programs{background:var(--paper)}
+.grow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:end;min-height:600px}
+.stage{border-radius:28px 28px 8px 8px;padding:24px;display:flex;flex-direction:column;gap:10px;color:#fff;position:relative}
+.stage:nth-child(1){background:var(--blue);min-height:56%}
+.stage:nth-child(2){background:var(--clay);min-height:68%}
+.stage:nth-child(3){background:var(--leaf);min-height:82%}
+.stage:nth-child(4){background:var(--leaf-dk);min-height:96%}
+.stage .age{font:700 17px/1 var(--f-d);opacity:.9}
+.stage h3{font-size:clamp(30px,2.8vw,40px)}
+.stage svg{width:84px;height:auto;margin-top:auto;align-self:flex-start}
+@media (max-width:900px){.grow{grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0;align-items:stretch}.stage:nth-child(n){min-height:300px}}
+@media (max-width:520px){.grow{grid-template-columns:minmax(0,1fr)}.stage:nth-child(n){min-height:0}.stage svg{width:64px}}
+
+/* parents — notes on a board */
+#parents{background:var(--sky-2)}
+.notes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px;align-items:start}
+.note{background:var(--paper);padding:30px 24px 26px;border-radius:4px;box-shadow:0 14px 26px rgba(31,45,51,.12);position:relative;display:grid;gap:10px}
+.note::before{content:"";position:absolute;top:-12px;left:50%;width:84px;height:24px;margin-left:-42px;background:rgba(242,182,49,.75);transform:rotate(-3deg)}
+.note:nth-child(1){transform:rotate(-2deg)}.note:nth-child(2){transform:rotate(1.6deg);margin-top:30px}.note:nth-child(3){transform:rotate(-1deg)}.note:nth-child(4){transform:rotate(2.2deg);margin-top:20px}
+.note h3{font-size:30px;color:var(--leaf-dk)}
+.small{font-size:15px;color:#4d5d64}
+@media (max-width:980px){.notes{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:560px){.notes{grid-template-columns:minmax(0,1fr)}.note:nth-child(n){margin-top:0}}
+
+/* admissions — a footpath */
+.path{position:relative}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;list-style:none;margin:0;padding:0;position:relative;z-index:1}
+.steps li{display:grid;gap:12px;align-content:start}
+.steps b{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--sun);font:800 30px/1 var(--f-d)}
+.steps li:nth-child(2) b{background:var(--clay);color:#fff}.steps li:nth-child(3) b{background:var(--leaf);color:#fff}
+.trail{position:absolute;left:32px;right:10%;top:32px;height:80px;width:calc(100% - 64px);overflow:visible;pointer-events:none}
+@media (max-width:800px){.steps{grid-template-columns:minmax(0,1fr)}.trail{display:none}.steps li{padding-left:0}}
+
+/* faq */
+#faq{background:var(--paper)}
+.faq{max-width:820px;display:grid;gap:12px}
+.faq details{background:var(--sky);border-radius:22px;padding:4px 24px}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:18px 0;font:700 22px/1.25 var(--f-d)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";flex:0 0 36px;height:36px;border-radius:50%;background:var(--paper);display:grid;place-items:center;font-size:26px;transition:transform .3s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{padding:0 0 20px;max-width:60ch}
+
+/* visit */
+#visit{background:var(--leaf);color:#fff;position:relative;overflow:hidden}
+#visit h2{font-size:clamp(46px,7vw,100px);max-width:14ch}
+#visit .lede{margin-top:20px;color:#e3f2e8}
+.reach{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:34px}
+.reach .num{font:800 26px/1 var(--f-d);user-select:all}
+.copy-ok{font-size:15px;color:#e3f2e8}
+footer{background:var(--leaf-dk);color:#cfe6d6;font-size:15px;padding-block:28px calc(28px + env(safe-area-inset-bottom,0px))}
+footer p+p{margin-top:6px}
+</style>
+
+<header class="top gut" id="top">
+  <a class="mark" href="#home"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15" r="13" fill="#2f7d4f"/><circle cx="11" cy="17" r="8" fill="#5bb370"/><circle cx="29" cy="17" r="8" fill="#5bb370"/><rect x="18" y="20" width="4" height="17" rx="2" fill="#8a5a3b"/><circle cx="26" cy="11" r="2.2" fill="#de7f6c"/></svg>Little Banyan</a>
+  <nav aria-label="Main"><a href="#day">A day here</a><a href="#programs">Programs</a><a href="#parents">For parents</a><a href="#faq">FAQ</a><a class="btn btn--sun" href="#visit" data-magnetic=".25">Book a visit</a></nav>
+</header>
+
+<main>
+<section class="hero gut" id="home">
+  <span class="seed" style="left:6%;top:22%;width:14px;height:14px;background:var(--sun)" aria-hidden="true"></span>
+  <span class="seed" style="left:44%;top:14%;width:10px;height:10px;background:var(--clay);animation-delay:-2s" aria-hidden="true"></span>
+  <span class="seed" style="left:38%;bottom:16%;width:18px;height:18px;background:var(--blue);animation-delay:-4s" aria-hidden="true"></span>
+  <div class="wrap hero__grid">
+    <div>
+      <p class="hero__place" data-in>Play-based preschool in Uppal</p>
+      <h1 data-hero-title>Little roots, big wonder.</h1>
+      <p class="lede" data-in>A calm, green little school where children from 1½ to 6 learn through play, stories and getting their hands muddy — and parents always know how the day went.</p>
+      <div class="hero__cta" data-in><a class="btn" href="#visit" data-magnetic=".3">Book a school visit</a><a class="btn btn--line" href="#programs">See programs</a></div>
+      <ul class="chips" data-in><li>CCTV for parents</li><li>1 teacher : 8 children</li><li>Women staff only</li><li>Daily photo updates</li></ul>
+    </div>
+    <svg class="tree" viewBox="0 0 600 560" role="img" aria-label="Drawing of a banyan tree with hanging roots and a swing">
+      <ellipse cx="300" cy="540" rx="290" ry="22" fill="#cfe5c4"/>
+      <path data-trunk d="M262 540C276 450 266 390 292 300h18c26 90 16 150 30 240z" fill="#8a5a3b"/>
+      <g fill="none" stroke="#8a5a3b" stroke-linecap="round">
+        <path data-draw stroke-width="16" d="M296 330C250 300 180 285 105 255"/>
+        <path data-draw stroke-width="16" d="M306 330C350 300 420 285 500 255"/>
+        <path data-draw stroke-width="14" d="M300 310C300 260 298 220 300 170"/>
+        <path data-draw stroke-width="9" d="M220 292C200 250 175 230 150 205"/>
+        <path data-draw stroke-width="9" d="M384 292C405 250 430 230 455 205"/>
+      </g>
+      <g stroke="#9b6c4c" stroke-width="3.5" stroke-linecap="round" fill="none">
+        <path data-root d="M140 248V540"/><path data-root d="M176 262V540"/><path data-root d="M204 272V536"/><path data-root d="M470 248V540"/><path data-root d="M498 252V538"/>
+      </g>
+      <g class="swing"><path d="M414 262v148M450 262v148" stroke="#6b4a33" stroke-width="2.5"/><rect x="404" y="406" width="56" height="10" rx="4" fill="#de7f6c"/></g>
+      <g data-leaves><circle cx="254" cy="221" r="40" fill="#2f7d4f"/><circle cx="474" cy="219" r="31" fill="#46a565"/><circle cx="476" cy="212" r="21" fill="#2f7d4f"/><circle cx="236" cy="196" r="22" fill="#46a565"/><circle cx="86" cy="229" r="23" fill="#3f9a5f"/><circle cx="162" cy="126" r="21" fill="#46a565"/><circle cx="249" cy="173" r="27" fill="#2f7d4f"/><circle cx="209" cy="172" r="33" fill="#3f9a5f"/><circle cx="106" cy="165" r="37" fill="#3f9a5f"/><circle cx="460" cy="233" r="26" fill="#5bb370"/><circle cx="483" cy="236" r="38" fill="#2f7d4f"/><circle cx="163" cy="135" r="37" fill="#24663f"/><circle cx="331" cy="114" r="34" fill="#5bb370"/><circle cx="227" cy="274" r="42" fill="#3f9a5f"/><circle cx="426" cy="213" r="35" fill="#5bb370"/><circle cx="282" cy="129" r="22" fill="#2f7d4f"/><circle cx="193" cy="182" r="30" fill="#3f9a5f"/><circle cx="457" cy="157" r="41" fill="#2f7d4f"/><circle cx="318" cy="106" r="30" fill="#5bb370"/><circle cx="231" cy="109" r="38" fill="#24663f"/><circle cx="374" cy="198" r="28" fill="#24663f"/><circle cx="278" cy="160" r="42" fill="#5bb370"/><circle cx="141" cy="101" r="34" fill="#5bb370"/><circle cx="248" cy="88" r="31" fill="#2f7d4f"/><circle cx="447" cy="162" r="39" fill="#2f7d4f"/><circle cx="176" cy="187" r="29" fill="#3f9a5f"/><circle cx="288" cy="119" r="35" fill="#2f7d4f"/><circle cx="384" cy="243" r="28" fill="#3f9a5f"/><circle cx="404" cy="97" r="28" fill="#24663f"/><circle cx="518" cy="178" r="32" fill="#3f9a5f"/><circle cx="365" cy="221" r="27" fill="#3f9a5f"/><circle cx="541" cy="192" r="25" fill="#5bb370"/><circle cx="280" cy="224" r="37" fill="#5bb370"/><circle cx="185" cy="147" r="24" fill="#46a565"/><circle cx="504" cy="159" r="21" fill="#24663f"/><circle cx="489" cy="130" r="41" fill="#46a565"/><circle cx="169" cy="227" r="23" fill="#24663f"/><circle cx="256" cy="165" r="22" fill="#3f9a5f"/><circle cx="218" cy="198" r="39" fill="#2f7d4f"/><circle cx="460" cy="232" r="37" fill="#2f7d4f"/><circle cx="497" cy="159" r="22" fill="#3f9a5f"/><circle cx="223" cy="158" r="28" fill="#5bb370"/><circle cx="154" cy="142" r="23" fill="#24663f"/><circle cx="481" cy="182" r="35" fill="#5bb370"/><circle cx="373" cy="202" r="30" fill="#5bb370"/><circle cx="82" cy="197" r="36" fill="#2f7d4f"/><circle cx="372" cy="283" r="31" fill="#3f9a5f"/><circle cx="207" cy="92" r="36" fill="#5bb370"/><circle cx="544" cy="172" r="42" fill="#5bb370"/><circle cx="49" cy="173" r="31" fill="#3f9a5f"/><circle cx="71" cy="166" r="30" fill="#3f9a5f"/><circle cx="122" cy="124" r="26" fill="#3f9a5f"/><circle cx="395" cy="103" r="27" fill="#3f9a5f"/><circle cx="143" cy="178" r="20" fill="#2f7d4f"/><circle cx="345" cy="115" r="26" fill="#46a565"/><circle cx="471" cy="166" r="31" fill="#5bb370"/><circle cx="374" cy="201" r="35" fill="#3f9a5f"/><circle cx="204" cy="247" r="39" fill="#2f7d4f"/><circle cx="88" cy="196" r="40" fill="#2f7d4f"/><circle cx="347" cy="154" r="32" fill="#3f9a5f"/><circle cx="189" cy="191" r="40" fill="#5bb370"/><circle cx="520" cy="238" r="32" fill="#24663f"/><circle cx="90" cy="244" r="25" fill="#3f9a5f"/><circle cx="344" cy="184" r="38" fill="#24663f"/><circle cx="335" cy="147" r="39" fill="#24663f"/><circle cx="214" cy="133" r="37" fill="#46a565"/><circle cx="322" cy="194" r="40" fill="#2f7d4f"/><circle cx="48" cy="168" r="33" fill="#3f9a5f"/><circle cx="356" cy="142" r="28" fill="#3f9a5f"/><circle cx="265" cy="235" r="38" fill="#5bb370"/><circle cx="290" cy="253" r="24" fill="#2f7d4f"/><circle cx="433" cy="152" r="34" fill="#46a565"/><circle cx="376" cy="116" r="36" fill="#3f9a5f"/><circle cx="112" cy="170" r="20" fill="#24663f"/><circle cx="334" cy="104" r="24" fill="#3f9a5f"/><circle cx="431" cy="249" r="23" fill="#46a565"/><circle cx="503" cy="218" r="36" fill="#46a565"/><circle cx="68" cy="195" r="37" fill="#2f7d4f"/><circle cx="301" cy="230" r="6" fill="#de7f6c"/><circle cx="322" cy="125" r="6" fill="#de7f6c"/><circle cx="118" cy="157" r="6" fill="#de7f6c"/><circle cx="428" cy="155" r="6" fill="#de7f6c"/><circle cx="178" cy="146" r="6" fill="#de7f6c"/><circle cx="113" cy="180" r="6" fill="#de7f6c"/><circle cx="143" cy="203" r="6" fill="#de7f6c"/><circle cx="84" cy="196" r="6" fill="#de7f6c"/><circle cx="234" cy="109" r="6" fill="#de7f6c"/><circle cx="407" cy="170" r="6" fill="#de7f6c"/><circle cx="97" cy="155" r="6" fill="#de7f6c"/><circle cx="345" cy="158" r="6" fill="#de7f6c"/></g>
+    </svg>
+  </div>
+</section>
+
+<div class="ribbon" data-marquee="24" aria-label="Admissions open for 2026–27"><div><span>Admissions open for 2026–27</span><i></i><span>Playgroup to UKG</span><i></i><span>Visits on weekdays, 10 am – 12 pm</span><i></i></div></div>
+
+<section class="sec gut" id="day">
+  <div class="day__stage">
+    <h2 data-lines>Six little adventures, every day</h2>
+    <p class="lede hint">Scroll through the day. Mornings are for focus, afternoons for being outdoors.</p>
+    <svg class="arc" viewBox="0 0 1000 300" aria-hidden="true">
+      <path d="M120 290A380 220 0 0 1 880 290" fill="none" stroke="#9fc3d6" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+      <path d="M0 292h1000" stroke="#9fc3d6" stroke-width="3"/>
+      <g data-dots></g>
+      <g data-sun><g data-rays stroke="#f2b631" stroke-width="5" stroke-linecap="round"><path d="M0-56v-14M0 56v14M-56 0h-14M56 0h14M-40-40l-10-10M40 40l10 10M-40 40l-10 10M40-40l10-10"/></g><circle r="40" fill="#f2b631"/><circle cx="-12" cy="-6" r="4" fill="#1f2d33"/><circle cx="12" cy="-6" r="4" fill="#1f2d33"/><path d="M-12 10q12 10 24 0" stroke="#1f2d33" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+    </svg>
+    <div class="times" role="group" aria-label="Jump to a time"></div>
+    <div class="acts">
+      <article class="act"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="#fbe7c6"/><g transform="rotate(-35 36 36)"><rect x="30" y="14" width="12" height="34" rx="2" fill="#de7f6c"/><path d="M30 48h12l-6 12z" fill="#f2c9a8"/><path d="M34 56h4l-2 4z" fill="#de7f6c"/></g></svg><time>9:00</time><h3>Art corner</h3><p>Crayons, clay and big paper on the floor — nothing has to be perfect.</p></article>
+      <article class="act"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="#dbeaf5"/><path d="M28 50V22l20-5v28" stroke="#3f86c0" stroke-width="4" fill="none"/><circle cx="24" cy="50" r="6" fill="#3f86c0"/><circle cx="44" cy="45" r="6" fill="#3f86c0"/></svg><time>9:45</time><h3>Music &amp; rhymes</h3><p>Telugu, Hindi and English rhymes with a real tabla and a xylophone.</p></article>
+      <article class="act"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="#fde9c9"/><path d="M14 24q11-5 22 2v26q-11-6-22-2zM58 24q-11-5-22 2v26q11-6 22-2z" fill="#fff" stroke="#c58c12" stroke-width="3" stroke-linejoin="round"/></svg><time>10:30</time><h3>Story time</h3><p>One picture book, read slowly, then the children tell it back their way.</p></article>
+      <article class="act"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="#d9eed8"/><path d="M36 56V32" stroke="#2f7d4f" stroke-width="4"/><path d="M36 36c-12 0-16-8-16-14 10 0 16 4 16 14zM36 32c0-10 6-15 16-15 0 7-4 15-16 15z" fill="#5bb370"/><path d="M22 56h28" stroke="#8a5a3b" stroke-width="5" stroke-linecap="round"/></svg><time>11:30</time><h3>Garden</h3><p>Each class has a small bed — they water it, weed it and eat what grows.</p></article>
+      <article class="act"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="#f6dcd6"/><rect x="18" y="40" width="16" height="16" rx="2" fill="#3f86c0"/><rect x="38" y="40" width="16" height="16" rx="2" fill="#2f7d4f"/><rect x="28" y="22" width="16" height="16" rx="2" fill="#de7f6c" transform="rotate(8 36 30)"/></svg><time>12:15</time><h3>Blocks &amp; numbers</h3><p>Counting, sorting and building towers — maths before anyone calls it maths.</p></article>
+      <article class="act"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="#dbeaf5"/><path d="M22 32h28l-4 24H26z" fill="#f2b631"/><path d="M26 32q10-14 20 0" stroke="#1f2d33" stroke-width="3" fill="none"/><path d="M54 18q4 6 0 8-4-2 0-8zM16 22q3 5 0 7-3-2 0-7z" fill="#3f86c0"/></svg><time>3:00</time><h3>Splash &amp; sand</h3><p>Water play and the sand pit, with clothes changes packed by us.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="programs">
+  <div class="wrap">
+    <div class="head"><h2 data-lines>Grows with your child</h2><p class="lede">Small batches, the same class teacher all year, and a gentle settling-in week for every new child.</p></div>
+    <div class="grow">
+      <article class="stage"><span class="age">1½ – 2½ yrs</span><h3>Playgroup</h3><p>Two hours a day of play, songs and sharing. A parent can stay the first week.</p><svg viewBox="0 0 84 110" aria-hidden="true"><path data-stem d="M42 86V70" stroke="#fff" stroke-width="4"/><path d="M42 72c-8 0-11-5-11-9 7 0 11 3 11 9z" fill="#fff" data-leaf/><path d="M26 86h32l-4 22H30z" fill="rgba(255,255,255,.35)"/></svg></article>
+      <article class="stage"><span class="age">2½ – 3½ yrs</span><h3>Nursery</h3><p>Talking, listening, colours, shapes and first friendships.</p><svg viewBox="0 0 84 110" aria-hidden="true"><path data-stem d="M42 86V54" stroke="#fff" stroke-width="4"/><path d="M42 70c-10 0-13-6-13-11 9 0 13 4 13 11zM42 58c0-8 5-12 13-12 0 6-3 12-13 12z" fill="#fff" data-leaf/><path d="M26 86h32l-4 22H30z" fill="rgba(255,255,255,.35)"/></svg></article>
+      <article class="stage"><span class="age">3½ – 4½ yrs</span><h3>LKG</h3><p>Phonics, early numbers and lots of hands-on projects.</p><svg viewBox="0 0 84 110" aria-hidden="true"><path data-stem d="M42 86V36" stroke="#fff" stroke-width="4"/><path d="M42 72c-10 0-14-6-14-11 9 0 14 4 14 11zM42 58c0-8 5-12 14-12 0 6-4 12-14 12zM42 42c-9 0-12-6-12-10 8 0 12 3 12 10z" fill="#fff" data-leaf/><path d="M26 86h32l-4 22H30z" fill="rgba(255,255,255,.35)"/></svg></article>
+      <article class="stage"><span class="age">4½ – 5½ yrs</span><h3>UKG</h3><p>Reading, writing and getting ready for big school — calmly.</p><svg viewBox="0 0 84 110" aria-hidden="true"><path data-stem d="M42 86V22" stroke="#fff" stroke-width="4"/><path d="M42 74c-10 0-14-6-14-11 9 0 14 4 14 11zM42 60c0-8 5-12 14-12 0 6-4 12-14 12zM42 46c-10 0-13-6-13-10 8 0 13 3 13 10zM42 32c0-7 4-11 12-11 0 6-4 11-12 11z" fill="#fff" data-leaf/><circle cx="42" cy="18" r="7" fill="#f2b631" data-leaf/><path d="M26 86h32l-4 22H30z" fill="rgba(255,255,255,.35)"/></svg></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="parents">
+  <div class="wrap">
+    <div class="head"><h2 data-lines>Things you'll ask us first</h2><p class="small">Placeholders for the real details — every school fills these with its own facts.</p></div>
+    <div class="notes">
+      <article class="note"><h3>Safe, every minute</h3><p>CCTV you can watch from your phone, a sign-in/sign-out register, and only women staff with the children.</p></article>
+      <article class="note"><h3>9 am – 1 pm</h3><p>School hours, with day-care till 6 pm for working parents.</p></article>
+      <article class="note"><h3>Fresh snacks</h3><p>Cooked here, no packets.</p></article>
+      <article class="note"><h3>Daily photo updates</h3><p>A short note and two photos on WhatsApp every afternoon.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="admissions">
+  <div class="wrap">
+    <div class="head"><h2 data-lines>Admissions 2026–27, in three easy steps</h2><p class="lede">No entrance tests for little ones — just a visit and a conversation.</p></div>
+    <div class="path">
+      <svg class="trail" viewBox="0 0 1000 80" preserveAspectRatio="none" aria-hidden="true"><path data-trail d="M0 0C160 70 330 70 500 0S840-70 1000 0" fill="none" stroke="#de7f6c" stroke-width="3" stroke-dasharray="1 14" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+      <ol class="steps">
+        <li><b>1</b><h3>Visit with your child</h3><p>Walk around, meet the teachers, see a class in action. Weekdays 10 am – 12 pm.</p></li>
+        <li><b>2</b><h3>Have a chat</h3><p>We'll ask about routines, food and anything your child needs. Twenty minutes, over tea.</p></li>
+        <li><b>3</b><h3>Settle in</h3><p>A short first week that grows a little each day, with you close by.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="faq">
+  <div class="wrap">
+    <div class="head"><h2 data-lines>Good questions</h2></div>
+    <div class="faq">
+      <details><summary>What age can my child join?</summary><p>From 1½ years for Playgroup. We place children by age and readiness, and we'll talk it through with you at the visit.</p></details>
+      <details><summary>Do you provide transport?</summary><p>Yes, within 5 km, with a woman attendant on every van. (Demo answer — replace with the school's own.)</p></details>
+      <details><summary>What if my child cries in the first week?</summary><p>Very normal. The settling-in week is short and gentle, and you can stay nearby.</p></details>
+      <details><summary>Which languages do you use?</summary><p>English in class, with Telugu and Hindi songs and stories every day.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="sec gut" id="visit">
+  <div class="wrap">
+    <h2 data-lines>Come see us, bring the little one.</h2>
+    <p class="lede">School visits on weekdays between 10 am and 12 pm. Send a message and we'll keep a slot ready.</p>
+    <div class="reach"><span class="num" data-num>+91 90000 00000</span><button class="btn btn--sun" data-copy data-magnetic=".25">Copy number</button><span class="copy-ok" data-copy-ok aria-live="polite"></span></div>
+    <p class="small" style="color:#cfe6d6;margin-top:14px">Call or WhatsApp — demo number.</p>
+  </div>
+</section>
+</main>
+<footer class="gut"><div class="wrap"><p>Little Banyan Preschool, Uppal, Hyderabad.</p><p>Demo concept for a fictional school — details are placeholders.</p></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>/* Demo motion core — GSAP 3.12.5 + ScrollTrigger + Lenis 1.1.13. Our own code, patterns from Rebuild Recipe Part 1. */
+(function () {
+  const W = window, D = document, H = D.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ok = !!(W.gsap && W.ScrollTrigger) && !reduce;
+  const M = (W.MOTION = { ok, reduce, lenis: null });
+  if (!ok) { H.classList.remove('anim'); return; }
+  gsap.registerPlugin(ScrollTrigger);
+  H.classList.add('anim');
+
+  // R1 — smooth scroll on one clock
+  if (W.Lenis && !matchMedia('(hover: none)').matches) {
+    const lenis = new Lenis(Object.assign({ lerp: 0.12, wheelMultiplier: 1.05 }, W.LENIS_OPTS || {}));
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+    M.lenis = lenis;
+    D.addEventListener('click', e => {
+      const a = e.target.closest('a[href^="#"]'); if (!a) return;
+      const t = D.querySelector(a.getAttribute('href')); if (!t) return;
+      e.preventDefault(); lenis.scrollTo(t, { offset: -10, duration: 1.4 });
+    });
+  }
+
+  // R2 — split into masked lines
+  M.splitLines = function (el) {
+    if (el._lines) return el._lines;
+    const words = el.textContent.trim().split(/\s+/);
+    el.setAttribute('aria-label', el.textContent.trim());
+    el.innerHTML = words.map(w => `<span class="w">${w}</span>`).join(' ');
+    const rows = []; let top = null;
+    el.querySelectorAll('.w').forEach(w => {
+      if (Math.abs(w.offsetTop - (top ?? -99)) > 2) { rows.push([]); top = w.offsetTop; }
+      rows[rows.length - 1].push(w.textContent);
+    });
+    el.innerHTML = rows.map(r => `<span class="mask" aria-hidden="true"><span class="ln">${r.join(' ')}</span></span>`).join('');
+    return (el._lines = el.querySelectorAll('.ln'));
+  };
+  M.splitChars = function (el) {
+    const t = el.textContent; el.setAttribute('aria-label', t.trim());
+    el.innerHTML = [...t].map(c => c === ' ' ? ' ' : `<span class="ch" aria-hidden="true">${c}</span>`).join('');
+    return el.querySelectorAll('.ch');
+  };
+
+  // reveal helpers — opt-in per element
+  M.lines = function (sel, o = {}) {
+    gsap.utils.toArray(sel).forEach(el => {
+      const ls = M.splitLines(el);
+      gsap.from(ls, Object.assign({ yPercent: 115, duration: 1.1, ease: 'expo.out', stagger: 0.08,
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true } }, o));
+    });
+  };
+  M.blur = function (sel, o = {}) {
+    gsap.utils.toArray(sel).forEach(el => gsap.from(el.children.length ? el.children : el, Object.assign({
+      opacity: 0, filter: 'blur(10px)', y: 16, duration: 0.6, ease: 'power2.out', stagger: 0.1,
+      scrollTrigger: { trigger: el, start: 'top 85%', once: true } }, o)));
+  };
+
+  // R13 — magnetic
+  M.magnetic = function (sel = '[data-magnetic]') {
+    if (matchMedia('(hover: none)').matches) return;
+    D.querySelectorAll(sel).forEach(b => {
+      const k = +b.dataset.magnetic || 0.3;
+      const x = gsap.quickTo(b, 'x', { duration: 0.6, ease: 'power3' }), y = gsap.quickTo(b, 'y', { duration: 0.6, ease: 'power3' });
+      b.addEventListener('pointermove', e => { const r = b.getBoundingClientRect(); x((e.clientX - r.left - r.width / 2) * k); y((e.clientY - r.top - r.height / 2) * k); });
+      b.addEventListener('pointerleave', () => { x(0); y(0); });
+    });
+  };
+
+  // R12 — scramble to final text
+  M.scramble = function (el, dur = 0.7, glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') {
+    const final = el.dataset.text ??= el.textContent; const st = { p: 0 };
+    el.setAttribute('aria-label', final);
+    return gsap.to(st, { p: 1, duration: dur, ease: 'none', onUpdate() {
+      const n = Math.floor(st.p * final.length);
+      el.textContent = final.slice(0, n) + [...final.slice(n)].map(c => c === ' ' ? ' ' : glyphs[Math.random() * glyphs.length | 0]).join('');
+    }, onComplete() { el.textContent = final; } });
+  };
+
+  // R10 — inner image parallax
+  M.parallax = function (sel = '[data-parallax]') {
+    gsap.utils.toArray(sel).forEach(box => {
+      const img = box.querySelector('img, .pimg'); if (!img) return;
+      const a = +box.dataset.parallax || 10;
+      gsap.fromTo(img, { yPercent: -a }, { yPercent: a, ease: 'none',
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } });
+    });
+  };
+
+  // R11 — marquee that follows scroll direction
+  M.marquee = function (sel = '[data-marquee]') {
+    gsap.utils.toArray(sel).forEach(m => {
+      const tr = m.firstElementChild; tr.innerHTML += tr.innerHTML; tr.lastElementChild && [...tr.children].slice(tr.children.length / 2).forEach(c => c.setAttribute('aria-hidden', 'true'));
+      const loop = gsap.to(tr, { xPercent: -50, duration: +m.dataset.marquee || 30, ease: 'none', repeat: -1 });
+      ScrollTrigger.create({ trigger: m, start: 'top bottom', end: 'bottom top', onUpdate: s => gsap.to(loop, { timeScale: s.direction * (1 + Math.min(Math.abs(s.getVelocity()) / 900, 3)), duration: 0.3, overwrite: true, onComplete: () => gsap.to(loop, { timeScale: s.direction, duration: 0.8 }) }) });
+    });
+  };
+
+  // run page setup once fonts are in (line splits depend on metrics), never wait more than 1.2s
+  M.ready = function (fn) {
+    let done = false; const go = () => { if (done) return; done = true; fn(); ScrollTrigger.refresh(); };
+    (D.fonts && D.fonts.ready ? D.fonts.ready : Promise.resolve()).then(go); setTimeout(go, 1200);
+  };
+  addEventListener('load', () => ScrollTrigger.refresh());
+  if (D.fonts && D.fonts.ready) D.fonts.ready.then(() => ScrollTrigger.refresh());
+})();
+</script>
+<script>
+(function(){
+  const b=document.querySelector('[data-copy]'),ok=document.querySelector('[data-copy-ok]'),num=document.querySelector('[data-num]');
+  b.addEventListener('click',()=>{const sel=()=>{const r=document.createRange();r.selectNodeContents(num);const s=getSelection();s.removeAllRanges();s.addRange(r);ok.textContent='Selected — press copy';};
+    try{navigator.clipboard.writeText(num.textContent).then(()=>ok.textContent='Copied',sel)}catch(e){sel()}});
+  const top=document.getElementById('top');const solid=()=>top.classList.toggle('solid',scrollY>40);addEventListener('scroll',solid,{passive:true});solid();
+})();
+const M=window.MOTION;
+if(M.ok) M.ready(()=>{
+  // hero: the banyan grows — trunk rises, branches draw, roots drop, leaves pop
+  const draw=gsap.utils.toArray('[data-draw],[data-root]');draw.forEach(p=>{const l=p.getTotalLength();gsap.set(p,{strokeDasharray:l,strokeDashoffset:l})});
+  const leaves=gsap.utils.shuffle(gsap.utils.toArray('[data-leaves] circle'));
+  const title=M.splitLines(document.querySelector('[data-hero-title]'));
+  gsap.timeline({delay:.1})
+    .from('[data-trunk]',{scaleY:0,transformOrigin:'50% 100%',duration:.8,ease:'power3.out'})
+    .to('[data-draw]',{strokeDashoffset:0,duration:.8,ease:'power2.out',stagger:.07},.45)
+    .from(leaves,{scale:0,transformOrigin:'50% 50%',duration:.6,ease:'back.out(2.4)',stagger:{amount:1}},.8)
+    .to('[data-root]',{strokeDashoffset:0,duration:1,ease:'power2.inOut',stagger:.1},1.3)
+    .from('.swing',{opacity:0,duration:.5},2)
+    .from(title,{yPercent:110,duration:1,ease:'expo.out',stagger:.1},.2)
+    .from('[data-in]',{y:22,opacity:0,duration:.7,ease:'power3.out',stagger:.08},.5);
+  // leaves breathe a little in the wind
+  gsap.to('[data-leaves]',{x:4,rotation:.6,transformOrigin:'50% 100%',duration:3,ease:'sine.inOut',yoyo:true,repeat:-1});
+
+  // a day: the sun crosses the sky from 9:00 to 3:00, one activity at a time
+  const acts=gsap.utils.toArray('.act'),n=acts.length,times=document.querySelector('.times'),dots=document.querySelector('[data-dots]'),sun=document.querySelector('[data-sun]');
+  const cx=500,cy=290,R=380,RY=220,ang=t=>Math.PI*(1-(.06+t*.88));
+  const pos=t=>[cx+R*Math.cos(ang(t)),cy-RY*Math.sin(ang(t))];
+  acts.forEach((a,i)=>{const t=i/(n-1),[x,y]=pos(t);
+    dots.insertAdjacentHTML('beforeend',`<circle cx="${x}" cy="${y}" r="9" fill="#fffdf7" stroke="#9fc3d6" stroke-width="3"/>`);
+    const bt=document.createElement('button');bt.textContent=a.querySelector('time').textContent;bt.setAttribute('aria-label',bt.textContent+' '+a.querySelector('h3').textContent);times.append(bt);});
+  const btns=times.querySelectorAll('button'),dotEls=dots.querySelectorAll('circle');
+  let cur=-1;
+  const show=i=>{if(i===cur)return;const prev=acts[cur];
+    if(prev)gsap.to(prev,{autoAlpha:0,y:i>cur?-30:30,duration:.35,ease:'power2.in',overwrite:true});
+    gsap.fromTo(acts[i],{autoAlpha:0,y:i>cur?40:-40},{autoAlpha:1,y:0,duration:.6,ease:'back.out(1.6)',delay:prev?.2:0,overwrite:true});
+    btns.forEach((b,k)=>b.classList.toggle('on',k===i));dotEls.forEach((d,k)=>d.setAttribute('fill',k<=i?'#f2b631':'#fffdf7'));cur=i;};
+  gsap.set(acts,{autoAlpha:0,visibility:'hidden'});show(0);
+  const st=ScrollTrigger.create({trigger:'#day',start:'top top',end:'+='+(n*70)+'%',pin:true,scrub:true,
+    onUpdate(s){const p=s.progress,[x,y]=pos(p);gsap.set(sun,{x,y,rotation:p*90});show(Math.min(n-1,Math.round(p*(n-1))));}});
+  gsap.set(sun,{x:pos(0)[0],y:pos(0)[1]});
+  gsap.fromTo('#day',{backgroundColor:'#e4f0f6'},{backgroundColor:'#fbe7c6',ease:'none',scrollTrigger:{trigger:'#day',start:'top top',end:()=>'+='+(st.end-st.start),scrub:true}});
+  btns.forEach((b,i)=>b.addEventListener('click',()=>{const y=st.start+(st.end-st.start)*(i/(n-1));M.lenis?M.lenis.scrollTo(y,{duration:1.2}):scrollTo({top:y,behavior:'smooth'});}));
+
+  // programs: the plants grow as the chart comes in
+  gsap.from('.stage',{yPercent:30,opacity:0,duration:1,ease:'expo.out',stagger:.12,scrollTrigger:{trigger:'.grow',start:'top 80%',once:true}});
+  gsap.from('[data-stem]',{scaleY:0,transformOrigin:'50% 100%',duration:.9,ease:'power2.out',stagger:.12,scrollTrigger:{trigger:'.grow',start:'top 65%',once:true}});
+  gsap.from('[data-leaf]',{scale:0,transformOrigin:'50% 100%',duration:.6,ease:'back.out(2.5)',stagger:.1,delay:.5,scrollTrigger:{trigger:'.grow',start:'top 65%',once:true}});
+
+  // parents: notes get pinned to the board one by one
+  gsap.from('.note',{y:-140,rotation:i=>i%2?14:-14,opacity:0,duration:1,ease:'back.out(1.4)',stagger:.14,scrollTrigger:{trigger:'.notes',start:'top 78%',once:true}});
+
+  // admissions: little footsteps from one step to the next
+  const tr=document.querySelector('.trail');
+  gsap.from('.steps li',{y:40,opacity:0,duration:.9,ease:'expo.out',stagger:.18,scrollTrigger:{trigger:'.steps',start:'top 80%',once:true}});
+  gsap.fromTo(tr,{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)',ease:'none',scrollTrigger:{trigger:'.steps',start:'top 80%',end:'top 35%',scrub:true}});
+  gsap.from('.steps b',{scale:0,duration:.6,ease:'back.out(3)',stagger:.18,scrollTrigger:{trigger:'.steps',start:'top 80%',once:true}});
+
+  M.lines('[data-lines]');M.marquee();M.magnetic();
+});
+</script>
+
+</body>
+</html>

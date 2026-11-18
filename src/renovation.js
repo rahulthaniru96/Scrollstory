@@ -3,7 +3,8 @@
 // Every old and new piece shares one place; a shader shows each only on its side of the line.
 import * as THREE from 'three';
 import { RENO } from './world.js';
-import { SITES } from './gallery.js';
+// The made-up café whose old and new sites the room compares (sample wording, no prices or claims).
+const CAFE = { accent: 0xc98b5a, page: ['Café', 'Fresh filter coffee', ['Filter coffee', 'Bun maska', 'Cold coffee'], 'WhatsApp to order'] };
 
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const CREAM = '#f7efe2', INK = '#1e2a26', OXIDE = '#9e3b2c', BUTTER = '#f2d98b', TEAL = '#3f6e68';
@@ -70,7 +71,7 @@ function oldSite(x, w, h) {
 
 // The same café, the Scrollstory way: one story, room to breathe, the order button where a thumb finds it.
 function newSite(x, w, h) {
-  const site = SITES[0], [, hero, items, cta] = site.page, acc = '#' + site.accent.toString(16).padStart(6, '0');
+  const site = CAFE, [, hero, items, cta] = site.page, acc = '#' + site.accent.toString(16).padStart(6, '0');
   x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h);
   x.fillStyle = INK; x.fillRect(0, 0, w, 120);
   x.fillStyle = CREAM; x.font = '500 64px Fraunces, Georgia, serif'; x.fillText('Café', 70, 82);
@@ -171,7 +172,7 @@ export function renovation({ scene, lowQuality }) {
   // ---------- the right-hand side: a crooked OPEN sign, then the menu floating, with the order button ----------
   const openTex = canvas(256, 96, (x, w, h) => { x.fillStyle = '#2a2a2a'; x.fillRect(0, 0, w, h); x.fillStyle = '#b8352c'; x.font = 'bold 66px Arial, sans-serif'; x.fillText('OP N', 36, 72); });
   const sign = put(new THREE.PlaneGeometry(0.75, 0.28), split(new THREE.MeshBasicMaterial({ map: openTex }), 1), -0.3, 2.2, -12.4); sign.rotation.z = -0.18;
-  const site = SITES[0], menu = [];
+  const site = CAFE, menu = [];
   site.page[2].forEach((it, k) => {
     const tex = canvas(384, 224, (x, w, h) => {
       x.fillStyle = '#fffaf0'; x.beginPath(); x.roundRect(0, 0, w, h, 26); x.fill();

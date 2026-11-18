@@ -103,22 +103,14 @@ for (const s of SHOPS) {
 for (const s of SHOPS) air(`shop float ${s.name}`, 11.15, 2.2, s.z, 1.1); // each shop's device hovers over its counter, and floats forward on its beat
 for (const z of [-8, -2, 4]) box(`shop divider z${z}`, 11.3, 12, 0, 4.2, z - 0.15, z + 0.15, 'wall', { color: 0xc47a5a }); // shallow, so all three shops show from the corner
 
-// 02 Gallery: floating website cards (placeholders until Rahul decides which sites show).
-// Each one opens into a small world of its own shape: a dome on the floor, a sphere in the air, or a portal in the west wall.
-// Spread down the whole room and up into the air, so no two crowd one frame. The walk runs down x = -9 and rests 3 m past each.
-export const CARDS = [
-  { x: -7.05, y: 1.2, z: 6.0, form: 'ground', r: 1.9 },
-  { x: -10.3, y: 2.95, z: 2.5, form: 'air', r: 1.15 },
-  { x: -11.35, y: 1.75, z: -1.0, form: 'wall', r: 1.5 },
-  { x: -7.15, y: 1.2, z: -3.5, form: 'ground', r: 1.75 },
-  { x: -10.6, y: 2.75, z: -7.0, form: 'air', r: 1.2 },
-].map((c) => ({ ...c, w: 1.6, h: 1.0, label: 'Demo' }));
-for (const [i, c] of CARDS.entries()) sph(`card ${i + 1}`, c.x, c.y, c.z, 1.0, 'card');
+// 02 Gallery: a row of framed screens on the west wall, 2.5 m apart, one per site (gallery.js). The walk runs down x = -9 and stops square in front of each.
+export const CARDS = [5.5, 3, 0.5, -2, -4.5, -7, -9.5].map((z) => ({ x: -11.8, y: 2.0, z }));
+for (const [i, c] of CARDS.entries()) sph(`card ${i + 1}`, c.x, c.y, c.z, 0.35, 'card');
 
 // ---------- the dreamy layer's solid parts (drawn by dress.js, checked here) ----------
 // Windows are portals: each shows a different sky. `n` is the way the window faces (into the room).
 export const WINDOWS = [
-  ...[5.5, 2.5, -3.5, -6.5, -9.5].map((z, i) => ({ x: -12, y: 0.8, z, n: '+x', w: 1.5, h: 3.0, sky: ['gold', 'rose', 'day', 'gold', 'rose'][i], shaft: 40 })), // z -0.5 is the third demo's portal
+  // (the Gallery's west wall carries the site screens instead of windows)
   ...SHOPS.map((s, i) => ({ x: 12, y: 1.1, z: s.z, n: '-x', w: 2.6, h: 2.3, sky: ['rose', 'day', 'night'][i], shaft: 38 })),
   ...COUNTERS.map((c, i) => ({ x: c.x, y: 1.3, z: -22, n: '+z', w: 1.7, h: 2.5, sky: ['night', 'dawn', 'day', 'gold'][i], shaft: 36 })),
   ...[2.2, 5.4].flatMap((z) => [

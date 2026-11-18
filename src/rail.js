@@ -88,25 +88,21 @@ export function buildRail() {
     key(a + d * 0.55, line(-6.15, 9.2));
     look(a + d * 0.6, 95, 0);
     g(-7.7, 9.05); g(-8.7, 8.35); key(a + d, g(-9, 7));
-    look(a + d * 0.92, 180, -3); look(a + d, 180, -3);
+    look(a + d * 0.92, 100, 0); look(a + d, 100, 0); // facing the Gallery's wall of screens
   });
   // ---- 02 Gallery ----
-  const cardAim = (c) => [180 + deg(Math.atan2(c.x + 9, 3)), deg(Math.atan2(c.y - EYE, Math.hypot(c.x + 9, 3))) * 0.8]; // from 3 m past it, on the walk's line
-  const LAST_CARD = cardAim(CARDS[CARDS.length - 1])[0];
+  const LAST_CARD = 90 + deg(Math.atan2(CARDS[CARDS.length - 1].z + 10, -9 - CARDS[CARDS.length - 1].x)); // from where the walk ends, at z = -10
   move('Gallery, walking backwards', 'room', 220, (a, d) => {
     key(a + d, line(-9, -10));
-    for (const c of CARDS) { // each demo site gets a stop 3 m past it, with the eyes on it while it opens
-      const u = (10 - c.z) / 17, [y, p] = cardAim(c);
-      if (u < 1) look(a + d * u, y, p);
-    }
-    const [y, p] = cardAim(CARDS[CARDS.length - 1]); look(a + d, y, p); // the last one opens on the Gallery hold
+    rooms.push({ name: '02 Gallery', s: a + 5 }); // the room's name shows as soon as the wall of screens does
+    look(a + d * 0.1, 90, 0); look(a + d * 0.9, 90, 0); look(a + d, LAST_CARD, 0); // sideways along the wall, square to each screen; the last is seen from the Gallery hold
   });
-  hold('Gallery hold', 50, '02 Gallery');
+  hold('Gallery hold', 50);
   // ---- 03 Renovation: out through the courtyard arcade into a glass pavilion on the water. A line sweeps across the café's old site as the walk crosses it ----
   move('Into the Renovation', 'room', 120, (a, d) => {
     look(a, LAST_CARD, -2);
     g(-8.3, -9.7); key(a + d * 0.5, g(-6.6, RENO.walk));
-    look(a + d * 0.45, 270, 0);
+    look(a + d * 0.6, 270, 0); // a half turn from the last screen, so not too quick
     g(-5.15, RENO.walk); key(a + d, g(-4.0, RENO.walk));
     look(a + d * 0.85, 338, 4); look(a + d, 338, 4); // the old site, from just inside the door
   });
@@ -331,12 +327,12 @@ export function buildRail() {
 
   // Stops: where the wheel slows and the keys and pips land. Every hold, the ends of the tilts, one per demo site in the Gallery, and one per TV channel.
   const END_STOPS = ['Tilt up to the plaque', 'Look up', "Up the Hatter's stair", 'Look, then turn to the bridge', 'Back through to the funicular', 'Funicular to the Signal Cabin', 'Out of the cabin', 'Kites up to the Rooftop'];
-  const stops = [0, TOTAL_VH];
+  const stops = [0, TOTAL_VH], siteStops = []; // siteStops: square in front of each Gallery screen but the last
   for (const m of moves) {
     const d = m.s1 - m.s0;
     if (m.name === 'Arrival hold' || m.name === 'HOME hold') continue; // the walk opens on the first; the TV's channels cover the second
     if (m.name === 'HOME partial orbit') { const t1 = moves[moves.indexOf(m) + 1].s1; for (let c = 0; c < TV_CHANNELS; c++) stops.push(m.s0 + ((t1 - m.s0) * (c + 0.5)) / TV_CHANNELS); }
-    else if (m.name === 'Gallery, walking backwards') { for (const c of CARDS) if (c.z > -7) stops.push(m.s0 + (d * (10 - c.z)) / 17); }
+    else if (m.name === 'Gallery, walking backwards') { for (const c of CARDS.slice(0, -1)) { let lo = m.s0, hi = m.s1; for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (posAt(LofS(mid))[2] > c.z) lo = mid; else hi = mid; } stops.push(lo); siteStops.push(lo); } } // where the camera is level with each screen; the last is the Gallery hold's
     else if (m.name === 'Lobby push in') stops.push(m.s0 + d * 0.85);
     else if (m.hold) stops.push(m.s0 + d * 0.6);
     else if (END_STOPS.includes(m.name)) stops.push(m.s1 - 1);
@@ -350,6 +346,7 @@ export function buildRail() {
     moves,
     rooms,
     stops,
+    siteStops,
     north: NORTH,
     posAt, // position at a rail length (m)
     lengthAt: (p) => LofS(clampP(p)),

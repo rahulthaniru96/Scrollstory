@@ -2,6 +2,7 @@
 // things hover, turn, come apart and drift, slowly. Their space is declared in world.js so the rail check covers it.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { BOOKS } from './secrets.js';
 import { holoEdges, holoFill } from './holo.js';
 import { EXTRAS, BOARD, SHOPS, COUNTERS, SHOP_ROOM, COUNTER_ROOM, LONE_DOOR, FANS, COLLIDERS, DEBRIS, UNDERSIDES, STAIR, H, WINDOW } from './world.js';
 
@@ -72,28 +73,10 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     const parts = Object.entries(dirs).map(([name, d], i) => [part(m, name), part(m, name).position.clone(), new V3(...d), i]);
     tick.push((t, dt, env) => { for (const [o, p0, d, i] of parts) o.position.copy(p0).addScaledVector(d, 0.5 + 0.5 * Math.sin(env.air * 0.3 + i * 1.4)); });
   };
-  // Sheets flowing along a curve: they grow out of the source and thin away at the end.
-  const stream = (pts, n, mats, w, h, rate = 0.03) => {
-    const curve = new THREE.CatmullRomCurve3(pts.map((p) => new V3(...p))), geo = new THREE.PlaneGeometry(w, h);
-    const items = Array.from({ length: n }, (_, i) => mesh(geo, mats[i % mats.length]));
-    tick.push((t, dt, env) => {
-      for (const [i, m] of items.entries()) {
-        const u = (env.air * rate + i / n) % 1; curve.getPointAt(u, m.position);
-        m.scale.setScalar(Math.min(1, u * 7, (1 - u) * 5) * (0.55 + u * 0.6));
-        m.rotation.set(Math.sin(env.air * 0.3 + i) * 0.35, Math.sin(env.air * 0.2 + i * 1.3) * 0.7, Math.sin(env.air * 0.25 + i * 2) * 0.25);
-      }
-    });
-  };
   const fan = (x, y, z, s = 1) => prop('ceiling_fan', x, y, z, { s, then: (m) => { const b = part(m, 'blades'); tick.push((t, dt, env) => { b.rotation.y += dt * 1.1 * env.wind; }); } });
   const at = (name) => COLLIDERS.find((c) => c.name === name);
   const both = { side: THREE.DoubleSide };
 
-  // Little website pages: what streams out of the Workshop's screens.
-  const pages = [0xe8a89a, 0x2f5fa8, 0x3f6e68, 0xf2d98b].map((col) => basic(0xffffff, { ...both, map: canvasTex(96, 128, (x, w, h) => {
-    x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.fillRect(0, 0, w, 10);
-    x.fillStyle = css(col); x.fillRect(8, 20, w - 16, 44);
-    x.fillStyle = '#8c8a82'; x.fillRect(8, 74, w - 30, 6); x.fillRect(8, 88, w - 44, 6); x.fillRect(8, 102, w - 36, 6);
-  }) }));
   // Dashboard panels for the admin shop: bars, a ring, a list.
   const panels = [0, 1, 2].map((kind) => basic(0xffffff, { ...both, map: canvasTex(128, 96, (x, w, h) => {
     x.fillStyle = '#1e2a26'; x.fillRect(0, 0, w, h); x.fillStyle = '#f2d98b';
@@ -119,14 +102,65 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       tick.push((t, dt, env) => { const w = env.shop[i]; g.position.z = w * 0.45; halo.material.opacity = 0.2 + w * 0.3; halo.scale.setScalar(2.4 + w * 0.8); });
       return g;
     });
+    // What a plan buys is pages, so each shop's pages come out of its screen on its beat, one by one, and fan out above it:
+    // Starter's 3, Signature's 7. Each is labelled with the page it is. Off the beat they file back into the screen.
+    const pageTex = (title, k, n, col) => canvasTex(192, 256, (x, w, h) => {
+      x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.fillRect(0, 0, w, 22);
+      x.fillStyle = css(col); x.fillRect(14, 34, w - 28, 70);
+      x.fillStyle = '#1e2a26'; x.font = '500 30px Fraunces, Georgia, serif'; x.fillText(title, 14, 140);
+      x.fillStyle = '#8c8a82'; for (let r = 0; r < 4; r++) x.fillRect(14, 158 + r * 14, w - 28 - (r % 2) * 40, 6);
+      x.font = '500 13px "Martian Mono", monospace'; x.textAlign = 'right'; x.fillText(`${k + 1} / ${n}`, w - 14, h - 14);
+    });
+    // The models' screens are a flat colour with no UVs, so the page goes on a sheet laid just in front of the glass.
+    // The glass's facing is the face direction with the most area; a sheet goes on both sides of it, each reading the right way round.
+    const screenOf = (m, map, up = new V3(0, 1, 0)) => m.traverse((o) => {
+      if (!o.isMesh || o.material.name !== 'screen') return;
+      const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, P = g.attributes.position, A = new V3(), B = new V3(), C = new V3(), area = new Map();
+      for (let k = 0; k < P.count; k += 3) {
+        A.fromBufferAttribute(P, k); B.fromBufferAttribute(P, k + 1); C.fromBufferAttribute(P, k + 2);
+        const f = B.sub(A).cross(C.sub(A)), a = f.length(); if (!a) continue; f.divideScalar(a);
+        const key = [f.x, f.y, f.z].map((v) => Math.round(Math.abs(v) * 20)).join(); const e = area.get(key) || { a: 0, n: f.clone() }; e.a += a; area.set(key, e);
+      }
+      const n = [...area.values()].sort((p, q) => q.a - p.a)[0].n;
+      const u = new V3().crossVectors(Math.abs(n.dot(up)) > 0.9 ? new V3(0, 0, -1) : up, n).normalize(), v = new V3().crossVectors(n, u);
+      let lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+      for (let k = 0; k < P.count; k++) { A.fromBufferAttribute(P, k); [u, v, n].forEach((ax, j) => { const d = A.dot(ax); lo[j] = Math.min(lo[j], d); hi[j] = Math.max(hi[j], d); }); }
+      const mid = (j) => (lo[j] + hi[j]) / 2, geo = new THREE.PlaneGeometry((hi[0] - lo[0]) * 0.92, (hi[1] - lo[1]) * 0.92), mat = basic(0xffffff, { map });
+      for (const sgn of [1, -1]) {
+        const sheet = new THREE.Mesh(geo, mat), nn = n.clone().multiplyScalar(sgn);
+        sheet.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(u.clone().multiplyScalar(sgn), v, nn));
+        sheet.position.copy(u).multiplyScalar(mid(0)).addScaledVector(v, mid(1)).addScaledVector(n, sgn > 0 ? hi[2] + 0.003 : lo[2] - 0.003); o.add(sheet);
+      }
+    });
+    const fanOut = (s, i, titles, cy, faceY) => {
+      const n = titles.length, geo = new THREE.PlaneGeometry(0.3, 0.4);
+      const items = titles.map((t, k) => {
+        const m = mesh(geo, basic(0xffffff, { ...both, map: pageTex(t, k, n, s.color), transparent: true }), s.x, cy, z, front[i]);
+        const th = n === 1 ? 0 : -1.1 + (2.2 * k) / (n - 1); // a fan from left to right, over the device
+        return { m, k, home: new V3(s.x + Math.sin(th) * 1.0, cy + 0.15 + Math.cos(th) * 0.6, z + 0.3 - Math.abs(th) * 0.12), th };
+      });
+      const src = new V3(s.x, faceY, z + 0.05);
+      tick.push((t, dt, env) => {
+        const w = env.shop[i];
+        for (const it of items) {
+          const u = THREE.MathUtils.clamp(w * (n + 1) - it.k - 0.6, 0, 1), e = u * u * (3 - 2 * u); // page k leaves once the beat passes k/(n+1)
+          it.m.position.lerpVectors(src, it.home, e); it.m.position.y += Math.sin(env.air * 0.6 + it.k) * 0.03 * e;
+          it.m.rotation.set(0, -it.th * 0.35 * e, -it.th * 0.25 * e + (1 - e) * 0.3);
+          it.m.scale.setScalar(0.25 + 0.75 * e); it.m.material.opacity = Math.min(1, u * 3); it.m.visible = u > 0;
+        }
+      });
+    };
     // Starter: a phone standing in the air, far taller than a phone.
-    hover(prop('phone', a.x, 1.78, z, { s: 8, parent: front[0], then: (m) => { m.rotation.x = Math.PI / 2; for (const n of ['battery', 'charger']) part(m, n).visible = false; } }), 0.07, 0.5, 0.03, 0.35);
-    stream([[a.x, 1.95, z + 0.15], [a.x - 0.5, 2.3, z + 0.35], [a.x + 0.3, 2.7, z + 0.15], [a.x - 0.1, 3.0, z - 0.2]], 6, pages, 0.3, 0.4);
-    // Signature: a laptop, its pages climbing out in a spiral.
-    hover(prop('laptop', b.x, 1.4, z, { s: 3.4, parent: front[1], then: (m) => { m.rotation.x = 0.12; } }), 0.06, 0.45, 0.03, 0.25);
-    stream([[b.x, 1.95, z + 0.1], [b.x + 0.5, 2.2, z + 0.35], [b.x, 2.45, z + 0.45], [b.x - 0.5, 2.7, z + 0.2], [b.x, 3.0, z - 0.1]], 8, pages, 0.3, 0.4);
-    // Signature + Admin: the same laptop, with its dashboards circling it and a lock above.
-    hover(prop('laptop', c.x, 1.4, z, { s: 3.4, parent: front[2], then: (m) => { m.rotation.x = 0.12; } }), 0.06, 0.45, 0.03, 0.25);
+    hover(prop('phone', a.x, 1.78, z, { s: 8, parent: front[0], then: (m) => { m.rotation.x = Math.PI / 2; for (const n of ['battery', 'charger']) part(m, n).visible = false; screenOf(m, pageTex('Home', 0, 3, a.color)); } }), 0.07, 0.5, 0.03, 0.35);
+    fanOut(a, 0, ['Home', 'About', 'Contact'], 1.95, 1.9);
+    // Signature: a laptop, its seven pages fanning out of the screen.
+    hover(prop('laptop', b.x, 1.4, z, { s: 3.4, parent: front[1], then: (m) => { m.rotation.x = 0.12; screenOf(m, canvasTex(320, 200, (x, w, h) => { // the Home page, landscape
+      x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h); x.fillStyle = '#1e2a26'; x.fillRect(0, 0, w, 20); x.fillStyle = css(b.color); x.fillRect(16, 32, w - 32, 70);
+      x.fillStyle = '#1e2a26'; x.font = '500 30px Fraunces, Georgia, serif'; x.fillText('Home', 16, 136); x.fillStyle = '#8c8a82'; for (let r = 0; r < 3; r++) x.fillRect(16, 152 + r * 13, w - 32 - r * 50, 6);
+    })); } }), 0.06, 0.45, 0.03, 0.25);
+    fanOut(b, 1, ['Home', 'Our story', 'Menu', 'Gallery', 'Reviews', 'Enquiry', 'Legal'], 1.95, 1.75);
+    // Signature + Admin: the same laptop, showing its dashboard, with the dashboards circling it and a lock above.
+    hover(prop('laptop', c.x, 1.4, z, { s: 3.4, parent: front[2], then: (m) => { m.rotation.x = 0.12; screenOf(m, panels[0].map); } }), 0.06, 0.45, 0.03, 0.25);
     const ring = panels.map((mat) => mesh(new THREE.PlaneGeometry(0.44, 0.33), mat));
     tick.push((t, dt, env) => { for (const [i, m] of ring.entries()) { const an = env.air * 0.25 + (i * 2 * Math.PI) / 3; m.position.set(c.x + Math.cos(an) * 0.78, 2.1 + Math.sin(an) * 0.2, z + 0.05 + Math.sin(an) * 0.32); m.rotation.y = Math.sin(an) * 0.4; } });
     keyAndLock(c.x, 2.62, z - 0.1, 1.3);
@@ -258,7 +292,7 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
       }`,
   });
 
-  // ---------- Landing: core memory. Sun through crystal glass, dust in the beam, tiles lifting into the light ----------
+  // ---------- Landing: core memory. Sun through crystal glass, dust in the beam, pages from How we work drifting through it toward the shelf ----------
   {
     const L = H.landing;
     const tiles = canvasTex(256, 256, (x) => {
@@ -303,11 +337,31 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     scene.add(dust);
     tick.push((t, dt, env) => { dust.position.set(Math.sin(env.air * 0.1) * 0.12, Math.sin(env.air * 0.17) * 0.08, Math.cos(env.air * 0.13) * 0.1); });
 
-    // Tiles that have left the floor and are rising into the light.
-    const tileGeo = new THREE.BoxGeometry(0.48, 0.035, 0.48), tileMat = lit(0x9e4a3a, { roughness: 0.5 });
-    const risen = [[-9.6, 0.3, 2.3], [-8.9, 0.75, 3.1], [-8.2, 1.35, 2.5], [-9.3, 1.2, 4.3], [-8.5, 0.45, 4.7], [-7.8, 0.9, 3.9], [-9.9, 1.9, 3.4], [-8.9, 2.3, 3.9]]
-      .map(([x, h, z], i) => [mesh(tileGeo, tileMat, x, L + h, z), L + h, i]);
-    tick.push((t, dt, env) => { for (const [m, y, i] of risen) { m.position.y = y + Math.sin(env.air * 0.4 + i * 1.3) * 0.09; m.rotation.set(Math.sin(env.air * 0.2 + i) * 0.25, env.air * 0.08 + i, Math.cos(env.air * 0.17 + i * 2) * 0.25); } });
+    // Loose pages from the How we work books, drifting out of the beam toward the shelf. Each loops: fade in, drift, fade out near the shelf.
+    const sheets = BOOKS.map((b, i) => canvasTex(252, 336, (x, w, h) => {
+      x.fillStyle = '#f7efe2'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#1e2a26'; x.font = '500 13px "Martian Mono", monospace'; x.fillText(`HOW WE WORK · VOL 0${i + 1}`, 18, 30);
+      x.fillStyle = '#9e3b2c'; x.fillRect(18, 40, 60, 3);
+      x.fillStyle = '#1e2a26'; x.font = '500 48px Fraunces, Georgia, serif'; x.fillText(b.title, 18, 100);
+      x.font = '400 16px "Familjen Grotesk", Arial'; let ln = '', k = 0; for (const wd of b.line.split(' ')) { if (ln && x.measureText(ln + ' ' + wd).width > 210) { x.fillText(ln, 18, 132 + k++ * 20); ln = wd; } else ln = ln ? ln + ' ' + wd : wd; } x.fillText(ln, 18, 132 + k * 20);
+      x.fillStyle = 'rgba(30,42,38,0.28)'; for (let k = 0; k < 6; k++) x.fillRect(18, 200 + k * 18, k % 3 === 2 ? 120 : w - 36, 2);
+      x.fillStyle = '#1e2a26'; x.font = '500 13px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText(String(i * 7 + 3), w / 2, h - 16);
+    }));
+    const pageGeo = new THREE.PlaneGeometry(0.42, 0.56, 6, 1), pp = pageGeo.attributes.position;
+    for (let v = 0; v < pp.count; v++) pp.setZ(v, pp.getX(v) * pp.getX(v) * 1.4); // a slight curl
+    const spawn = [[-9.6, 0.3, 2.3], [-8.9, 0.75, 3.1], [-8.2, 1.35, 2.5], [-9.3, 1.2, 4.3], [-8.5, 0.45, 4.7], [-7.8, 0.9, 3.9], [-9.9, 1.9, 3.4], [-8.9, 2.3, 3.9]];
+    const drift = spawn.slice(0, lowQuality ? 5 : 8).map(([sx, sy, sz], i, a) => {
+      const m = mesh(pageGeo, lit(0xffffff, { map: sheets[i % 5], roughness: 0.9, transparent: true, ...both }), sx, L + sy, sz);
+      return { m, sx, sy, sz, i, T: 20 + ((i * 7) % 11), off: i / a.length };
+    });
+    tick.push((t, dt, env) => {
+      for (const d of drift) {
+        const p = (env.air / d.T + d.off) % 1, q = p * p * (3 - 2 * p), a = env.air;
+        d.m.position.set(d.sx + (-10.4 - d.sx) * q, L + d.sy + 0.25 * q + Math.sin(a * 0.4 + d.i * 1.3) * 0.07, d.sz + (1.2 - d.sz) * q);
+        d.m.rotation.set(Math.sin(a * 0.2 + d.i) * 0.3, p * 1.2 + d.i, Math.cos(a * 0.17 + d.i * 2) * 0.3);
+        d.m.material.opacity = Math.min(1, p / 0.12, (1 - p) / 0.2);
+      }
+    });
 
     const f = at('ceiling fan'); fan(f.x, f.y, f.z, 1.25); // a ceiling fan with no ceiling
     prop('steel_trunk', -10.1, L, 9.35);

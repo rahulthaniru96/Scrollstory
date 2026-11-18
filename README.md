@@ -97,10 +97,10 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 
 ## Sky Quarter (17 Nov 2026, night)
 
-- Walk: now about 5834 vh and 47 stops, more than the brief's 4200 vh.
+- Walk: now about 5874 vh and 47 stops, more than the brief's 4200 vh (5834 before the slower funicular in round four).
 - Heights: Rooftop raised to +38 m. Landing 26 m, HOME 28 m, Drafting 30.5 m, Extras 31.5 m (lowered), Signal 33 m, Greenhouse 35 m, Rooftop 38 m.
 - Renovation: a pavilion in the courtyard, between the Gallery and Worth it.
-- Layout: the order and heights follow plan 02. The positions do not follow plan 01's ring: the Signal Cabin and the Greenhouse sit east of Extras, so the falls and rides could land on real floors. The walk is about 5834 vh, not the drawing's 5150.
+- Layout: the order and heights follow plan 02. The positions do not follow plan 01's ring: the Signal Cabin and the Greenhouse sit east of Extras, so the falls and rides could land on real floors. The walk is about 5874 vh, not the drawing's 5150.
 - Files:
   - `src/renovation.js`: the Renovation pavilion, the old and new versions of the demo café site, and its clock secret.
   - `src/drafting.js`: the Drafting Room, its tables, blueprints and wax-sealed secret.
@@ -112,3 +112,14 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Secrets: three new ones, nine in all. The Renovation clock, the Drafting Room blueprint, and a keyhole on the clock tower that opens once six others are found.
 - Draw calls, measured headless: Lobby about 450 (as before), the Renovation about 650, the map room about 400.
 - Not checked: real GPU frame rate with all the new rooms; a real phone; reduced motion through the new rooms; how the new 3D pieces read on a small laptop screen; `scripts/board.mjs` still uses the old bridge format and was not updated.
+
+## Fourth round of feedback (18 Nov 2026)
+
+- Sit & watch: it stands beside the TV at screen height and stays for the whole TV stretch, fading slowly in and out instead of blinking between channels. It turns slowly to face the walk. Its bobbing animation was removed: a margin animation made the CSS 3D layer draw it far below its real place (this was the "popup at the bottom" in the screenshot).
+- 3D cards: each card casts a soft shadow, card-shaped, on the floor under it and on the wall behind it, and on the ground floor's water a faint reflection. The shadows draw before the glows and sit 8 cm off the wall, or the wall hides them.
+- Landing: the floating terracotta tiles are now loose pages from the five How we work books (Story, Design, Build, Launch, Care), drifting out of the sun beam toward the shelf.
+- Workshop: the pages coming out of each device now mean something. Starter's 3 pages (Home, About, Contact) and Signature's 7 (Home, Our story, Menu, Gallery, Reviews, Enquiry, Legal) fan out of the screen one by one on the shop's beat, each labelled. The page names are examples. The devices' screens show the Home page, and the admin laptop its dashboard; the models' screens have no UVs, so the picture is a sheet laid on the glass.
+- Drafting Room: the page frame is smaller (4.6 by 2.9 m, was 6.2 by 3.6) and stands 0.6 m further back, so it is whole in view from the stop. The page is redrawn as a desktop layout at 1280 wide: hero and picture side by side, three cards in a row, a Find us band and the footer. It shows 1280 by 800 at a time and scrolls once painted. The return path through the page moved 0.55 m west to keep clear of the smaller frame.
+- Funicular: the view faces the way the car goes, with the Signal Cabin ahead, instead of sideways. The ride is slower (190 vh, was 150).
+- Not checked: real GPU or phone; how strong the card shadows look on a real screen (they are subtle in headless frames); reduced motion for the new page fan. The tank egg's "Take me near" lands with the tank above the screen; this was already so before this round.
+

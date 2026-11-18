@@ -2,7 +2,7 @@
 // pose(p) is a pure function of scroll progress p (in vh), so scrolling up replays the walk exactly.
 import { EYE, STAIR, PHI_END, stairPt, stairY, H, SHOPS, COUNTERS, SUN_PATCH, TV, TV_CHANNELS, DESK, CARDS, EXTRAS, BOARD, FOUNDER, RENO, PAGE, BRIDGES, MAP, CABIN } from './world.js';
 
-export const TOTAL_VH = 5540; // whole walk, in screen-heights x 100. One constant scales everything.
+export const TOTAL_VH = 5530; // whole walk, in screen-heights x 100. One constant scales everything.
 
 const deg = (r) => (r * 180) / Math.PI;
 const rad = (d) => (d * Math.PI) / 180;
@@ -75,13 +75,13 @@ export function buildRail() {
   hold('Arrival hold', 50, '00 Arrival');
   move('Gate push in', 'room', 110, (a, d) => { look(a, 0, 1); key(a + d, line(0, 20)); look(a + d, 0, 4); });
   // ---- 01 Lobby ----
-  move('Lobby push in', 'room', 140, (a, d) => { // just inside the door the eyes go to the founder's plaque, and the walk rests there
-    key(a + d, line(0, 9.2)); look(a + d * 0.35, 0, 2);
-    const [y] = aim([0, EYE, 10.8], FOUNDER.at, 0); look(a + d * 0.85, y * 0.7, 0); look(a + d, 0, 0);
+  const LOBBY_LOOK = aim([0, EYE, 10.3], FOUNDER.at, 0)[0] * 1.3; // the lobby's west side, the founder's plaque right of centre (the caption stands left), the stairs off to the right
+  move('Lobby push in', 'room', 110, (a, d) => { // just inside the door, the walk turns to the lobby and the founder's plaque and pauses there
+    key(a + d, line(0, 10.3)); look(a + d * 0.4, 0, 1); look(a + d, LOBBY_LOOK, 0);
   });
-  hold('Lobby hold', 50, '01 Lobby');
+  hold('Lobby hold', 70, '01 Lobby');
   move('Look, then turn left', 'room', 130, (a, d) => {
-    look(a, 0, 0);
+    look(a, LOBBY_LOOK, 0);
     look(a + d * 0.35, 90, 0); // eyes are already west before the body is a third of the way
     key(a + d * 0.55, line(-6.15, 9.2));
     look(a + d * 0.6, 95, 0);
@@ -114,7 +114,7 @@ export function buildRail() {
   });
   hold('Worth it hold', 50, '04 Worth it');
   for (const [i, c] of COUNTERS.entries()) {
-    move(`To ${c.name}`, 'room', 45, (a, d) => { key(a + d, line(c.x, -18.2)); look(a + d * 0.8, 360, 0); look(a + d, 360, 0); });
+    move(`To ${c.name}`, 'room', 45, (a, d) => { key(a + d, line(c.x, -17.6)); look(a + d * 0.8, 360, 3); look(a + d, 360, 3); }); // back from the pedestal, a little up at what floats over it
     hold(`Counter: ${c.name}`, 55);
   }
   // ---- 04 Workshop: the price. Round the corner, down the row from its end, a beat at each shop, then step back to choose ----
@@ -331,7 +331,6 @@ export function buildRail() {
     if (m.name === 'Arrival hold' || m.name === 'HOME hold') continue; // the walk opens on the first; the TV's channels cover the second
     if (m.name === 'HOME partial orbit') { const t1 = moves[moves.indexOf(m) + 1].s1; for (let c = 0; c < TV_CHANNELS; c++) stops.push(m.s0 + ((t1 - m.s0) * (c + 0.5)) / TV_CHANNELS); }
     else if (m.name === 'Gallery, walking backwards') { for (const c of CARDS.slice(0, -1)) { let lo = m.s0, hi = m.s1; for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (posAt(LofS(mid))[2] > c.z) lo = mid; else hi = mid; } stops.push(lo); siteStops.push(lo); } } // where the camera is level with each screen; the last is the Gallery hold's
-    else if (m.name === 'Lobby push in') stops.push(m.s0 + d * 0.85);
     else if (m.hold) stops.push(m.s0 + d * 0.6);
     else if (END_STOPS.includes(m.name)) stops.push(m.s1 - 1);
   }

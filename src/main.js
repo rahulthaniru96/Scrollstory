@@ -331,9 +331,8 @@ function speedLimit(p, zone, lag) {
 
 // ---------- captions: one story, told in order (STORYBOARD.md). Ground floor: what we make. Stairs and Landing: where it comes from. Upstairs: how we work, one chapter a room. Roof: yours next ----------
 const COPY = {
-  'Arrival hold': ['Scrollstory · A website studio, Secunderabad', 'We design and build websites', "that tell your business's story. Come in."],
-  'Lobby push in': ['The founder', 'Rahul Thaniru', 'built this building to show how we work.'],
-  'Lobby hold': ['Room 01 · The lobby', "We don't just build websites.", 'We tell your story and build its world.'],
+  'Arrival hold': ['Scrollstory · Secunderabad', 'Every business has a story.', "Come in: we'll show you how its website gets made."],
+  'Lobby hold': ['Room 01 · The lobby · the founder', 'Rahul Thaniru', 'built this studio to show how we work.'],
   'Renovation hold': ['Room 03 · The renovation', 'Already have a site?', 'Walk through the line.'],
   'Renovated': ['Room 03 · A made-up café', 'Same café, a new site.', 'Move the cursor to compare.'],
   'Worth it hold': ['Room 04 · Worth it', 'What you pay for.', ''],
@@ -431,7 +430,7 @@ function focus(p) {
 // Plans and launch prices are from the rate card of 13 Nov 2026 (business-and-pricing.md).
 const PLANS = [
   { for: 'For a shop or practice that needs to be found and called.', price: '₹15,000', line: '1 to 3 pages with one signature animation, Call and WhatsApp buttons, Google Maps and basic SEO.', bullets: ['1 to 3 pages', 'One signature animation', 'Call and WhatsApp buttons, Google Maps'] },
-  { for: 'For a business with a story to tell. Our recommendation.', pick: true, price: '₹40,000', line: "Your business's story across 5 to 7 pages, with one custom 3D moment, an enquiry form and legal pages.", bullets: ['Story concept, 5 to 7 pages', 'One custom 3D moment', 'Enquiry form, SEO, legal pages, domain and hosting setup'] },
+  { for: 'For a business with a story to tell.', pick: true, price: '₹40,000', line: "Your business's story across 5 to 7 pages, with one custom 3D moment, an enquiry form and legal pages.", bullets: ['Story concept, 5 to 7 pages', 'One custom 3D moment', 'Enquiry form, SEO, legal pages, domain and hosting setup'] },
   { for: 'For a business that takes bookings or enquiries every day.', price: '₹65,000', line: 'Everything in Signature, plus an admin panel for enquiries or appointments, content editing and staff login.', bullets: ['Everything in Signature', 'Admin panel for enquiries or appointments', 'Content editing and staff login'] },
 ].map((pl, i) => ({ ...pl, name: SHOPS[i].name }));
 const WORTH = [
@@ -461,11 +460,11 @@ const css = new CSS3DRenderer(), cssScene = new THREE.Scene();
 css.domElement.id = 'cards3d'; document.body.append(css.domElement);
 const C3 = 0.0026; // metres per CSS pixel: a 420 px card is 1.1 m wide
 const ANCHOR = {}; // INFO key: [x, y, z, yaw] where its card stands
-COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x - 1.35, 1.7, -20.4, 0]; }); // left of what floats over the counter: the walk goes on to the right
+COUNTERS.forEach((c) => { ANCHOR[`Counter: ${c.name}`] = [c.x - 1.35, 1.7, -20.4, 0, 'right']; }); // left of what floats over the pedestal (the walk goes on to the right); its line points right, at it
 ANCHOR['Settle on the desk'] = [13.8, H.rooftop + 1.35, 6.2, 2.7]; // right of the desk, turned to the visitor
 SHOPS.forEach((s) => { ANCHOR[`Shop: ${s.name}`] = [10.25, 1.7, s.z + 1.3, -Math.PI / 2]; }); // right of the shop's device
 EXTRAS.forEach((e, i) => { ANCHOR[`Extra: ${e.name}`] = [15 + (i - (EXTRAS.length - 1) / 2) * 1.45 + 1.6, H.extras + 1.3, -20.6, -0.2]; }); // beside its carriage, the board above it
-demoCards.forEach((c, i) => { ANCHOR['site' + i] = [c.m.position.x + 0.3, 0.95, c.m.position.z, c.m.rotation.y]; }); // under its screen, a little in front of the wall
+demoCards.forEach((c, i) => { ANCHOR['site' + i] = [c.m.position.x + 0.3, 0.95, c.m.position.z, c.m.rotation.y, 'up']; }); // under its screen, a little in front of the wall; its line points up at it
 const card3d = {}; // key: { obj, box }
 function fillCard(box, d) {
   box.replaceChildren(el('div', d.label, 'label mono'), el('h2', d.h), ...d.lines.map((l) => el('p', l)));
@@ -482,7 +481,7 @@ function fillCard(box, d) {
 function linkPill([text, href]) { const a = el('a', text, 'pill solid'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; return a; }
 function getCard(key) {
   if (card3d[key]) return card3d[key];
-  const box = el('article', null, 'c3'); fillCard(box, INFO[key]);
+  const box = el('article', null, 'c3'); fillCard(box, INFO[key]); if (ANCHOR[key][4]) box.classList.add('to-' + ANCHOR[key][4]); // which way its line points
   const obj = new CSS3DObject(box), [x, y, z, yaw] = ANCHOR[key]; obj.position.set(x, y, z); obj.rotation.y = yaw; obj.userData.k = 1; obj.scale.setScalar(C3); cssScene.add(obj); ground(obj);
   return (card3d[key] = { obj, box });
 }
@@ -777,8 +776,8 @@ addEventListener('keydown', (e) => {
 // ---------- frame ----------
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
-  // portrait: widen the view so the sides of each frame (the plaque, the sign, the shelf) stay in it; at least 48 degrees across, at most 95 up and down (a phone sees about 53 degrees across)
-  camera.fov = camera.aspect < 1 ? Math.min(95, Math.max(55, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(24)) / camera.aspect)))) : 55;
+  // portrait: widen the view so the sides of each frame (the plaque, the sign, the shelf) stay in it; at least 53 degrees across, at most 95 up and down
+  camera.fov = camera.aspect < 1 ? Math.min(95, Math.max(55, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(26.5)) / camera.aspect)))) : 55;
   camera.updateProjectionMatrix(); css.setSize(innerWidth, innerHeight); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
 addEventListener('resize', resize); resize();
 
@@ -804,7 +803,9 @@ async function warmAll(gather) {
   for (const t of maps) if (!t.isRenderTargetTexture) renderer.initTexture(t); // pictures go up now, not on the first frame each is seen
   loading(1, 'Ready'); await nextFrame();
 }
-const hideLoader = () => { loaderEl.classList.add('done'); setTimeout(() => loaderEl.remove(), 900); };
+let loaderGone = false;
+const hideLoader = () => { if (loaderGone) return; loaderGone = true; loaderEl.classList.add('done'); setTimeout(() => loaderEl.remove(), 900); };
+setTimeout(hideLoader, 20000); // a backstop: on a very slow line, or if the warm-up fails, the walk still shows
 // Repeat visits: the scripts, models and pictures come from the browser's cache (public/sw.js). Only on a served page, not in development.
 if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !import.meta.env.DEV) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
 // A slow graphics chip: drop the resolution a step at a time until the frame rate holds (desktop only; phones already draw at 1).
@@ -923,9 +924,9 @@ gsap.ticker.add((time, deltaMs) => {
   let introOn = false;
   if (freeze !== null || (!pinned && !(startAt > 0) && scrollY < innerHeight * 0.3)) {
     if (state.reduce && freeze === null) gsap.fromTo(veil, { opacity: 1 }, { opacity: 0, duration: 1, ease: 'none' }); // reduced motion: a 1 s fade
-    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, camera, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), prepare: freeze === null ? (gather) => warmAll(gather).then(hideLoader) : null, freezeAt: freeze === null ? null : Number(freeze) }); introOn = freeze === null; }
+    else { document.getElementById('dusk').style.opacity = 1; intro({ scene, camera, renderer, shell, parts: dressing.front.parts, outlines: dressing.front.blocks, plaque: dressing.plaque, ready: dressing.ready, ripple: (x, z) => dressing.ripple(x, z, now), prepare: freeze === null ? (gather) => warmAll(gather).catch(console.error).finally(hideLoader) : null, freezeAt: freeze === null ? null : Number(freeze) }); introOn = freeze === null; }
   }
-  if (!introOn) (freeze !== null || pinned ? Promise.resolve() : warmAll()).then(hideLoader); // no intro: the loading screen still covers the warm-up
+  if (!introOn) (freeze !== null || pinned ? Promise.resolve() : warmAll()).catch(console.error).finally(hideLoader); // no intro: the loading screen still covers the warm-up
 }
 
 if (import.meta.env.DEV || location.search.includes('debug')) window.__world = { state, rail, lenis, FEEL, env, camera, scene, cssScene, renderer, hidden, enterSecret, leaveSecret, THREE }; // for tuning from the console

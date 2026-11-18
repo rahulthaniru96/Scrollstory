@@ -89,7 +89,7 @@ box('arcade beam N', -6, 6, 3.6, H.wing, -16.25, -15.75, 'pillar');
 // 03 Worth it: four counters on the south room's back wall, facing the courtyard.
 export const COUNTERS = [-3.1, -0.3, 2.5, 5.3].map((u, i) => ({ u, x: u + 5, z: -21.2, name: ['Custom', 'Secure', 'Legal', 'Income'][i] }));
 export const COUNTER_ROOM = { turn: Math.PI / 2, x: 5, z: -9.85 };
-for (const c of COUNTERS) box(`counter ${c.name}`, c.x - 0.9, c.x + 0.9, 0, 1.1, -22, -20.9, 'furniture', HID); // a terrazzo plinth, drawn by rooms.js
+for (const c of COUNTERS) box(`counter ${c.name}`, c.x - 0.55, c.x + 0.55, 0, 1.0, -21.75, -20.65, 'furniture', HID); // a round pedestal, drawn by rooms.js
 for (const c of COUNTERS) air(`counter float ${c.name}`, c.x, 1.95, c.z, 0.7); // nothing rests on a counter
 air('coins rising', COUNTERS[3].x, 3.3, COUNTERS[3].z, 0.6);
 
@@ -112,7 +112,7 @@ for (const [i, c] of CARDS.entries()) sph(`card ${i + 1}`, c.x, c.y, c.z, 0.35, 
 export const WINDOWS = [
   // (the Gallery's west wall carries the site screens instead of windows)
   ...SHOPS.map((s, i) => ({ x: 12, y: 1.1, z: s.z, n: '-x', w: 2.6, h: 2.3, sky: ['rose', 'day', 'night'][i], shaft: 38 })),
-  ...COUNTERS.map((c, i) => ({ x: c.x, y: 1.3, z: -22, n: '+z', w: 1.7, h: 2.5, sky: ['night', 'dawn', 'day', 'gold'][i], shaft: 36 })),
+  // (Worth it's north wall is plain now: its title, and spotlights over the pedestals, rooms.js)
   ...[2.2, 5.4].flatMap((z) => [
     { x: -6, y: 5.0, z, n: '+x', w: 1.6, h: 3.2, sky: 'gold', shaft: 40 },
     { x: 6, y: 5.0, z, n: '-x', w: 1.6, h: 3.2, sky: 'rose' },

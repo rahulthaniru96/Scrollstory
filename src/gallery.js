@@ -1,5 +1,5 @@
 // The Gallery: a row of framed screens on the west wall, one per site, each showing that site's real landing page.
-// Two are live client projects; five are concept demos for made-up businesses, hosted with this site (public/demos).
+// Two are live projects (Bhumi Insurance for a client; G-Thriftz a prototype for a friend's BBA project); five are concept demos for made-up businesses, hosted with this site (public/demos).
 // The walk goes along the wall and stops square in front of each; the one in front lights up and the others dim. G-Thriftz, the best piece, is kept for last.
 import * as THREE from 'three';
 
@@ -12,7 +12,7 @@ export const SITES = [
   { name: 'Little Banyan Preschool', shot: 'little-banyan-preschool', url: 'demos/little-banyan-preschool.html', accent: 0x2f6b3a, line: 'A banyan tree grows as you scroll, and the sun crosses the school day. Book a visit.' },
   { name: 'Axiom Academy', shot: 'axiom-academy', url: 'demos/axiom-academy.html', accent: 0xe0b23a, line: 'Coaching on a chalkboard, equations writing themselves. Book a free demo class.' },
   { name: 'Aaranya Residences', shot: 'aaranya-residences', url: 'demos/aaranya-residences.html', accent: 0xe8a070, line: "Homes in an architect's line drawing, dawn to dusk, windows lighting up. Book a site visit." },
-  { name: 'G-Thriftz', live: true, best: true, shot: 'gthriftz', url: 'https://g-thriftz.vercel.app/', accent: 0xb86b7e, line: 'An online thrift store you walk into by scrolling. Our best piece so far.' },
+  { name: 'G-Thriftz', live: true, best: true, shot: 'gthriftz', url: 'https://g-thriftz.vercel.app/', accent: 0xb86b7e, line: 'An online thrift store you walk into by scrolling, built as a prototype for a BBA entrepreneurship project.' },
 ];
 const hex = (c) => '#' + c.toString(16).padStart(6, '0');
 

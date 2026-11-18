@@ -180,17 +180,20 @@ export function furnish({ scene, camera, tick, mesh: mesh0, basic, lit, glow: gl
     });
     terrazzo.wrapS = terrazzo.wrapT = THREE.RepeatWrapping; terrazzo.repeat.set(2, 1.4);
     const stone = lit(0xffffff, { map: terrazzo, roughness: 0.55 }), brass = lit(0xc9a24a, { roughness: 0.3, metalness: 0.6 });
-    for (const [i, c] of COUNTERS.entries()) {
-      const g = new THREE.Group(); g.position.set(c.x, 0, -21.6); scene.add(g);
-      mesh(new THREE.BoxGeometry(1.8, 1.0, 0.8), stone, 0, 0.5, 0, g); // the back half
-      const front = mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.0, 40, 1, false, -Math.PI / 2, Math.PI), stone, 0, 0.5, 0.0, g); front.scale.z = 0.78; // the rounded front, to z -20.9
-      mesh(new THREE.BoxGeometry(1.84, 0.06, 0.84), brass, 0, 1.03, 0, g);
-      const rim = mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.06, 40, 1, true, -Math.PI / 2, Math.PI), brass, 0, 1.03, 0, g); rim.scale.z = 0.79; rim.material.side = THREE.DoubleSide;
-      const top = mesh(new THREE.CylinderGeometry(0.86, 0.86, 0.04, 40, 1, false, -Math.PI / 2, Math.PI), basic(0xfff3d6, { transparent: true, opacity: 0.75 }), 0, 1.075, 0, g); top.scale.z = 0.75; // lit from inside
-      mesh(new THREE.BoxGeometry(1.76, 0.04, 0.78), basic(0xfff3d6, { transparent: true, opacity: 0.75 }), 0, 1.075, 0, g);
-      mesh(new THREE.BoxGeometry(1.86, 0.08, 0.86), lit(0x3a3330), 0, 0.04, 0, g); // a dark plinth line at the floor
-      const plate = mesh(new THREE.PlaneGeometry(0.62, 0.16), basic(0xffffff, { map: canvasTex(310, 80, (x) => { x.fillStyle = '#c9a24a'; x.fillRect(0, 0, 310, 80); x.fillStyle = '#3a2810'; x.font = '500 34px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText(`0${i + 1} · ${c.name.toUpperCase()}`, 155, 52); }) }), 0, 0.72, 0.705, g);
+    const cone = new THREE.CylinderGeometry(0.08, 0.95, 3.4, 32, 1, true), spot = basic(0xffe6b8, { transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    for (const [i, c] of COUNTERS.entries()) { // a museum pedestal: terrazzo drum, brass rim, a lit top, its number on the front, and a spotlight from the ceiling
+      const g = new THREE.Group(); g.position.set(c.x, 0, -21.2); scene.add(g);
+      mesh(new THREE.CylinderGeometry(0.5, 0.55, 1.0, 40), stone, 0, 0.5, 0, g);
+      mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.05, 40), brass, 0, 1.0, 0, g);
+      mesh(new THREE.CylinderGeometry(0.47, 0.47, 0.02, 40), basic(0xfff3d6), 0, 1.03, 0, g); // lit from inside
+      mesh(new THREE.CylinderGeometry(0.57, 0.57, 0.06, 40), lit(0x3a3330), 0, 0.03, 0, g); // a dark ring at the floor
+      const plate = mesh(new THREE.PlaneGeometry(0.5, 0.13), basic(0xffffff, { map: canvasTex(310, 80, (x) => { x.fillStyle = '#c9a24a'; x.fillRect(0, 0, 310, 80); x.fillStyle = '#3a2810'; x.font = '500 34px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText(`0${i + 1} · ${c.name.toUpperCase()}`, 155, 52); }) }), 0, 0.72, 0.535, g);
       plate.rotation.x = -0.05;
+      const beam = mesh(cone, spot, 0, 2.8, 0, g); beam.renderOrder = 2;
+    }
+    { // the room's title on the plain north wall, over the pedestals
+      const t = canvasTex(1600, 160, (x) => { x.fillStyle = '#c9a24a'; x.font = '500 64px "Martian Mono", monospace'; x.textAlign = 'center'; x.fillText('WORTH IT · WHAT YOU PAY FOR', 800, 100); });
+      mesh(new THREE.PlaneGeometry(6.4, 0.64), basic(0xffffff, { map: t, transparent: true }), (COUNTERS[0].x + COUNTERS[3].x) / 2, 3.55, -21.97);
     }
     // Workshop: a fluted timber counter along each shop, a pale stone top, a brass foot rail and a line of the shop's colour under the top.
     const timber = lit(0x8a5a3c, { roughness: 0.6 }), flute = new THREE.CylinderGeometry(0.045, 0.045, 0.82, 10), top = lit(0xeee6d8, { roughness: 0.4 });

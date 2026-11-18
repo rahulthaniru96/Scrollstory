@@ -143,7 +143,7 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 
 ## Eighth round of feedback (18 Nov 2026)
 
-- Gallery: a row of seven framed screens on its west wall, each showing a site's real landing page (stills in `public/shots`), and the walk stops square in front of each. Two live client projects, Bhumi Insurance and G-Thriftz, with "Visit the live site"; five concept demos for made-up businesses, hosted with this site in `public/demos` and opened with "Open the demo". The domes, phones and props are gone and the room is labelled Gallery as soon as the screens show. The demo links work only once this site itself is deployed.
+- Gallery: a row of seven framed screens on its west wall, each showing a site's real landing page (stills in `public/shots`), and the walk stops square in front of each. Two live projects, Bhumi Insurance and G-Thriftz (a prototype for a friend's BBA project), with "Visit the live site"; five concept demos for made-up businesses, hosted with this site in `public/demos` and opened with "Open the demo". The domes, phones and props are gone and the room is labelled Gallery as soon as the screens show. The demo links work only once this site itself is deployed.
 - Extras: the departure board offers a live demo in 15 minutes instead of the four add-ons. One carriage, one map pin, and "Get my demo on WhatsApp". The walk is 5721 vh.
 - Phones: the finger drives the walk through Lenis, slows near stops, goes at most one stop per touch, and a flick glides to that stop. Native touch panning is off (pan-y kept for the chooser, floor plan and form). The hint pill, header buttons and card links fit a 390 px screen. A phone can lower its resolution when slow.
 - Greenhouse: a sign says Maintenance and lists the care plan; the plants are one site at five ages of care; captions say "After launch, we maintain your site" and give the launch price.
@@ -163,5 +163,8 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - The clock tower's key gives "Achievement unlocked · The Watchmaker"; the rooftop desk card shows the badge or the count of secrets found.
 - Phones: captions and cards are cream cards at the foot of the screen, the header fits, the view is wider in portrait, and the ending is one card.
 - Blender: `blender/components.py` can extrude text in the site's fonts (`blender/fonts`, OFL); `wordmark` and `door_band` replace the flat lettering on the front.
+- Lobby: just inside the door the walk turns to the lobby's west side and pauses on the founder's plaque, with his card, then goes to the Gallery; it never heads for the stairs.
+- Worth it is an exhibit: four round pedestals under spotlights, the object floating over each, a plain wall with "Worth it · What you pay for", and no windows behind. Each card stands left with its line pointing right at its pedestal; the Gallery cards point up at their screens.
+- The loading screen always lifts (on an error, or after 20 s at most). Portrait phones see 53 degrees across.
 - Not checked: a real phone, a real GPU, and the service worker on the real host (tested on `vite preview` only).
 

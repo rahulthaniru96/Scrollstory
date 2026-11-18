@@ -60,6 +60,8 @@
   .c3.on { pointer-events: auto; }
   .c3::before { content: ''; position: absolute; left: -64px; top: 50%; width: 56px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); } /* a line back to the thing it explains */
   .c3::after { content: ''; position: absolute; left: -72px; top: calc(50% - 5px); width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+  .c3.to-right::before { left: auto; right: -64px; } .c3.to-right::after { left: auto; right: -72px; } /* the thing it explains is to its right */
+  .c3.to-up::before { left: 50%; top: -48px; width: 2px; height: 40px; } .c3.to-up::after { left: calc(50% - 5px); top: -58px; } /* above it */
   .c3 .label { font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.75; }
   .c3 h2 { font: 420 40px/1.04 var(--display); letter-spacing: -0.02em; margin: 8px 0 10px; font-variation-settings: 'SOFT' 70, 'WONK' 1; }
   .c3 p { margin: 0 0 6px; }

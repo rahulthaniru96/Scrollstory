@@ -14,10 +14,10 @@ npm run check    # rail check: clearance, eye height, doors, bridges, speed limi
 npm run build    # runs the check first and stops if it fails
 ```
 
-One scroll gesture, swipe, arrow key, Page Up/Down or Space moves the walk exactly one stop (`rail.stops`, 35 of them). Nothing queues: input during a travel is dropped, and a trackpad's coasting tail counts as the same gesture. The floor plan and far pips jump behind a room card and land exactly on the room's first stop.
+The wheel, a trackpad or a swipe scrolls the walk freely; the wheel slows coming up to each stop (`rail.stops`, 46 of them) and never stops the walk. Arrow keys, Page Up/Down and Space go to the next stop ahead or behind. The floor plan and far pips jump behind a room card and land exactly on the room's first stop.
 
 Keys: `H` hides the readout, `R` tests reduced motion, `M` turns sound on or off, left and right change the TV channel (seated or not), `Esc` closes the floor plan, leaves a secret, stands up from the sofa or puts a book back.
-Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?at=1&intro=3.2` holds the intro at 3.2 seconds, `?free=1` gives the old free scroll for tuning, and `?debug=1` puts the scene on `window.__world`.
+Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?at=1&intro=3.2` holds the intro at 3.2 seconds, `?free=1` turns off the slow-down at stops, for tuning, and `?debug=1` puts the scene on `window.__world`.
 
 ## Files
 
@@ -122,4 +122,11 @@ Addresses: `?at=1040` freezes the walk at 1040 vh, `?p=1040` opens it there, `?a
 - Drafting Room: the page frame is smaller (4.6 by 2.9 m, was 6.2 by 3.6) and stands 0.6 m further back, so it is whole in view from the stop. The page is redrawn as a desktop layout at 1280 wide: hero and picture side by side, three cards in a row, a Find us band and the footer. It shows 1280 by 800 at a time and scrolls once painted. The return path through the page moved 0.55 m west to keep clear of the smaller frame.
 - Funicular: the view faces the way the car goes, with the Signal Cabin ahead, instead of sideways. The ride is slower (190 vh, was 150).
 - Not checked: real GPU or phone; how strong the card shadows look on a real screen (they are subtle in headless frames); reduced motion for the new page fan. The tank egg's "Take me near" lands with the tank above the screen; this was already so before this round.
+
+## Fifth round of feedback (18 Nov 2026)
+
+- Scroll: the wheel scrolls freely again. It slows as it comes up to each stop (to 0.3 of its speed within 45 vh) and speeds up again leaving it. It never stops the walk or needs a new gesture. Touch scrolls natively. The keys go to the next stop ahead or behind, and the pips go to theirs. Fullscreen or a resized window keeps the place in the walk.
+- Landing books: the five How we work volumes float open in the sun beam, a page turning in each, instead of a shelf on the west wall and a stop of their own. Click one at the Landing hold and it floats to the reader and opens flat beside its card. Volume five's last page is the door to the Lab. The drifting pages are gone; Door 201 and the Lab are still found from their clues.
+- Story: the captions follow STORYBOARD.md in one order. The four parts are the ground floor (what we make), the stairs and Landing (where it comes from), upstairs (the five chapters of How we work: Story, Design, Build, Launch, Care, one a room) and the roof (the ask). Lines said twice are said once now: the Drafting page and pinboard no longer repeat the arrival line, the book summaries no longer repeat the room captions, Worth it and the founder no longer repeat their counters and label, and each demo site card says what that business needs instead of the same line.
+- Not checked: real phone touch scroll; real trackpad feel of the slow-down; the new copy has not been reviewed by Rahul.
 

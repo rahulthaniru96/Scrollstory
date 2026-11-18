@@ -53,6 +53,7 @@
   #caption.on .cta { pointer-events: auto; }
   #info, #chooser, #startBtn { position: fixed; z-index: 4; opacity: 0; pointer-events: none; }
   #info.on, #chooser.on, #startBtn.on { pointer-events: auto; }
+  #info .who { margin: 10px 0 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75; } #info .who a { color: inherit; }
   #info input.sign { width: 100%; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--ink); border-radius: 10px; background: #fff; font: inherit; }
   #cards3d { position: fixed !important; inset: 0; z-index: 4; pointer-events: none; }
   .c3 { width: 420px; padding: 26px 30px 28px; background: rgba(247, 239, 226, 0.97); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 24px; box-shadow: 0 40px 70px rgba(20, 32, 29, 0.32), inset 0 7px 0 var(--accent); font: 400 20px/1.4 var(--text); pointer-events: none; transition: opacity 0.2s; }
@@ -170,7 +171,11 @@
   @media (pointer: coarse) { html, body { touch-action: none; } #chooser, #plan, dialog { touch-action: pan-y; } #plan, dialog { overscroll-behavior: contain; } } /* a swipe in the form or the floor plan never carries on into the walk behind it */ /* the finger moves the walk through Lenis only: a native scroll starting first is what flung the walk far past a stop */
   @media (max-width: 640px) { #hint, #who { display: none; } #startBtn { bottom: 84px; } body:has(#info.on) #caption { opacity: 0 !important; } #sitBtn { top: 150px; bottom: auto; right: 16px; } #remote { bottom: 84px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: 92vw; border-radius: 20px; } }
   @media (max-width: 640px) { #info { left: 5vw; right: 5vw; bottom: 140px; width: auto; padding: 14px 16px; } #info h2 { font-size: 26px; } #chooser .cards { grid-template-columns: 1fr; gap: 12px; } #chooser article { padding: 10px 14px; display: grid; grid-template-columns: 1fr auto; column-gap: 10px; align-items: center; } #chooser article > * { grid-column: 1; } #chooser article .price { grid-column: 2; grid-row: 1; font-size: 18px; } #chooser article .pill { grid-column: 1 / -1; margin-top: 6px; padding: 8px 14px; font-size: 14px; justify-self: start; } #chooser h3 { font-size: 22px; margin: 0; } #chooser .for { font-size: 13px; margin: 2px 0 0; } #chooser ul { display: none; } #chooser .unsure { padding: 10px 12px; font-size: 14px; } #chooser > .note { font-size: 10px; } /* a phone: name, price, who it is for and the button; the details are on the plan's shop card */
-    header { padding: 14px 16px; } header nav { display: flex; gap: 6px; } header nav .pill { padding: 7px 10px; font-size: 10px; } #nudge { white-space: normal; width: max-content; max-width: calc(100vw - 32px); text-align: center; border-radius: 16px; top: 64px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 9px; top: 64px; } .brand { font-size: 21px; } .brand small { display: block; margin: 2px 0 0; font-size: 9px; } #level { top: auto; bottom: 62px; font-size: 9px; } #who { font-size: 9px; } #caption .num { opacity: 0.3; } }
+    header { padding: 14px 16px; } header nav { display: flex; gap: 6px; } header nav .pill { padding: 7px 10px; font-size: 10px; } #nudge { white-space: normal; width: max-content; max-width: calc(100vw - 32px); text-align: center; border-radius: 16px; top: 64px; } #contact { right: 16px; bottom: 16px; } #hud { font-size: 9px; top: 64px; } .brand { font-size: 21px; } .brand small { display: block; margin: 2px 0 0; font-size: 9px; } #level { top: auto; bottom: 62px; font-size: 9px; } #who { font-size: 9px; } #caption .num { display: none; } .brand small .by { display: none; }
+    /* a phone's caption is a card at the foot of the screen, above the level chip: readable over any room */
+    #caption { left: 12px; right: 12px; bottom: 92px; max-width: none; padding: 12px 16px 14px; color: var(--ink); text-shadow: none; background: rgba(247, 239, 226, 0.94); border: 1px solid var(--ink); border-radius: 16px; box-shadow: inset 0 4px 0 var(--accent); }
+    #caption .label { margin-bottom: 4px; font-size: 10px; opacity: 0.7; } #caption h1 { font-size: 25px; } #caption h1.small { font-size: 18px; } #caption h1 em { color: color-mix(in srgb, var(--accent) 55%, var(--ink)); }
+    #info { left: 12px; right: 12px; bottom: 92px; } }
 </style>
 </head>
 <body>
@@ -179,7 +184,7 @@
 <div id="track"></div>
 
 <header>
-  <div class="brand">scrollstory <small class="mono">website studio · by <b>Rahul Thaniru</b></small></div>
+  <div class="brand">scrollstory <small class="mono">website studio<span class="by"> · by <b>Rahul Thaniru</b></span></small></div>
   <nav>
     <button class="pill mono" id="soundBtn" aria-pressed="false" title="Sound (M)">Sound off</button>
     <button class="pill mono" id="planBtn" aria-expanded="false" aria-controls="plan">Floor plan</button>

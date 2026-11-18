@@ -549,7 +549,7 @@ function cards(p) {
     if (d.plan) { const b = el('button', `Ask about ${d.plan}`, 'pill solid'); b.onclick = () => openForm(d.plan); info.append(b); }
     if (d.link) info.append(linkPill(d.link));
     if (d.act) { const b = el('button', d.act[0], 'pill solid'); b.onclick = d.act[1]; info.append(b); }
-    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; info.append(i, el('p', badgeLine(), 'mono badgeLine')); }
+    if (d.sign) { const i = el('input', null, 'sign'); i.placeholder = 'Your business name'; i.maxLength = 40; i.value = signText; i.setAttribute('aria-label', 'Your business name'); i.oninput = () => { signText = i.value; deskSign(signText); hidden.sketchName(signText); }; const sb = el('button', 'Start your project', 'pill solid'); sb.onclick = () => openForm(); const w = el('p', null, 'mono who'); w.append('Rahul Thaniru · '); const a = el('a', '+91 99490 88659'); a.href = 'tel:+919949088659'; w.append(a); info.append(i, sb, w, el('p', badgeLine(), 'mono badgeLine')); } // on a phone the ending is all in this one card
   }
   const o = pinnedCard ? 1 : si >= 0 ? sstep(0.3, 0.8, env.site[si]) : d ? sstep(0, 0.22, u) * (m === lastMove ? 1 : 1 - sstep(0.8, 1, u)) : 0;
   const in3d = !flatCards && !pinnedCard && ANCHOR[key];
@@ -566,7 +566,7 @@ function cards(p) {
   sitBtn.classList.toggle('on', flatCards && canSit); show3d(sit3d, flatCards ? 0 : sitO);
   const turn = Math.atan2(camera.position.x - sit3d.position.x, camera.position.z - sit3d.position.z) - sit3d.rotation.y;
   sit3d.rotation.y += Math.atan2(Math.sin(turn), Math.cos(turn)) * 0.04; // turns slowly to whoever walks round the sofa, so it never snaps
-  const end = flatCards && m === lastMove && u > 0.45; startBtn.classList.toggle('on', end); who.classList.toggle('on', end); // on a desktop they are on the desk's card
+  startBtn.classList.remove('on'); who.classList.remove('on'); // the desk's card carries the ending, on a phone too
 }
 for (const pl of PLANS) {
   const card = el('article'), ul = el('ul'), b = el('button', `Start with ${pl.name}`, 'pill solid');
@@ -777,8 +777,8 @@ addEventListener('keydown', (e) => {
 // ---------- frame ----------
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
-  // portrait: widen the view so the sides of each frame (the plaque, the sign, the shelf) stay in it; at least 48 degrees across, at most 85 up and down
-  camera.fov = camera.aspect < 1 ? Math.min(85, Math.max(55, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(24)) / camera.aspect)))) : 55;
+  // portrait: widen the view so the sides of each frame (the plaque, the sign, the shelf) stay in it; at least 48 degrees across, at most 95 up and down (a phone sees about 53 degrees across)
+  camera.fov = camera.aspect < 1 ? Math.min(95, Math.max(55, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(24)) / camera.aspect)))) : 55;
   camera.updateProjectionMatrix(); css.setSize(innerWidth, innerHeight); gelPass.target.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
 addEventListener('resize', resize); resize();
 
